@@ -324,9 +324,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .areaBoxName{font-size:9.5px;font-weight:700;color:var(--navy);text-align:center;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .catAllBtn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--yellow)}
 .catFoot{display:block;width:calc(100% + 32px);margin:18px -16px -22px;max-width:none}
-.promoSlot{perspective:1100px;scroll-margin-bottom:110px;height:112px;background:var(--navy);border-radius:16px}
+.promoSlot{perspective:1100px;scroll-margin-bottom:110px;height:112px;background:var(--navy);border-radius:16px;overflow:hidden;-webkit-mask-image:-webkit-radial-gradient(#fff,#000)}
 .promoSlot:empty{height:0;background:none}
-.promoFace{transform-origin:center center;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.promoFace{transform-origin:center center;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;overflow:hidden;border-radius:16px}
 .storeFace{display:flex;align-items:center;gap:10px;background-image:linear-gradient(135deg,rgba(7,22,58,.74),rgba(14,45,110,.74)),var(--cardBgImg);background-size:cover;background-position:center;background-repeat:no-repeat;color:#fff;border-radius:16px;padding:7px 34px 7px 12px;position:relative;height:100%;overflow:hidden}
 .storeFace .shPhoto{width:72px;height:62px;border-radius:12px;flex:none;font-size:24px}
 .storeFace .shInfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
