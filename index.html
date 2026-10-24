@@ -86,7 +86,7 @@ h3{margin:0 0 8px;font-size:16px;color:var(--navy)}
 .tx:last-child{border:0}
 .dot{width:26px;height:26px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
 .dot.p{background:var(--ok)}.dot.m{background:var(--bad)}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+.nav{position:fixed;bottom:0;left:0;right:0;width:auto;max-width:560px;margin:0 auto;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5;box-sizing:border-box}
 .nav button{flex:1;border:0;background:none;padding:8px 2px 7px;font-size:12px;font-weight:700;color:#8794ad;display:flex;flex-direction:column;align-items:center;gap:1px;border-top:3px solid transparent}
 .nav button.on{color:var(--blue);border-top-color:var(--blue)}
 .ask{border:2px solid var(--yellow);background:var(--y2);border-radius:14px;padding:14px;margin-bottom:14px}
@@ -263,7 +263,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap .zb{position:absolute;z-index:6;right:10px;width:34px;height:34px;border-radius:10px;border:0;background:#fffffff0;color:var(--navy);font-size:22px;font-weight:700;box-shadow:0 2px 6px #0005;cursor:pointer;line-height:1;padding:0}
 .rmap.g{touch-action:auto}.rmap .cpin{position:absolute;left:50%;top:50%;z-index:5;width:40px;height:50px;margin:-50px 0 0 -20px;pointer-events:none;filter:drop-shadow(0 3px 3px #0008)}.rmap .attr{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8.5px;color:#ffffffd0;text-shadow:0 0 2px #000;z-index:5;pointer-events:none;white-space:nowrap;direction:ltr}
 #mapcard{scroll-margin-bottom:110px}
-.storeSheet{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);width:100%;max-width:560px;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 26px #0c2a6b2e;direction:rtl;z-index:8;display:flex;flex-direction:column;overflow:hidden;transition:max-height .28s cubic-bezier(.2,.8,.3,1)}
+.storeSheet{position:fixed;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom));width:auto;max-width:560px;margin:0 auto;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 26px #0c2a6b2e;direction:rtl;z-index:8;display:flex;flex-direction:column;overflow:hidden;transition:max-height .28s cubic-bezier(.2,.8,.3,1);box-sizing:border-box}
 .storeSheet.mini{max-height:min(50vh,370px)}
 .storeSheet.full{max-height:min(84vh,640px)}
 .shHandleWrap{flex:none;display:flex;justify-content:center;align-items:center;height:22px;cursor:grab;touch-action:none}
@@ -324,9 +324,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .areaBoxName{font-size:9.5px;font-weight:700;color:var(--navy);text-align:center;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .catAllBtn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--yellow)}
 .catFoot{display:block;width:calc(100% + 32px);margin:18px -16px -22px;max-width:none}
-.promoSlot{perspective:1100px;scroll-margin-bottom:110px;height:112px}
-.promoSlot:empty{height:0}
-.promoFace{transform-origin:center center;height:100%}
+.promoSlot{perspective:1100px;scroll-margin-bottom:110px;height:112px;background:var(--navy);border-radius:16px}
+.promoSlot:empty{height:0;background:none}
+.promoFace{transform-origin:center center;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .storeFace{display:flex;align-items:center;gap:10px;background-image:linear-gradient(135deg,rgba(7,22,58,.74),rgba(14,45,110,.74)),var(--cardBgImg);background-size:cover;background-position:center;background-repeat:no-repeat;color:#fff;border-radius:16px;padding:7px 34px 7px 12px;position:relative;height:100%;overflow:hidden}
 .storeFace .shPhoto{width:72px;height:62px;border-radius:12px;flex:none;font-size:24px}
 .storeFace .shInfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
@@ -1746,7 +1746,7 @@ function routeInfoHtml(sel){const R=S.route&&S.route.id===sel.id?S.route:null,md
   <a target="_blank" class="btn blue sm" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px" href="${gmapDirUrl(sel,md)}">🧭 ابدأ الملاحة الفعلية (خرائط Google)</a>`):''}
 let shDrag=null;
 function shDragStart(e){const el=$('#storeSheet');if(!el)return;shDrag={startY:e.clientY,moved:false};el.style.transition='none';try{el.setPointerCapture(e.pointerId)}catch(_){}}
-function shDragMove(e){if(!shDrag)return;const el=$('#storeSheet');if(!el)return;const dy=e.clientY-shDrag.startY;if(Math.abs(dy)>4)shDrag.moved=true;el.style.transform=`translateX(-50%) translateY(${Math.max(-6,Math.min(dy,320))}px)`}
+function shDragMove(e){if(!shDrag)return;const el=$('#storeSheet');if(!el)return;const dy=e.clientY-shDrag.startY;if(Math.abs(dy)>4)shDrag.moved=true;el.style.transform=`translateY(${Math.max(-6,Math.min(dy,320))}px)`}
 function shDragEnd(e){if(!shDrag)return;const el=$('#storeSheet');if(!el)return;const dy=e.clientY-shDrag.startY;el.style.transition='';el.style.transform='';
   if(dy<-20)shSetFull(true);else if(dy>20)shSetFull(false);else if(!shDrag.moved)shToggle();
   shDrag=null}
