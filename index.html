@@ -1129,6 +1129,20 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
   }
 }
 
+/* Overflow fix: the premium merchant card (above) is taller than the old promo
+   strip it replaced, so the page can need more scroll than the screen offers.
+   Trim the expanded map a bit further specifically while that card is showing,
+   scaled to available height, so the homepage keeps fitting without excess
+   scroll. Card colors/border/layout are untouched — this only resizes the map. */
+@media (max-width:560px){
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDirections){
+    height:clamp(210px,30dvh,300px) !important;max-height:300px;
+  }
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDetails){
+    height:clamp(190px,25dvh,260px) !important;max-height:260px;
+  }
+}
+
 </style>
 </head>
 <body>
