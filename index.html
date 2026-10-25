@@ -915,10 +915,10 @@ async function phoneNext(){
   const v=$('#ph').value;if(!phoneOk(v))return toast('أدخل رقماً لبنانياً صحيحاً');
   S.phone=norm(v);S.code='';S.pin1='';S.loginRole=null;render();
   const mChk=await sbRpc('merchant_check_phone',{p_phone:S.phone});
-  if(mChk&&mChk.exists){S.loginRole='merchant';S.pinMode='enter';S.screen='pin';return render()}
+  if(mChk&&mChk.exists){S.loginRole='merchant';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
   const cChk=await sbRpc('customer_check_phone',{p_phone:S.phone});
-  if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';return render()}
-  S.pinMode='set';S.screen='pin';render();
+  if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
+  S.pinMode='set';S.screen='pin';render();resetZoomForPinScreen();
 }
 function hydrateMerchant(md){
   let m=(md.id&&S.merchants.find(x=>x.id===md.id))||(md.phone&&S.merchants.find(x=>x.phone===md.phone));
@@ -997,6 +997,8 @@ function mapGalRow(mid,g){return{id:g.id,mid,name:g.name,price:g.price,img:g.img
 async function syncMerchantGallery(mid){const list=await sbRpc('merchant_gallery_list',{p_merchant_id:mid});if(list){S.gallery=S.gallery.filter(g=>!(g.db&&g.mid===mid));list.forEach(g=>S.gallery.push(mapGalRow(mid,g)))}}
 async function syncStoreGallery(mid){const list=await sbRpc('store_gallery',{p_merchant_id:mid});if(list){S.gallery=S.gallery.filter(g=>!(g.db&&g.mid===mid));list.forEach(g=>S.gallery.push(mapGalRow(mid,g)));render()}}
 async function syncStoreOffers(mid){const offs=await sbRpc('active_offers',{p_merchant_id:mid});if(offs){S.offers=S.offers.filter(o=>!(o.db&&o.mid===mid));offs.forEach(o=>S.offers.push(mapOfferRow(o)));render()}}
+// حقل رقم الهاتف بصفحة تسجيل الدخول بخط أصغر من 16px (كبقية التطبيق)، فيكبّر iOS Safari تلقائياً الشاشة عند التركيز عليه للكتابة؛ هذا التكبير لا يزول تلقائياً عند الانتقال لصفحة رمز الحماية مباشرة بعده لأنه تبديل محتوى داخلي (SPA) لا تنقّل صفحة حقيقي. هذه الدالة تصفّر التكبير فقط عند دخول صفحة رمز الحماية تحديداً، دون أي تغيير على بقية نظام التكبير بالتطبيق.
+function resetZoomForPinScreen(){const vp=document.querySelector('meta[name="viewport"]');if(!vp)return;const orig=vp.getAttribute('content');vp.setAttribute('content',orig+',maximum-scale=1');requestAnimationFrame(()=>vp.setAttribute('content',orig))}
 function pinView(){
   const mode=S.pinMode,isEnter=mode==='enter';
   const title=isEnter?'أدخل رمز الحماية':(mode==='confirm'?'تأكيد رمز الحماية':'إنشاء رمز حماية');
