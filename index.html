@@ -906,7 +906,7 @@ function fitSplash(){const sp=document.getElementById('sp'),bg=document.getEleme
 window.addEventListener('resize',fitSplash);
 function loginView(){return `<div class="scr">${backBtn('splash')}<div style="display:flex;justify-content:center">${logo()}</div>
  <h1 style="margin-top:22px">تسجيل الدخول</h1><p class="sub">أدخل رقم هاتفك لبدء الرحلة</p>
- <div class="field"><div class="cc">${flag}<span>+961</span></div><input id="ph" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" value="${S.phone?dph(S.phone):''}" style="text-align:left"></div>
+ <div class="field"><div class="cc">${flag}<span>+961</span></div><input id="ph" inputmode="numeric" dir="ltr" placeholder="رقم الهاتف" value="${S.phone?dph(S.phone):''}" style="text-align:left;font-size:16px"></div>
  <button class="btn" onclick="phoneNext()">متابعة</button>
  <p class="small" style="margin-top:12px">بالضغط على متابعة، فإنك توافق على شروط الاستخدام وسياسة الخصوصية</p>
  <div class="hint">للتجربة: 71111111 (زبون برصيد 2,500 نقطة) · 3000001 (تاجر: مطعم الميناء) · أي رقم آخر ينشئ حساباً جديداً</div></div>`}
