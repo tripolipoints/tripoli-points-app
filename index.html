@@ -3264,6 +3264,18 @@ setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.
 })();
 if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 (function(){const qm=/^#q-(.+)$/.exec(location.hash);if(qm){S.qrMid=qm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}})();
+(function(){ // أداة تشخيص مؤقتة لمشكلة "تحرّك الشاشة مع الإصبع": تُفعَّل فقط بإضافة ?debug=1 للرابط، بدون أي تأثير على السلوك العادي
+  if(!/[?&]debug=1\b/.test(location.search))return;
+  const box=document.createElement('div');
+  box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#000c;color:#0f0;font:11px/1.4 monospace;padding:4px 8px;direction:ltr;pointer-events:none;white-space:pre-wrap';
+  document.body.appendChild(box);
+  let downInfo='(none yet)';
+  const elDesc=el=>el?`${el.tagName}.${(el.className+'').toString().split(' ').join('.')}`:'null';
+  window.addEventListener('pointerdown',e=>{downInfo=`DOWN target=${elDesc(e.target)} id=${e.pointerId}`;update()},true);
+  window.addEventListener('pointermove',e=>{update(`MOVE id=${e.pointerId} x=${Math.round(e.clientX)} y=${Math.round(e.clientY)}`)},true);
+  window.addEventListener('pointerup',e=>{update(`UP id=${e.pointerId}`)},true);
+  function update(extra){box.textContent=downInfo+(extra?(String.fromCharCode(10)+extra):'')+String.fromCharCode(10)+'TM.ptr.size='+(TM?TM.ptr.size:'-')+' TM.moved='+(TM?TM.moved:'-')+String.fromCharCode(10)+'scrollX='+window.scrollX+' scrollY='+window.scrollY+' docW='+document.documentElement.scrollWidth+' winW='+innerWidth}
+})();
 render();
 Promise.all([syncSettings(),syncCategories()]).then(render);
 </script>
