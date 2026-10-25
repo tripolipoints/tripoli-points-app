@@ -435,6 +435,714 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rtrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 0}.rtrow .btn{margin:0;height:44px;font-size:14px}
 .rtrow .btn.on{background:var(--navy);color:#fff}
 .rtinfo{margin-top:10px;background:#eef4ff;border-radius:12px;padding:10px 12px;font-size:14px;color:var(--navy)}
+
+/* TP premium mobile homepage v1 — visual-only, no map/data/transaction changes */
+/* Scoped to the customer map homepage; leave other screens and map gestures alone. */
+.scr:has(> .hero2){
+  background:linear-gradient(180deg,#edf5ff 0%,#f4f8ff 42%,#eef4fc 100%);
+  min-width:0;gap:0;
+}
+.scr:has(> .hero2) > .hero2{
+  border-radius:20px 20px 16px 16px;
+  box-shadow:0 6px 22px rgba(4,31,87,.14);
+}
+.scr:has(> .hero2) > .srch2{
+  height:43px;border-radius:24px;
+  border:1px solid rgba(217,230,250,.9);
+  margin-top:-17px;margin-bottom:9px;
+  box-shadow:0 7px 20px rgba(10,49,113,.16);
+  padding-inline:16px;
+}
+.scr:has(> .hero2):has(.rmap.big) > .srch2{margin-top:4px}
+.scr:has(> .hero2) > .srch2 input{font-size:16px;width:100%;min-width:0}
+.scr:has(> .hero2) > .bal2{
+  border-radius:19px;
+  background:linear-gradient(120deg,#071e51 0%,#113780 54%,#0752a7 100%);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 7px 17px rgba(12,42,107,.19),inset 0 1px 0 rgba(255,255,255,.18);
+  padding:10px 12px;margin:5px 0 10px;min-width:0;
+}
+.scr:has(> .hero2) > .bal2 .g{min-width:0}
+.scr:has(> .hero2) > .bal2 .wr{border-radius:50%;width:37px;height:37px;border-width:2.5px}
+.scr:has(> .hero2) > .bal2 .n{font-size:clamp(19px,5vw,25px);color:#ffce42;letter-spacing:.1px;white-space:nowrap}
+.scr:has(> .hero2) > .cats2{gap:5px;padding:1px 1px 8px;min-width:0}
+.scr:has(> .hero2) > .cats2 .cat2{
+  border:1px solid #e1eaf7;border-radius:15px;
+  box-shadow:0 3px 9px rgba(17,54,109,.09);padding:7px 1px 6px;
+  min-width:0;
+}
+.scr:has(> .hero2) > .cats2 .cat2.on{
+  background:linear-gradient(160deg,#fffaf0,#fff0ca);
+  border-color:#f2bd39;box-shadow:0 2px 10px rgba(211,154,28,.15);
+}
+.scr:has(> .hero2) > .cats2 .cat2art{width:clamp(27px,8vw,36px);height:clamp(27px,8vw,36px)}
+.scr:has(> .hero2) > .cats2 .cat2name{font-size:clamp(8px,2.25vw,10px);line-height:1.2}
+.scr:has(> .hero2) .rmap{
+  border-radius:22px;box-shadow:0 5px 18px rgba(12,42,107,.19);
+  border:1px solid rgba(188,209,238,.85);
+}
+.scr:has(> .hero2) .rmap .mchip{box-shadow:0 3px 12px rgba(12,42,107,.24)}
+.scr:has(> .hero2) .rmap .zb{border-radius:13px;box-shadow:0 3px 9px rgba(11,39,79,.25)}
+.scr:has(> .hero2) > .promoSlot{
+  background:transparent;border-radius:19px;
+  box-shadow:0 5px 18px rgba(11,38,91,.18);
+  margin-top:7px;
+}
+.scr:has(> .hero2) > .promoSlot .promoFace,
+.scr:has(> .hero2) > .promoSlot .promo2,
+.scr:has(> .hero2) > .promoSlot .storeFace{border-radius:19px}
+.scr:has(> .hero2) > .promoSlot .promo2{
+  background-image:linear-gradient(125deg,rgba(4,24,69,.84),rgba(11,55,130,.89)),var(--cardBgImg);
+}
+/* Six equal-width navigation destinations, including the rightmost account item. */
+.nav{min-width:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+  box-shadow:0 -5px 20px rgba(10,37,90,.08);border-radius:16px 16px 0 0;overflow:visible}
+.nav button{min-width:0;width:100%;padding:7px 1px 6px;line-height:1.18;
+  font-size:clamp(9px,2.6vw,12px);text-align:center;justify-content:flex-start;overflow-wrap:anywhere}
+.nav button .ic{flex:none;max-width:100%}
+@media(max-width:360px){
+ .scr:has(> .hero2) > .bal2{padding:9px 7px;gap:5px}
+ .scr:has(> .hero2) > .bal2 .g{gap:4px}
+ .scr:has(> .hero2) > .bal2 .bag{font-size:18px}
+ .scr:has(> .hero2) > .bal2 .wr{width:31px;height:31px}
+ .scr:has(> .hero2) > .cats2{gap:3px}
+}
+
+
+/* TP premium mobile homepage v2 — compact clean layout, CSS-only */
+/* Keep the entire original tower artwork and motto visible: search is placed
+   immediately below the image instead of covering its lower lettering. */
+.scr:has(> .hero2){padding-top:10px;padding-inline:clamp(12px,4vw,18px);}
+.scr:has(> .hero2) > .hero2{
+  border-radius:22px 22px 18px 18px;
+  aspect-ratio:768 / 325;
+  background-position:center center;
+  box-shadow:0 5px 18px rgba(4,31,87,.12);
+}
+.scr:has(> .hero2) > .srch2{
+  margin-top:8px;margin-bottom:11px;height:46px;
+  border-radius:23px;box-shadow:0 5px 16px rgba(9,45,105,.09);
+  border:1px solid #e2ebf8;
+}
+/* Merchant selection has its own deliberately collapsed hero layout. */
+.scr:has(> .hero2):has(.rmap.big) > .hero2{aspect-ratio:768 / 170;}
+.scr:has(> .hero2):has(.rmap.big) > .srch2{margin-top:8px;}
+.scr:has(> .hero2) > .bal2{
+  margin:0 0 11px;padding:11px 12px;min-height:63px;
+  border-radius:20px;
+  background:linear-gradient(112deg,#09265e,#133c86 58%,#0754ae);
+  box-shadow:0 5px 13px rgba(12,42,107,.15);
+}
+.scr:has(> .hero2) > .bal2 .g{min-width:0;}
+.scr:has(> .hero2) > .bal2 .n{font-size:clamp(19px,5.8vw,28px);}
+.scr:has(> .hero2) > .bal2 .wr{width:38px;height:38px;}
+.scr:has(> .hero2) > .cats2{gap:5px;padding:1px 1px 8px;}
+.scr:has(> .hero2) > .cats2 .cat2{
+  border-radius:17px;min-height:65px;padding:7px 1px 5px;
+  box-shadow:0 3px 10px rgba(15,53,110,.07);
+}
+.scr:has(> .hero2) > .cats2 .cat2name{font-size:clamp(8px,2.4vw,10px);}
+/* Explicitly size the home map, without affecting map engines or gesture logic. */
+.scr:has(> .hero2) .rmap:not(.big){
+  height:clamp(300px,43dvh,460px);
+  flex:0 0 auto;
+  margin:4px 0 12px;
+  border-radius:23px;
+  box-shadow:0 6px 19px rgba(12,42,107,.13);
+}
+/* Let the selected-store map retain its existing big/tall heights. */
+.scr:has(> .hero2) .rmap.big{margin-bottom:12px;}
+/* No gray base around the advertising card. Keep flip/selected-store behavior. */
+.scr:has(> .hero2) > .promoSlot{
+  background:transparent!important;
+  margin:0 0 10px;padding:0;border:0;
+  box-shadow:none;isolation:isolate;
+  border-radius:19px;
+}
+.scr:has(> .hero2) > .promoSlot > .promoFace{
+  width:100%;height:100%;border-radius:19px;
+  box-shadow:none;
+}
+.scr:has(> .hero2) > .promoSlot .promo2,
+.scr:has(> .hero2) > .promoSlot .storeFace{
+  width:100%;height:100%;border-radius:19px;
+}
+.scr:has(> .hero2) > .promoSlot .promo2{
+  padding-inline:12px;
+  background-image:linear-gradient(118deg,rgba(3,23,67,.86),rgba(10,49,121,.91)),var(--cardBgImg);
+}
+/* Navigation must not clip on narrow phones. Safe area is included by nav. */
+.nav{grid-template-columns:repeat(6,minmax(0,1fr));max-width:560px;
+  border-radius:17px 17px 0 0;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-shadow:0 -4px 15px rgba(12,42,107,.07);
+}
+.nav button{min-width:0;max-width:100%;padding:9px 1px 8px;
+  overflow-wrap:normal;word-break:normal;font-size:clamp(9px,2.55vw,11.5px);
+  line-height:1.22;gap:3px;
+}
+.nav button .ic{width:clamp(19px,5vw,24px);height:clamp(19px,5vw,24px);}
+@media(max-width:360px){
+ .scr:has(> .hero2) > .bal2{padding:9px 7px;gap:5px;}
+ .scr:has(> .hero2) > .bal2 .wr{width:32px;height:32px;}
+ .scr:has(> .hero2) > .cats2{gap:3px;}
+ .scr:has(> .hero2) > .cats2 .cat2{min-height:59px;}
+ .scr:has(> .hero2) .rmap:not(.big){height:clamp(290px,42dvh,410px);}
+}
+
+/* TP mobile homepage v3 — restore compact map after v2 flex-growth regression.
+   Customer home uses a full-height flex column. The original .rmap has
+   flex:1 1 auto, which can inflate it beyond its intended CSS height.
+   Keep the map's pixel dimensions explicit; do not alter map JS/events. */
+.scr:has(> .hero2) .rmap:not([data-pick="1"]){
+  flex:0 0 auto !important;
+  height:clamp(255px,34dvh,330px) !important;
+  min-height:0;
+  max-height:330px;
+  margin:4px 0 12px;
+}
+/* Expanded map is still available when a customer selects a merchant;
+   it may be taller, but must not fill the viewport involuntarily. */
+.scr:has(> .hero2) .rmap.big:not([data-pick="1"]){
+  flex:0 0 auto !important;
+  height:clamp(305px,43dvh,405px) !important;
+  max-height:405px;
+}
+/* Retain promo's original 112px layout; no stretched gray outer shell. */
+.scr:has(> .hero2) > .promoSlot{
+  flex:0 0 112px;
+  height:112px;
+  max-height:112px;
+  margin:0 0 10px;
+}
+/* Avoid phantom stretch between homepage sections. */
+.scr:has(> .hero2) > .hero2,
+.scr:has(> .hero2) > .srch2,
+.scr:has(> .hero2) > .bal2,
+.scr:has(> .hero2) > .cats2{flex-shrink:0;}
+@media (max-width:360px){
+  .scr:has(> .hero2) .rmap:not([data-pick="1"]):not(.big){
+    height:clamp(235px,32dvh,290px) !important;
+  }
+}
+
+
+/* TP premium homepage V4 — compact above-the-fold layout for real iPhone browsers.
+   Visual-only changes: the existing interactive map and all JS handlers remain intact. */
+@media (max-width:560px){
+  .scr:has(> .hero2){padding-top:8px;padding-inline:clamp(11px,4vw,18px);}
+  /* Shorter cover: retains the brand image but makes discovery content visible sooner. */
+  .scr:has(> .hero2) > .hero2{
+    aspect-ratio:auto !important;
+    height:clamp(122px,34vw,153px) !important;
+    background-size:cover;
+    background-position:center center;
+    border-radius:19px;
+  }
+  .scr:has(> .hero2):has(.rmap.big) > .hero2{height:clamp(100px,27vw,120px) !important;}
+  .scr:has(> .hero2) > .srch2{
+    margin-top:7px;margin-bottom:8px;height:42px;
+    border-radius:23px;
+  }
+  .scr:has(> .hero2) > .bal2{
+    min-height:59px;padding:8px 10px;
+    margin:0 0 8px;border-radius:17px;
+  }
+  .scr:has(> .hero2) > .cats2{padding:0 1px 5px;gap:4px;}
+  .scr:has(> .hero2) > .cats2 .cat2{min-height:57px;padding:5px 1px 4px;border-radius:15px;}
+  .scr:has(> .hero2) > .cats2 .cat2art{width:clamp(26px,7vw,32px);height:clamp(26px,7vw,32px);}
+  .scr:has(> .hero2) .rmap:not([data-pick="1"]):not(.big){
+    height:clamp(185px,26dvh,225px) !important;
+    max-height:225px;min-height:185px;
+    margin:3px 0 9px;border-radius:19px;
+  }
+  .scr:has(> .hero2) .rmap.big:not([data-pick="1"]){
+    height:clamp(265px,37dvh,340px) !important;
+    max-height:340px;
+  }
+  .scr:has(> .hero2) > .promoSlot:not(:empty){
+    flex:0 0 89px !important;height:89px !important;max-height:89px !important;
+    margin:0 0 5px;border-radius:17px;
+  }
+  .scr:has(> .hero2) > .promoSlot:empty{flex:0 0 0!important;height:0!important;margin:0!important;}
+  .scr:has(> .hero2) > .promoSlot .promo2{padding:8px 10px;}
+  /* Provide breathing room before the persistent navigation, without extending the map. */
+  .scr:has(> .hero2){padding-bottom:calc(84px + env(safe-area-inset-bottom));}
+}
+@media(max-width:360px){
+  .scr:has(> .hero2) .rmap:not([data-pick="1"]):not(.big){height:190px !important;}
+}
+
+
+/* Tripoli Points mobile homepage V5 — final small refinements over approved V4.
+   Changes limited to customer-home visuals and bottom navigation sizing. */
+@media (max-width:560px){
+  /* Spend some of the empty space below the campaign on the interactive map. */
+  .scr:has(> .hero2) .rmap:not([data-pick="1"]):not(.big){
+    height:clamp(205px,29dvh,248px) !important;
+    max-height:248px;
+  }
+  /* Small, consistent spacing after the promotional banner. Preserve bottom
+     content clearance because the navigation is fixed. */
+  .scr:has(> .hero2) > .promoSlot:not(:empty){margin-bottom:3px;}
+  /* A more subtle balance edge and softer navy-to-blue gradient. */
+  .scr:has(> .hero2) > .bal2{
+    background:linear-gradient(112deg,#0b2b68 0%,#103b88 62%,#1254a2 100%);
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow:0 4px 11px rgba(12,42,107,.12);
+  }
+  /* Six equally sized destinations, including the account item. */
+  .nav{grid-template-columns:repeat(6,minmax(0,1fr));}
+  .nav button{
+    min-width:0;padding:6px 1px 5px;
+    font-size:clamp(9px,2.5vw,11px);gap:2px;
+  }
+  .nav button .ic{width:clamp(19px,5vw,23px);height:clamp(19px,5vw,23px);}
+}
+@media(max-width:360px){
+  .scr:has(> .hero2) .rmap:not([data-pick="1"]):not(.big){
+    height:clamp(195px,27dvh,225px) !important;
+  }
+}
+
+/* V6 — map merchant card: restore legible two-step interaction on iPhone.
+   No change to Supabase, points, routing, selection, flip, or card actions. */
+@media (max-width:560px){
+  /* The prior V5 89px !important limit cropped route-stage action buttons. */
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace){
+    height:113px !important;max-height:none !important;flex:0 0 113px !important;
+    overflow:hidden;border-radius:17px;
+    scroll-margin-bottom:calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace .shCta){
+    height:158px !important;max-height:none !important;flex:0 0 158px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace{
+    display:flex;align-items:center;gap:10px;min-height:100%;height:100%;
+    padding:10px 33px 10px 10px;overflow:hidden;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shInfo{
+    gap:5px;min-width:0;justify-content:center;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shName{
+    font-size:15px;line-height:1.25;white-space:nowrap;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPhoto{
+    width:70px;height:70px;border-radius:12px;align-self:center;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+    width:100%;min-width:0;margin:0;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta > *{
+    width:100%;min-width:0;height:34px;padding:3px 4px;
+    text-align:center;line-height:1.15;font-size:clamp(9px,2.45vw,11px);
+    white-space:normal;overflow-wrap:normal;word-break:normal;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta > :last-child{
+    grid-column:1/-1;height:30px;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .rtrow .btn{
+    min-height:37px;height:auto;line-height:1.25;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPct{
+    font-size:11px;padding:1px 8px;
+  }
+  /* Allow the expanded merchant card to scroll clear of the fixed tab bar. */
+  .scr:has(> .hero2):has(.storeFace){
+    padding-bottom:calc(98px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width:360px){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace .shCta){
+    height:166px !important;flex-basis:166px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPhoto{width:58px;height:62px;}
+  .scr:has(> .hero2) > .promoSlot .storeFace{gap:6px;padding-left:7px;}
+}
+
+/* Tripoli Points V7 — selected merchant action card, iPhone viewport fix.
+   Keeps both card states, existing click handlers, map and routing logic. */
+@media (max-width:560px){
+  /* The three-action state is deliberately taller than the route-choice state. */
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace .shCta){
+    height:174px !important;
+    flex:0 0 174px !important;
+    max-height:none !important;
+    background:var(--navy) !important;
+    border-radius:17px;
+    overflow:hidden;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace .rtrow):not(:has(.shCta)){
+    height:113px !important;flex:0 0 113px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace{
+    min-height:0;height:100%;align-items:stretch;
+    padding:9px 34px 9px 9px;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shInfo{
+    justify-content:center;gap:5px;min-width:0;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPhoto{
+    width:66px;height:70px;align-self:center;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;width:100%;min-width:0;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta > *{
+    width:100%;min-width:0;height:39px;
+    font-size:clamp(10px,2.65vw,12px);line-height:1.2;
+    padding:3px 5px;white-space:normal;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta > :last-child{
+    grid-column:1/-1;height:34px;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPct{
+    line-height:1.3;padding:2px 8px;
+  }
+  /* Real document scroll space; the fixed navigation must not cover the card. */
+  .scr:has(> .hero2):has(.storeFace .shCta){
+    padding-bottom:calc(190px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace){
+    scroll-margin-bottom:calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width:360px){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace .shCta){
+    height:186px !important;flex-basis:186px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shPhoto{width:55px;height:63px;}
+}
+
+/* Tripoli Points V8 — visually continuous selected-merchant card.
+   Maintain both route/action states; no route or Supabase logic changes. */
+@media (max-width:560px){
+  /* The V7 merchant has a tall outer flip slot and a shorter painted face.
+     Paint the ENTIRE slot to avoid gray bands around title and Google button. */
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace){
+    background-color:#0c2a6b !important;
+    background-image:linear-gradient(120deg,rgba(4,26,77,.93),rgba(12,50,120,.94)),var(--cardBgImg) !important;
+    background-size:cover !important;
+    background-position:center !important;
+    border:0 !important;
+    box-shadow:0 4px 12px rgba(12,42,107,.13) !important;
+    isolation:isolate;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace) > .promoFace.storeFace{
+    background:transparent !important;
+    border-radius:17px !important;
+    min-height:100% !important;
+    height:100% !important;
+    width:100% !important;
+  }
+  /* Keep the shop name and actions legible and in the same card surface. */
+  .scr:has(> .hero2) > .promoSlot .storeFace .shName{
+    line-height:1.3;
+  }
+  .scr:has(> .hero2) > .promoSlot .storeFace .shCta > :last-child{
+    margin:0;
+  }
+}
+
+/* TP Premium V9 — approved merchant-card concept: white editorial merchant card.
+   Scoped to selected merchant on customer home. Preserve the original two-stage route/actions behavior. */
+@media (max-width:560px){
+  .scr:has(> .hero2) > .promoSlot:has(.premiumMerchant){
+    background:#fff !important;background-image:none !important;
+    height:148px !important;max-height:none !important;flex:0 0 148px !important;
+    margin:2px 0 9px !important;border-radius:23px !important;
+    border:1px solid #dce7f6 !important;overflow:hidden !important;
+    box-shadow:0 8px 22px rgba(12,42,107,.12) !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.premiumMerchant.merchantDetails){
+    height:186px !important;flex-basis:186px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot > .promoFace.premiumMerchant{
+    background:#fff !important;color:#102c64 !important;
+    padding:12px 15px !important;display:flex !important;flex-direction:column !important;
+    justify-content:space-between !important;align-items:stretch !important;
+    gap:8px !important;border-radius:23px !important;height:100% !important;
+    width:100% !important;box-sizing:border-box !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .merchantTop{
+    display:flex;align-items:center;gap:12px;direction:ltr;min-width:0;
+    padding-right:25px;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shPhoto{
+    width:74px !important;height:72px !important;min-width:74px;
+    border-radius:15px !important;align-self:center !important;overflow:hidden;
+    box-shadow:0 1px 5px rgba(7,36,90,.1);flex:none !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shInfo{
+    display:flex;flex:1;flex-direction:column;align-items:flex-start;
+    justify-content:center !important;text-align:left;direction:rtl;
+    min-width:0;gap:2px !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shName{
+    color:#09285d !important;font-size:clamp(16px,4.5vw,20px) !important;
+    font-weight:800;max-width:100%;line-height:1.18 !important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    cursor:pointer;text-align:left;align-self:stretch;direction:auto;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shSub{
+    color:#647693 !important;font-size:12px !important;text-shadow:none !important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .scr:has(> .hero2) .premiumMerchant .merchantDiscount{
+    background:linear-gradient(110deg,#ffe49a,#fff2c9);color:#7d5300;
+    border:1px solid #ffd56b;border-radius:999px;padding:1px 10px;
+    font-size:11px;font-weight:800;white-space:nowrap;margin-top:3px;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shClose{
+    position:absolute;right:10px;top:10px;width:27px;height:27px;
+    background:#eef3fa !important;color:#344b74 !important;
+    border:0;border-radius:50%;z-index:2;font-size:15px;
+  }
+  .scr:has(> .hero2) .premiumMerchant .merchantActions{width:100%;min-width:0;}
+  .scr:has(> .hero2) .premiumMerchant .rtrow,
+  .scr:has(> .hero2) .premiumMerchant .shCta{
+    display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr));
+    direction:rtl;gap:7px !important;margin:0 !important;width:100%;
+  }
+  .scr:has(> .hero2) .premiumMerchant .rtrow .btn,
+  .scr:has(> .hero2) .premiumMerchant .shCta .btn{
+    min-width:0;width:100%;height:41px !important;min-height:41px !important;
+    border-radius:13px !important;display:flex;align-items:center;justify-content:center;
+    font-size:clamp(11px,3vw,13px) !important;font-weight:800 !important;
+    white-space:normal;text-align:center;line-height:1.2 !important;
+    text-decoration:none;gap:5px;padding:4px 7px !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .rtrow .btn.car,
+  .scr:has(> .hero2) .premiumMerchant .shCta .btn.blue{
+    background:linear-gradient(115deg,#0a378b,#1465d7) !important;color:#fff !important;
+    border:1px solid #1465d7 !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .rtrow .btn.walk,
+  .scr:has(> .hero2) .premiumMerchant .shCta .btn.ghost{
+    background:#fff !important;color:#0c2a6b !important;
+    border:1.5px solid #aabfe2 !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .rtrow .btn.on{
+    box-shadow:0 0 0 2px #ffce42 inset !important;
+  }
+  .scr:has(> .hero2) .premiumMerchant .shCta > :last-child{
+    grid-column:1/-1;height:37px !important;min-height:37px !important;
+    background:#fff !important;color:#0c2a6b !important;
+    border:1.5px solid #aabfe2 !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.premiumMerchant) .premiumMerchant .shCta > :last-child{margin:0 !important;}
+  .scr:has(> .hero2):has(.premiumMerchant){padding-bottom:calc(150px + env(safe-area-inset-bottom,0px)) !important;}
+}
+@media(max-width:360px){
+  .scr:has(> .hero2) > .promoSlot:has(.premiumMerchant.merchantDetails){height:200px !important;flex-basis:200px !important;}
+  .scr:has(> .hero2) .premiumMerchant .shPhoto{width:61px !important;height:64px !important;min-width:61px;}
+  .scr:has(> .hero2) .premiumMerchant .merchantTop{gap:9px;}
+}
+
+
+/* V10: correct cascade regression from legacy V7/V8 storeFace !important rules.
+   Scoped to customer homepage merchant card; no route, points, or Supabase changes. */
+@media(max-width:560px){
+  .scr:has(> .hero2) > .promoSlot:has(> .premiumMerchant),
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant){
+    display:block !important;
+    height:168px !important;min-height:168px !important;
+    max-height:none !important;flex:0 0 168px !important;
+    padding:0 !important;margin:6px 0 12px !important;
+    background:#fff !important;background-color:#fff !important;
+    background-image:none !important;
+    border:1px solid #dce7f6 !important;
+    border-radius:22px !important;overflow:hidden !important;
+    box-shadow:0 6px 18px rgba(8,38,90,.11) !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
+    height:216px !important;min-height:216px !important;flex-basis:216px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant{
+    background:#fff !important;background-color:#fff !important;
+    background-image:none !important;color:#102c64 !important;
+    display:flex !important;flex-direction:column !important;
+    justify-content:space-between !important;align-items:stretch !important;
+    width:100% !important;height:100% !important;min-height:0 !important;
+    padding:13px 13px 14px !important;gap:9px !important;
+    border-radius:22px !important;box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .merchantTop{
+    display:flex !important;direction:ltr;align-items:center !important;
+    gap:12px !important;min-height:0 !important;flex:1 1 auto !important;
+    padding-right:28px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shPhoto{
+    width:74px !important;height:77px !important;min-width:74px !important;
+    flex:0 0 74px !important;border-radius:13px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shInfo{
+    display:flex !important;flex-direction:column !important;flex:1 1 auto !important;
+    direction:rtl !important;align-items:flex-start !important;
+    text-align:left !important;justify-content:center !important;
+    gap:3px !important;min-width:0 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shName{
+    color:#0c2a6b !important;text-shadow:none !important;opacity:1 !important;
+    font-size:clamp(17px,4.4vw,20px) !important;
+    line-height:1.25 !important;display:block !important;
+    max-width:100% !important;white-space:nowrap !important;
+    overflow:hidden !important;text-overflow:ellipsis !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shSub{
+    color:#607495 !important;opacity:1 !important;text-shadow:none !important;
+    font-size:12px !important;line-height:1.3 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .merchantActions{
+    display:block !important;flex:0 0 auto !important;
+    width:100% !important;min-width:0 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .rtrow,
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta{
+    display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:7px !important;direction:rtl !important;
+    width:100% !important;margin:0 !important;padding:0 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .rtrow > *,
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta > *{
+    width:100% !important;min-width:0 !important;
+    height:43px !important;min-height:43px !important;
+    padding:5px 8px !important;line-height:1.2 !important;
+    white-space:normal !important;word-break:normal !important;
+    font-size:clamp(11px,3.1vw,14px) !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    border-radius:13px !important;box-sizing:border-box !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta > :last-child{
+    grid-column:1 / -1 !important;
+    height:39px !important;min-height:39px !important;
+    margin:0 !important;
+  }
+  .scr:has(> .hero2):has(.promoFace.storeFace.premiumMerchant){
+    padding-bottom:calc(145px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.promoFace.storeFace.premiumMerchant){
+    scroll-margin-bottom:calc(120px + env(safe-area-inset-bottom,0px)) !important;
+  }
+}
+@media(max-width:360px){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
+    height:226px !important;min-height:226px !important;flex-basis:226px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+    height:176px !important;min-height:176px !important;flex-basis:176px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shPhoto{
+    width:61px !important;min-width:61px !important;flex-basis:61px !important;
+    height:66px !important;
+  }
+}
+
+
+/* V11: refine merchant-card spacing + add soft map-blue contour around the white card.
+   Preserve the two-stage behavior and existing actions. */
+@media(max-width:560px){
+  .scr:has(> .hero2) > .promoSlot:has(.promoFace.storeFace.premiumMerchant),
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant){
+    border:1.5px solid #b9d1ea !important;
+    border-radius:24px !important;
+    box-shadow:0 0 0 3px rgba(188,211,236,.45),0 8px 22px rgba(14,43,96,.10) !important;
+    margin:6px 0 10px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+    height:162px !important;min-height:162px !important;flex-basis:162px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
+    height:206px !important;min-height:206px !important;flex-basis:206px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant{
+    padding:12px 12px 12px !important;
+    gap:7px !important;
+    border-radius:24px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .merchantTop{
+    gap:10px !important;
+    padding-right:24px !important;
+    align-items:center !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shPhoto{
+    width:70px !important;height:72px !important;min-width:70px !important;flex-basis:70px !important;
+    border-radius:14px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shInfo{
+    gap:1px !important;
+    justify-content:flex-start !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shName{
+    font-size:clamp(16px,4.2vw,19px) !important;
+    line-height:1.15 !important;
+    margin:0 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shSub{
+    font-size:11px !important;
+    line-height:1.25 !important;
+    margin:0 !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .merchantDiscount{
+    margin-top:2px !important;
+    padding:2px 10px !important;
+    border-color:#f0c552 !important;
+    box-shadow:0 1px 0 rgba(255,255,255,.45) inset !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .merchantActions{
+    margin-top:1px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .rtrow,
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta{
+    gap:8px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .rtrow > *,
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta > *{
+    height:42px !important;min-height:42px !important;
+    border-radius:15px !important;
+    font-size:clamp(11px,3vw,14px) !important;
+    padding:5px 8px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shCta > :last-child{
+    height:36px !important;min-height:36px !important;
+    border-radius:14px !important;
+  }
+  .scr:has(> .hero2):has(.promoFace.storeFace.premiumMerchant){
+    padding-bottom:calc(136px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.promoFace.storeFace.premiumMerchant){
+    scroll-margin-bottom:calc(108px + env(safe-area-inset-bottom,0px)) !important;
+  }
+}
+@media(max-width:360px){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+    height:168px !important;min-height:168px !important;flex-basis:168px !important;
+  }
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
+    height:212px !important;min-height:212px !important;flex-basis:212px !important;
+  }
+  .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shPhoto{
+    width:64px !important;height:68px !important;min-width:64px !important;flex-basis:64px !important;
+  }
+}
+
+/* Overflow fix: the premium merchant card (above) is taller than the old promo
+   strip it replaced, so the page can need more scroll than the screen offers.
+   Trim the expanded map a bit further specifically while that card is showing,
+   scaled to available height, so the homepage keeps fitting without excess
+   scroll. Card colors/border/layout are untouched — this only resizes the map. */
+@media (max-width:560px){
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDirections){
+    height:clamp(210px,30dvh,300px) !important;max-height:300px;
+  }
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDetails){
+    height:clamp(190px,25dvh,260px) !important;max-height:260px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1786,7 +2494,9 @@ function gRoute(fit){const g=GM;if(!g||!g.ok)return;if(g.line){g.line.setMap(nul
     google.maps.event.addListenerOnce(g.map,'idle',()=>{if(g.map.getZoom()<ROUTE_MIN_Z){const dst=R.coords[R.coords.length-1];g.map.panTo({lat:dst[0],lng:dst[1]});g.map.setZoom(ROUTE_MIN_Z)}})}}
 function pinTap(id){if(TM&&TM.moved)return;if(S.route&&S.route.id!==id){S.route=null;routeUi()}
   if(S.mapOfferFocus){const of=S.offers.find(x=>x.id===S.mapOfferFocus);if(!of||of.mid!==id)S.mapOfferFocus=null}
-  S.sel=id;S.sheetFull=!!(S.route&&S.route.id===id);S.mapBig=true;updateMap(true);const e=$('#promoSlot')||$('#mapcard');if(e&&e.scrollIntoView)e.scrollIntoView({block:'nearest',behavior:'smooth'});syncStoreGallery(id)}
+  S.sel=id;S.sheetFull=!!(S.route&&S.route.id===id);S.mapBig=true;updateMap(true);
+  if($('#promoSlot'))setTimeout(ensureMapCardVisible,230);else{const e=$('#mapcard');if(e&&e.scrollIntoView)e.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapForcedOpen=new Set();S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
 const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(18,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
@@ -2058,20 +2768,37 @@ function promoSlotHtml(){
   // إن وصلنا لهذا المحل عبر زر "اعرض على الخريطة" من صفحة عرض معيّن، تُظهر البطاقة صورة ذلك العرض بالذات بدل صورة المحل العامة
   const focusedOffer=S.mapOfferFocus&&S.offers.find(x=>x.id===S.mapOfferFocus&&x.mid===sel.id);
   const faceImg=(focusedOffer&&focusedOffer.img)||sel.photo;
-  return `<div class="promoFace storeFace">
-   <button class="shClose" onclick="clearMapSel()" aria-label="إغلاق">✕</button>
-   <div class="shInfo">
-    <b class="shName" dir="auto" style="cursor:pointer;unicode-bidi:plaintext" onclick="openStore('${sel.id}')">${sel.name}</b>
-    ${hasRoute?`<span class="badge b1 shPct">نسبة الحسم ${rdPct(sel,S.phone)}%</span>`:`<span class="shSub">${sel.addr||c[1]}</span>`}
-    ${hasRoute?`<div class="shCta"><button class="btn ghost" onclick="openStore('${sel.id}')">🏬 عرض تفاصيل المتجر</button><button class="btn blue" onclick="openCalc('${sel.id}')">استخدم نقاطك هنا</button><a class="btn yellow" target="_blank" href="${gmapDirUrl(sel)}" style="text-decoration:none">${ic('nav',14)}خرائط Google</a></div>`:storeFaceRouteButtons(sel)}
-   </div>
-   <div class="shPhoto" style="background:${faceImg?`url(${faceImg}) center/cover`:c[3]+'22'}">${faceImg?'':c[2]}</div>
+  const discount=rdPct(sel,S.phone);
+  return `<div class="promoFace storeFace premiumMerchant ${hasRoute?'merchantDetails':'merchantDirections'}">
+    <button class="shClose" onclick="clearMapSel()" aria-label="إغلاق بطاقة المتجر">✕</button>
+    <div class="merchantTop">
+      <div class="shPhoto" style="background:${faceImg?`url(${faceImg}) center/cover`:c[3]+'22'}">${faceImg?'':c[2]}</div>
+      <div class="shInfo">
+        <b class="shName" dir="auto" style="cursor:pointer;unicode-bidi:plaintext" onclick="openStore('${sel.id}')">${sel.name}</b>
+        <span class="shSub">${sel.addr||c[1]}</span>
+        ${hasRoute?`<span class="merchantDiscount">خصم ${discount}%</span>`:''}
+      </div>
+    </div>
+    <div class="merchantActions">
+      ${hasRoute?`<div class="shCta"><button class="btn blue" onclick="openCalc('${sel.id}')">استخدم نقاطك هنا</button><button class="btn ghost" onclick="openStore('${sel.id}')">🏬 عرض تفاصيل المتجر</button><a class="btn yellow" target="_blank" rel="noopener noreferrer" href="${gmapDirUrl(sel)}">${ic('nav',16)} خرائط Google</a></div>`:storeFaceRouteButtons(sel)}
+    </div>
   </div>`}
 // تحديث بطاقة أسفل خريطة الرئيسية (إن وُجدت) بحركة دوران، أو بطاقة المحل العائمة فوق الخريطة في صفحات أخرى (كتصفّح العروض) كما كانت
 function refreshCardUi(skipFlip){
   const p=$('#promoSlot');
   if(p){if(!skipFlip)flipPromoSlot();return}
   const e=$('#mapcard');if(e)e.innerHTML=cardHtml()}
+function ensureMapCardVisible(){
+  const card=$('#promoSlot'),nav=$('.nav');
+  if(!card||!card.querySelector('.storeFace'))return;
+  // القياس يتم مقابل الشريط السفلي الفعلي، مع مراعاة ارتفاع الشاشة الديناميكي بسفاري (visualViewport)؛ بطاقة المحل المختار تحتاج مساحة كافية لتظهر كاملة فوق الشريط
+  const r=card.getBoundingClientRect();
+  const navTop=nav?nav.getBoundingClientRect().top:window.innerHeight;
+  const viewportBottom=window.visualViewport?window.visualViewport.offsetTop+window.visualViewport.height:window.innerHeight;
+  const availableBottom=Math.min(viewportBottom,navTop)-14;
+  const overlap=r.bottom-availableBottom;
+  if(overlap>2)window.scrollBy({top:Math.ceil(overlap+16),behavior:'smooth'})
+}
 function flipPromoSlot(){
   const el=$('#promoSlot');if(!el)return;
   const newHtml=promoSlotHtml();
@@ -2084,7 +2811,7 @@ function flipPromoSlot(){
     el.innerHTML=newHtml;
     const ni=el.firstElementChild;if(!ni)return;
     ni.style.transform='rotateY(-85deg)';
-    requestAnimationFrame(()=>{ni.style.transition='transform .17s ease-out';ni.style.transform='rotateY(0deg)'})
+    requestAnimationFrame(()=>{ni.style.transition='transform .17s ease-out';ni.style.transform='rotateY(0deg)'});setTimeout(ensureMapCardVisible,240);setTimeout(ensureMapCardVisible,560)
   },170)}
 function tripoliOffersV(){
   return `<div class="top"><button class="back" style="margin:0" onclick="S.sub=S.prevSub||null;S.prevSub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">عروض Tripoli Points</h3><div style="width:34px"></div></div>`
