@@ -497,7 +497,9 @@ function policyFullText(){return S.settings.policy_full||POLICY_FULL_DEFAULT}
 function openPolicyModal(){const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};
  md.innerHTML=`<div class="sheet" style="max-height:80vh;overflow-y:auto;text-align:right"><b style="font-size:18px;display:block;margin-bottom:8px;text-align:center">سياسة الاستخدام والخصوصية</b><div class="muted" style="white-space:pre-line;line-height:1.8;font-size:13.5px">${esc(policyFullText())}</div><button class="btn ghost" style="margin-top:14px" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
  document.body.appendChild(md)}
-const S={screen:'splash',mode:null,tab:'home',phone:null,code:'',filter:null,q:'',sel:null,sheetFull:false,mapBig:false,allTx:false,fav:{},timer:0,adminSearch:{},adminSort:{},adminOffers:null,adminOffFilter:'withImg',reg:{name:'',cat:'',phone:'',addr:'',pct:5,x:null,y:null},cats:[],catNav:{mainId:null,subId:null,q:''},catResSort:'near',areaSel:'ضم والفرز',
+// نقرأ آخر نسخة محفوظة من الفئات (إن وُجدت من زيارة سابقة لهذا الجهاز) لنعرضها فوراً دون انتظار السيرفر؛ هذا يمنع ظهور دبابيس رمادية بلا فئة للحظة عند فتح التطبيق، قبل أن تصل النسخة الطازجة من get_categories وتستبدلها
+function cachedCats(){try{const r=JSON.parse(localStorage.getItem('tp_cats_cache')||'null');return Array.isArray(r)?r:[]}catch(e){return[]}}
+const S={screen:'splash',mode:null,tab:'home',phone:null,code:'',filter:null,q:'',sel:null,sheetFull:false,mapBig:false,allTx:false,fav:{},timer:0,adminSearch:{},adminSort:{},adminOffers:null,adminOffFilter:'withImg',reg:{name:'',cat:'',phone:'',addr:'',pct:5,x:null,y:null},cats:cachedCats(),catNav:{mainId:null,subId:null,q:''},catResSort:'near',areaSel:'ضم والفرز',
  shopNav:{mainId:null},shopCat:'all',shopQ:'',shopMode:null,shopArea:null, // حالة تبويب "تسوّق" الجديد، مستقلة تماماً عن حالة الخريطة (catNav/filter/q) وعن العروض. shopMode:null=صفحة الاختيار الأولى (فئة/منطقة)
  offMode:null,offAreaSel:null, // نفس أسلوب "تسوّق": صفحة اختيار أولى (فئة/منطقة) عند دخول تبويب "العروض"؛ offMode:null=صفحة الاختيار، 'cat'=صفحة العروض الحالية كاملة، 'area'=تصفّح حسب المنطقة
  settings:{welcome_bonus:String(WELCOME_BONUS),welcome_days:String(WELCOME_DAYS),promo_title:'شهر التسوق في طرابلس',promo_subtitle:'مبادرة مشتركة بين جمعية تجار ساحة عبد الناصر - التل و Tripoli Plus وتجار المدينة',promo_image:'',promo_start:'',promo_end:''},
@@ -939,7 +941,7 @@ function hydrateCustomer(cd){
 }
 // ===== مزامنة البيانات الحقيقية مع قاعدة البيانات =====
 async function syncSettings(){const r=await sbRpc('get_app_text_settings',{});if(r&&typeof r==='object')Object.assign(S.settings,r)}
-async function syncCategories(){const r=await sbRpc('get_categories',{p_include_inactive:S.mode==='admin'});if(Array.isArray(r))S.cats=r}
+async function syncCategories(){const r=await sbRpc('get_categories',{p_include_inactive:S.mode==='admin'});if(Array.isArray(r)){S.cats=r;if(S.mode!=='admin'){try{localStorage.setItem('tp_cats_cache',JSON.stringify(r))}catch(e){}}}}
 function promoActive(){const s=S.settings,st=s.promo_start,en=s.promo_end;if(!st&&!en)return true;const now=new Date().toISOString().slice(0,10);if(st&&now<st)return false;if(en&&now>en)return false;return true}
 async function syncDirectory(){const list=await sbRpc('list_merchants',{});if(list)list.forEach(hydrateMerchant);render()}
 async function syncAdminMerchants(){const list=await sbRpc('admin_list_merchants',{});if(list){list.forEach(hydrateMerchant);render()}}
