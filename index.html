@@ -3237,7 +3237,15 @@ function render(){
   if((S.screen==='app'&&S.mode==='customer'&&!S.sub&&(S.tab==='home'||(S.tab==='offers'&&S.offView==='map')))||(S.screen==='mreg'&&(S.reg.step||1)===2)||(S.screen==='app'&&S.mode==='admin'&&S.sub==='map'))initRealMap();else destroyMap();
   fitSplash();window.scrollTo(0,0);
 }
-setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))render()},10000);
+setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))renderDeferredIfTouching()},10000);
+// render() على تبويب الخريطة يستبدل كامل محتوى الصفحة ويعيد بناء الخريطة (مستمعات لمس جديدة) ويصفّر التمرير — إن حصل هذا أثناء لمس/سحب فعلي
+// من المستخدم (كما يحصل فعلياً حين تصل بيانات المزامنة من الخادم بعد تحميل الصفحة بلحظات، وهي نفس اللحظة التي يبدأ المستخدم باستكشاف الصفحة بلمسه)
+// فإن ذلك يُحدث قفزة/اهتزاز مفاجئ تحت إصبعه. الحل: تأجيل أي render() "خلفي" (غير ناتج عن ضغطة مباشرة من المستخدم) لحين انتهاء اللمسة الحالية.
+let __touchActive=false;
+document.addEventListener('pointerdown',()=>{__touchActive=true},{capture:true,passive:true});
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{__touchActive=false;if(__pendingBgRender){__pendingBgRender=false;render()}},{capture:true,passive:true}));
+let __pendingBgRender=false;
+function renderDeferredIfTouching(){if(__touchActive){__pendingBgRender=true;return}render()}
 (function(){
  // يكتشف اصطلاح scrollLeft في RTL للمتصفح الحالي (يختلف بين Chrome وSafari وغيرهما) حتى يعمل السحب بشكل صحيح وضمن الحدود الصالحة دائماً، بدل افتراض اصطلاح متصفح واحد.
  const RTLTYPE=(()=>{try{
@@ -3277,7 +3285,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
   function update(extra){box.textContent=downInfo+(extra?(String.fromCharCode(10)+extra):'')+String.fromCharCode(10)+'TM.ptr.size='+(TM?TM.ptr.size:'-')+' TM.moved='+(TM?TM.moved:'-')+String.fromCharCode(10)+'scrollX='+window.scrollX+' scrollY='+window.scrollY+' docW='+document.documentElement.scrollWidth+' winW='+innerWidth}
 })();
 render();
-Promise.all([syncSettings(),syncCategories()]).then(render);
+Promise.all([syncSettings(),syncCategories()]).then(renderDeferredIfTouching);
 </script>
 </body>
 </html>
