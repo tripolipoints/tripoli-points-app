@@ -24,6 +24,14 @@
 -- IMPORTANT: Review this file, then run it yourself in the Supabase
 -- SQL editor (or via `supabase db` CLI against this project). Nothing
 -- in this file has been executed. See "HOW TO RUN THIS" at the bottom.
+--
+-- SECURITY: merchant_set_logo (section 2 below) was revised after
+-- review to resolve the merchant from a verified (phone, PIN) pair
+-- server-side, instead of trusting a client-supplied merchant id —
+-- see the comment on that function for the full explanation, and
+-- tripoli-points-merchant-logo-security-tests.sql (same folder) for
+-- negative tests proving one merchant cannot touch another's logo and
+-- an unauthenticated/wrong-PIN caller cannot touch anyone's logo.
 -- =====================================================================
 
 
@@ -38,41 +46,63 @@ ALTER TABLE public.merchants
 
 
 -- ---------------------------------------------------------------------
--- 2) New RPC: public.merchant_set_logo(p_merchant_id, p_logo_url)
+-- 2) New RPC: public.merchant_set_logo(p_phone, p_pin, p_logo_url)
 -- ---------------------------------------------------------------------
--- Mirrors the existing merchant_submit_photo function exactly in shape
--- and security model (SECURITY DEFINER, scoped to the one merchant row
--- the caller names). Used for BOTH saving a new logo and removing one:
--- call with p_logo_url = NULL (or '') to remove, matching how the
--- client already treats an empty m.logo as "no custom logo".
+-- REVISED after security review. The first draft of this function took
+-- a client-supplied p_merchant_id and updated that row directly — the
+-- same pattern every other merchant_* write RPC in this app already
+-- uses (merchant_submit_photo, merchant_gallery_add, merchant_reset_pin,
+-- etc.), none of which verify the caller owns the id they pass in. That
+-- was flagged as a real vulnerability for this new function and is
+-- fixed here: merchant_set_logo no longer accepts a merchant id from
+-- the client at all. Instead it takes the SAME (p_phone, p_pin) pair
+-- used at login, verifies them itself with the same crypt()/pin_hash
+-- check merchant_verify_pin already uses, resolves the merchant row
+-- from that verified phone, and only ever updates that row. There is
+-- no code path in this function that can act on any merchant other
+-- than the one whose PIN was just correctly supplied — a merchant id
+-- is never read from the request at all, so it cannot be spoofed.
 --
--- Security model: identical to every other merchant_* write RPC in
--- this app (merchant_submit_photo, merchant_gallery_add, etc.) — the
--- merchant authenticates once at login via merchant_verify_pin, and
--- every write RPC afterward trusts the client-held merchant id for
--- that session, the same boundary the rest of the app already uses.
--- This migration does not introduce a new per-action PIN re-check,
--- because no other merchant action in the app re-prompts for the PIN
--- either — adding one only for the logo would be a new, inconsistent
--- pattern. If you specifically want a PIN re-confirmation step before
--- saving/removing a logo (as the V31 preview appeared to prompt for),
--- that is a UX/security decision that would need a new RPC parameter
--- (e.g. p_pin) checked against pin_hash before the update — let me
--- know if you want that added, and I'll prepare it as a deliberate,
--- explained change rather than guessing at it here.
-CREATE OR REPLACE FUNCTION public.merchant_set_logo(p_merchant_id uuid, p_logo_url text)
+-- Used for both saving a new logo and removing one: call with
+-- p_logo_url = NULL (or '') to remove.
+--
+-- On any failure (unknown phone, wrong PIN, or no pin set) this
+-- returns the SAME generic {ok:false, reason:'wrong_pin'} regardless
+-- of which case it was, so a caller cannot use this function to probe
+-- which phone numbers are registered merchants.
+--
+-- IMPORTANT — this is a narrow, scoped fix for this one new function.
+-- It does NOT fix the same missing-ownership-check pattern that exists
+-- today in merchant_submit_photo, merchant_gallery_add,
+-- merchant_reset_pin, and other existing merchant_* RPCs — those were
+-- out of scope for this request and are flagged separately in the PR
+-- description and the accompanying report, not silently changed here.
+CREATE OR REPLACE FUNCTION public.merchant_set_logo(p_phone text, p_pin text, p_logo_url text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'extensions'
 AS $function$
 declare r public.merchants;
 begin
+  select * into r from public.merchants where phone = p_phone;
+  if r is null then return jsonb_build_object('ok', false, 'reason', 'wrong_pin'); end if;
+  if r.pin_hash is null or crypt(p_pin, r.pin_hash) <> r.pin_hash then
+    return jsonb_build_object('ok', false, 'reason', 'wrong_pin');
+  end if;
   update public.merchants set logo_url = nullif(p_logo_url, '')
-  where id = p_merchant_id returning * into r;
-  if r is null then return jsonb_build_object('ok', false, 'error', 'المحل غير موجود'); end if;
+  where id = r.id returning * into r;
   return jsonb_build_object('ok', true, 'logo_url', r.logo_url);
 end; $function$;
+
+-- Explicit, minimal EXECUTE grants — matching exactly what every other
+-- merchant_* RPC in this project already has (anon, authenticated,
+-- service_role; see the security review in the PR for the query used
+-- to confirm this), and revoking the PUBLIC grant Postgres adds to a
+-- function by default, so this isn't reachable any more broadly than
+-- the rest of the app's RPCs.
+REVOKE ALL ON FUNCTION public.merchant_set_logo(text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.merchant_set_logo(text, text, text) TO anon, authenticated, service_role;
 
 
 -- ---------------------------------------------------------------------
@@ -168,10 +198,27 @@ end; $function$;
 -- 3. This is additive only (new column, new function, three functions
 --    replaced with an identical body plus one new JSON key) — it does
 --    not drop or rename anything, and existing rows simply get
---    logo_url = NULL until a merchant uploads a logo.
--- 4. After running it, the matching app code in this PR (branch
+--    logo_url = NULL until a merchant uploads a logo. If an EARLIER
+--    draft of merchant_set_logo(uuid, text) was ever applied to this
+--    project, this migration's CREATE OR REPLACE will NOT remove that
+--    old, insecure 2-argument version automatically (Postgres treats
+--    different argument lists as different functions) — run
+--    `DROP FUNCTION IF EXISTS public.merchant_set_logo(uuid, text);`
+--    first if so. If you haven't run any earlier version of this
+--    migration, there is nothing to drop and you can ignore this.
+-- 4. Recommended before running this against production: run it
+--    against a disposable copy first (a local Postgres, or a Supabase
+--    branch) and run tripoli-points-merchant-logo-security-tests.sql
+--    there to see the negative-security assertions pass with your own
+--    eyes. I ran that exact script against an isolated, throwaway
+--    local Postgres instance (not this Supabase project) while
+--    preparing this PR — see the PR description / report for the
+--    output — but running it yourself against this schema is cheap
+--    and removes any doubt before touching production.
+-- 5. After running it, the matching app code in this PR (branch
 --    feature/merchant-logo-persistence) will start saving/reading
---    logo_url through merchant_set_logo. Nothing in the app calls
+--    logo_url through merchant_set_logo — and will now prompt for the
+--    merchant's PIN before every save/remove. Nothing in the app calls
 --    merchant_set_logo until this migration has been applied, so it
 --    is safe to merge this migration first and the code PR second
 --    (or the reverse — the RPC call will just fail gracefully with
