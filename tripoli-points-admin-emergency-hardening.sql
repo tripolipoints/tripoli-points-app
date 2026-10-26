@@ -145,105 +145,20 @@ DROP FUNCTION IF EXISTS public.admin_force_delete_merchant_test6(uuid, uuid);
 
 
 -- =====================================================================
--- ROLLBACK (NOT executed) — recreates every function this file drops,
--- with the EXACT body each one has in production today (captured via
--- pg_get_functiondef() immediately before writing this file). Keep this
--- section even after approving the DROPs above — if anything unexpected
--- turns up after running this file, these CREATE OR REPLACE statements
--- restore the prior state in one step, with no need to reconstruct
--- anything from memory.
+-- ROLLBACK — intentionally NOT included in this file
 -- =====================================================================
--- CREATE OR REPLACE FUNCTION public.admin_wipe_all_data()
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- begin
---   truncate table public.merchants, public.customers cascade;
---   return jsonb_build_object('ok', true);
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_wipe_all_data() TO anon, authenticated, service_role;
+-- Revised after review: an earlier draft of this file kept commented-
+-- out CREATE OR REPLACE statements here that would recreate the old,
+-- insecure overloads this file drops. Even commented out, keeping a
+-- "just uncomment to undo" block inside the hardening file itself
+-- blurs the line between "routine rollback" and "deliberately reopen a
+-- fixed vulnerability" -- the two must never look like the same kind of
+-- action.
 --
--- CREATE OR REPLACE FUNCTION public.admin_delete_merchant(p_merchant_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- declare cnt int;
--- begin
---   delete from public.merchants where id = p_merchant_id;
---   get diagnostics cnt = row_count;
---   return jsonb_build_object('ok', cnt > 0);
--- exception when foreign_key_violation then
---   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا المحل لوجود عمليات أو مشتريات مسجّلة عليه. جمّده أو استبعده بدلاً من الحذف.');
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant(uuid) TO anon, authenticated, service_role;
---
--- CREATE OR REPLACE FUNCTION public.admin_delete_customer(p_phone text)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- declare cnt int;
--- begin
---   delete from public.customers where phone = p_phone;
---   get diagnostics cnt = row_count;
---   return jsonb_build_object('ok', cnt > 0);
--- exception when foreign_key_violation then
---   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا الزبون لوجود عمليات مسجّلة عليه. جمّده بدلاً من الحذف.');
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_delete_customer(text) TO anon, authenticated, service_role;
---
--- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test2(p_merchant_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- begin
---   delete from public.merchants where id = p_merchant_id;
---   return jsonb_build_object('ok', true);
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test2(uuid) TO anon;
---
--- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test6(p_merchant_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- begin
---   delete from public.merchants where id = p_merchant_id;
---   return jsonb_build_object('ok', true);
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test6(uuid) TO anon;
---
--- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test7(p_merchant_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- begin
---   delete from public.merchants where id = p_merchant_id;
---   return jsonb_build_object('ok', true);
--- exception when foreign_key_violation then
---   return jsonb_build_object('ok', false, 'error', 'blocked');
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test7(uuid) TO anon;
---
--- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test2(p_merchant_id uuid, p_admin_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- declare a public.admin_users; ok boolean;
--- begin
---   select * into a from public.admin_users where id = p_admin_id;
---   ok := a.id is not null and coalesce(a.is_primary,false);
---   if ok then
---     delete from public.topup_orders where merchant_id = p_merchant_id;
---   end if;
---   return jsonb_build_object('ok', ok);
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test2(uuid, uuid) TO anon;
---
--- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test6(p_merchant_id uuid, p_admin_id uuid)
---  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
--- AS $function$
--- declare a public.admin_users; ok boolean;
--- begin
---   select * into a from public.admin_users where id = p_admin_id;
---   ok := a.id is not null and coalesce(a.is_primary,false);
---   if ok then
---     with d1 as (delete from public.topup_orders where merchant_id = p_merchant_id returning 1),
---          d2 as (delete from public.wallet_orders where merchant_id = p_merchant_id returning 1)
---     select 1 into ok from (select 1) z where ok;
---   end if;
---   return jsonb_build_object('ok', ok);
--- end; $function$;
--- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test6(uuid, uuid) TO anon;
+-- If those old overloads ever genuinely need to come back (see the
+-- "when, if ever" note below -- essentially never), the exact
+-- statements to do that live in a SEPARATE, clearly-named file:
+-- tripoli-points-DANGEROUS-reopen-legacy-functions.sql. It is not
+-- referenced by, run by, or bundled with this file or with
+-- tripoli-points-migration-rollback.sql in any way.
 -- =====================================================================

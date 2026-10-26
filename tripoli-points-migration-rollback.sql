@@ -1,30 +1,51 @@
 -- =====================================================================
--- Tripoli Points — ROLLBACK for tripoli-points-merchant-logo-migration.sql
+-- Tripoli Points — FUNCTIONAL ROLLBACK for
+-- tripoli-points-merchant-logo-migration.sql
 -- =====================================================================
--- NOT EXECUTED. This file exists so a rollback can be applied in
--- seconds if something goes wrong after approval, without having to
--- improvise reverse-DDL under pressure. It restores every function this
--- migration touches to its EXACT current (pre-migration) production
--- definition, pulled via pg_get_functiondef() immediately before writing
--- this file -- not retyped from memory or from the PR's own history.
+-- NOT EXECUTED. Revised after review: the first draft of this file
+-- restored merchant_reset_pin's EXECUTE grants (including PUBLIC and
+-- anon) as part of a routine rollback -- meaning rolling back the logo
+-- feature for an unrelated reason (a bug, a performance issue, anything
+-- not security-related) would have silently reopened the
+-- account-takeover hole this whole PR exists to close. That's fixed:
+-- this file now rolls back ONLY the logo/rate-limiting FEATURE and
+-- leaves every security fix in place. It does not touch
+-- merchant_reset_pin's privileges at all, in either direction -- running
+-- this file cannot change whether that function is callable.
 --
--- WHAT THIS DOES: restores merchant_verify_pin, list_merchants,
--- admin_list_merchants, and merchant_reset_pin's grants to their exact
--- current production state; drops everything the migration newly adds
+-- If you ever need to go further and literally restore the OLD,
+-- insecure merchant_reset_pin privileges too -- which we recommend
+-- against, and which should never be needed for an ordinary functional
+-- rollback -- that is a SEPARATE, explicit, heavily-guarded action in
+-- its own file: tripoli-points-DANGEROUS-reopen-legacy-functions.sql.
+-- Never run that file as part of "rolling back the logo feature"; see
+-- its own header for when (if ever) it's the right call.
+--
+-- WHAT THIS DOES: restores merchant_verify_pin, list_merchants, and
+-- admin_list_merchants to their exact current (pre-migration) production
+-- definitions (pulled via pg_get_functiondef() immediately before
+-- writing this file -- not retyped from memory); drops everything the
+-- migration newly adds for the logo/rate-limiting feature
 -- (merchant_set_logo, admin_reset_merchant_pin, the auth_rate_limits
 -- table and its three helper functions, the logo_url column).
+--
+-- WHAT THIS DELIBERATELY DOES NOT DO: touch merchant_reset_pin's
+-- privileges. Before AND after this rollback runs, merchant_reset_pin
+-- stays revoked from PUBLIC/anon/authenticated/service_role -- the
+-- account-takeover fix survives a logo-feature rollback. A verification
+-- query at the end confirms this explicitly, so running this file tells
+-- you immediately if that's somehow not the case.
 --
 -- WHAT THIS DOES NOT DO: restore any DATA. If merchants have already
 -- saved logos, used admin_reset_merchant_pin, or hit the rate limiter
 -- before a rollback is needed, dropping logo_url/auth_rate_limits loses
--- that data permanently. For that reason step 0 (a real backup) below
--- is not optional -- run it, or confirm Supabase's own backups cover
--- this window, before applying the migration at all.
+-- that data permanently. For that reason, confirm a real backup/restore
+-- point (Supabase dashboard -> Database -> Backups) before applying the
+-- migration at all -- not optional.
 -- =====================================================================
 
 -- Restore merchant_verify_pin to its exact current production shape
--- (no logo_url key, no rate limiting) -- pulled via pg_get_functiondef
--- immediately before writing this file.
+-- (no logo_url key, no rate limiting).
 CREATE OR REPLACE FUNCTION public.merchant_verify_pin(p_phone text, p_pin text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -87,18 +108,10 @@ begin
   return r;
 end; $function$;
 
--- Restore merchant_reset_pin's grants to exactly what production has
--- today (anon, authenticated, service_role, PUBLIC all EXECUTE) --
--- NOTE: this re-opens the account-takeover hole this whole PR exists to
--- close. Only use this rollback step if you are reverting the ENTIRE
--- migration, e.g. because of an unrelated production incident, and
--- understand that doing so brings the vulnerability back until the
--- migration (or an equivalent fix) is reapplied.
-GRANT EXECUTE ON FUNCTION public.merchant_reset_pin(text, text) TO PUBLIC, anon, authenticated, service_role;
-
--- Drop everything the migration newly introduced. DATA LOSS WARNING:
--- this discards any logo_url values merchants saved and any
--- auth_rate_limits history, permanently, the moment it runs.
+-- Drop everything the migration newly introduced FOR THE LOGO/RATE-
+-- LIMITING FEATURE ONLY. DATA LOSS WARNING: this discards any logo_url
+-- values merchants saved and any auth_rate_limits history, permanently,
+-- the moment it runs. It does NOT touch merchant_reset_pin.
 DROP FUNCTION IF EXISTS public.merchant_set_logo(text, text, text);
 DROP FUNCTION IF EXISTS public.admin_reset_merchant_pin(uuid, text, uuid, text);
 DROP FUNCTION IF EXISTS public._rl_locked(text);
@@ -107,14 +120,25 @@ DROP FUNCTION IF EXISTS public._rl_reset(text);
 DROP TABLE IF EXISTS public.auth_rate_limits;
 ALTER TABLE public.merchants DROP COLUMN IF EXISTS logo_url;
 
+-- SAFETY CHECK: confirms the account-takeover fix is still in place
+-- after this rollback. If this returns anything other than all-false,
+-- STOP and investigate before telling anyone the rollback is "done" --
+-- it means something outside this file re-granted access.
+select
+  has_function_privilege('anon', 'public.merchant_reset_pin(text,text)', 'EXECUTE') as anon_can_reset_pin_should_be_false,
+  has_function_privilege('authenticated', 'public.merchant_reset_pin(text,text)', 'EXECUTE') as authenticated_can_reset_pin_should_be_false,
+  has_function_privilege('public', 'public.merchant_reset_pin(text,text)', 'EXECUTE') as public_can_reset_pin_should_be_false;
+
 -- =====================================================================
 -- HOW TO USE THIS
 -- =====================================================================
--- Only after the migration has actually been applied and something
--- needs reverting. Review the data-loss warnings above first -- in
--- particular, decide whether re-opening merchant_reset_pin is
--- acceptable for however long until a fix is reapplied, and whether any
--- logo_url / auth_rate_limits data saved since the migration ran is
--- safe to discard (or needs exporting first, e.g. `select id, phone,
--- logo_url from public.merchants where logo_url is not null;`).
+-- Only after the migration has actually been applied and the LOGO
+-- FEATURE specifically needs reverting -- a bug, a performance problem,
+-- anything unrelated to the security fixes. Review the data-loss
+-- warning above first, and export logo_url / auth_rate_limits data
+-- first if it needs to survive the rollback, e.g.:
+--   select id, phone, logo_url from public.merchants where logo_url is not null;
+-- Run the safety-check SELECT at the end (it runs automatically as the
+-- last statement) and confirm all three columns read false before
+-- considering the rollback complete.
 -- =====================================================================
