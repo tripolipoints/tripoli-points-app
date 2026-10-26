@@ -186,3 +186,38 @@ select public.merchant_verify_pin('71111111', '4321');
 reset role;
 -- EXPECT: the 6th call, even with the TRUE admin pin 9999, returns {"ok":false,"reason":"locked"};
 -- Merchant As pin is still 4321 from Test 13 (the locked-out call never reached the update).
+
+-- =====================================================================
+-- Tests 15-17: the rate-limit helper functions themselves (_rl_locked,
+-- _rl_record_fail, _rl_reset) cannot be called directly by anon or
+-- authenticated to inspect, clear, or forge lockout state. Added after
+-- review flagged that these three, as first written, kept Postgres's
+-- default implicit PUBLIC EXECUTE grant -- table-level REVOKE on
+-- auth_rate_limits already blocked exploitation in practice (confirmed
+-- below), but the migration now also explicitly revokes EXECUTE on the
+-- functions themselves, for defense in depth and so this isn't relying
+-- on an indirect/incidental protection.
+-- =====================================================================
+
+\echo '--- Test 15: anon cannot call _rl_reset directly to clear a lock out from under a victim ---'
+set role anon;
+select public._rl_reset('merchant:72222222');
+reset role;
+-- EXPECT: ERROR: permission denied for function _rl_reset (not a jsonb {"ok":...} result).
+
+\echo '--- Test 16: anon cannot call _rl_record_fail directly to lock someone ELSE out (a DoS) ---'
+set role anon;
+select public._rl_record_fail('merchant:71111111');
+reset role;
+-- EXPECT: ERROR: permission denied for function _rl_record_fail.
+
+\echo '--- Test 17: anon cannot call _rl_locked directly either (even read-only lock-state probing is blocked) ---'
+set role anon;
+select public._rl_locked('merchant:71111111');
+reset role;
+-- EXPECT: ERROR: permission denied for function _rl_locked.
+--
+-- Also confirmed via has_function_privilege('anon'/'authenticated'/'public', <oid>, 'EXECUTE')
+-- = false for all three helpers after the migration's REVOKEs, vs. true for all three
+-- beforehand -- this is the exact gap the review flagged, now closed and verified both by
+-- direct-call tests (above) and by checking the catalog privilege directly.

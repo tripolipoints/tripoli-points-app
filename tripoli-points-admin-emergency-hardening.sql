@@ -60,6 +60,28 @@
 --   select has_function_privilege('anon', 'public.admin_delete_merchant(uuid)', 'EXECUTE');
 -- -> true means this is exploitable right now; dropping it removes that.
 --
+-- DEPENDENCY CHECK (done before finalizing this file, re-confirmed on
+-- the current schema, nothing executed beyond read-only catalog
+-- queries):
+--   1. Re-pulled the exact current signature + oid + anon-EXECUTE state
+--      of every function this file drops (pg_get_function_identity_
+--      arguments + has_function_privilege) -- all match what's below.
+--   2. pg_depend: zero catalog-level dependents (no view, default,
+--      index, or constraint references any of these oids).
+--   3. pg_trigger: zero triggers use any of these as a trigger function.
+--   4. Searched every OTHER function's body (pg_proc.prosrc) in this
+--      schema for a call to any of these by name -- zero matches. Only
+--      the live client (index.html) calls the checked overloads, and
+--      only ever with named parameters (p_admin_id, and p_pin for the
+--      wipe function) -- PostgREST's named-parameter overload
+--      resolution means those calls can only ever match the newer,
+--      checked overload, never the one being dropped here, regardless
+--      of which overloads exist. Dropping the old ones changes no
+--      client-visible behavior.
+-- Re-run these same checks yourself against the live schema right
+-- before applying this file, in case anything has changed since this
+-- review.
+--
 -- =====================================================================
 
 -- 1) admin_delete_merchant(uuid) — the OLD overload, zero checks at all.
@@ -114,4 +136,114 @@ DROP FUNCTION IF EXISTS public.admin_force_delete_merchant_test6(uuid, uuid);
 --    primary admin to confirm those actions still work exactly as
 --    before — they should, since only the OLD, never-called-by-the-
 --    client overloads are removed.
+-- 4. BACKUP FIRST: same as the logo-persistence migration — confirm a
+--    recent backup/restore point exists (Supabase dashboard -> Database
+--    -> Backups) before running this against production. This file's
+--    DROPs are schema-only (no table data is touched), so the risk
+--    window is narrow, but confirm anyway before any production change.
+-- =====================================================================
+
+
+-- =====================================================================
+-- ROLLBACK (NOT executed) — recreates every function this file drops,
+-- with the EXACT body each one has in production today (captured via
+-- pg_get_functiondef() immediately before writing this file). Keep this
+-- section even after approving the DROPs above — if anything unexpected
+-- turns up after running this file, these CREATE OR REPLACE statements
+-- restore the prior state in one step, with no need to reconstruct
+-- anything from memory.
+-- =====================================================================
+-- CREATE OR REPLACE FUNCTION public.admin_wipe_all_data()
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   truncate table public.merchants, public.customers cascade;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_wipe_all_data() TO anon, authenticated, service_role;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare cnt int;
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   get diagnostics cnt = row_count;
+--   return jsonb_build_object('ok', cnt > 0);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا المحل لوجود عمليات أو مشتريات مسجّلة عليه. جمّده أو استبعده بدلاً من الحذف.');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant(uuid) TO anon, authenticated, service_role;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_delete_customer(p_phone text)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare cnt int;
+-- begin
+--   delete from public.customers where phone = p_phone;
+--   get diagnostics cnt = row_count;
+--   return jsonb_build_object('ok', cnt > 0);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا الزبون لوجود عمليات مسجّلة عليه. جمّده بدلاً من الحذف.');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_customer(text) TO anon, authenticated, service_role;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test2(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test2(uuid) TO anon;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test6(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test6(uuid) TO anon;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test7(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'blocked');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test7(uuid) TO anon;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test2(p_merchant_id uuid, p_admin_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare a public.admin_users; ok boolean;
+-- begin
+--   select * into a from public.admin_users where id = p_admin_id;
+--   ok := a.id is not null and coalesce(a.is_primary,false);
+--   if ok then
+--     delete from public.topup_orders where merchant_id = p_merchant_id;
+--   end if;
+--   return jsonb_build_object('ok', ok);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test2(uuid, uuid) TO anon;
+--
+-- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test6(p_merchant_id uuid, p_admin_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare a public.admin_users; ok boolean;
+-- begin
+--   select * into a from public.admin_users where id = p_admin_id;
+--   ok := a.id is not null and coalesce(a.is_primary,false);
+--   if ok then
+--     with d1 as (delete from public.topup_orders where merchant_id = p_merchant_id returning 1),
+--          d2 as (delete from public.wallet_orders where merchant_id = p_merchant_id returning 1)
+--     select 1 into ok from (select 1) z where ok;
+--   end if;
+--   return jsonb_build_object('ok', ok);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test6(uuid, uuid) TO anon;
 -- =====================================================================

@@ -195,13 +195,12 @@ end; $function$;
 --
 -- One shared table, keyed by a short text key (e.g. 'merchant:<phone>'
 -- or 'admin:<admin id>'), counting consecutive failures and recording a
--- lockout expiry. Deliberately NOT exposed to anon/authenticated at all
--- — it is only ever touched from inside other SECURITY DEFINER
--- functions (which run as the functions' owner, so no explicit grant is
--- needed for them to read/write it; a function's owner always has
--- implicit rights on their own objects even under REVOKE ALL FROM
--- PUBLIC). There is no code path that lets a client read or write this
--- table directly.
+-- lockout expiry. Not exposed to anon/authenticated at all — it is only
+-- ever touched from inside other SECURITY DEFINER functions (which run
+-- as the functions' owner, so no explicit grant is needed for THEM to
+-- read/write it; a function's owner always has implicit rights on their
+-- own objects even under REVOKE ALL FROM PUBLIC). There is no code path
+-- that lets a client read or write this table directly.
 CREATE TABLE IF NOT EXISTS public.auth_rate_limits (
   key          text primary key,
   fail_count   integer not null default 0,
@@ -209,6 +208,29 @@ CREATE TABLE IF NOT EXISTS public.auth_rate_limits (
   updated_at   timestamptz not null default now()
 );
 REVOKE ALL ON TABLE public.auth_rate_limits FROM PUBLIC;
+
+-- SECURITY NOTE (added after review): _rl_locked / _rl_record_fail /
+-- _rl_reset below are plain functions (SECURITY INVOKER, Postgres's
+-- default — none of the three declare SECURITY DEFINER), so calling
+-- one directly runs it as the CALLER's own role, not as the function
+-- owner. Today that means a direct anon call still fails, because it
+-- hits the REVOKE on auth_rate_limits above before touching any row —
+-- verified empirically: `set role anon; select
+-- public._rl_reset('merchant:72222222');` raises `permission denied
+-- for table auth_rate_limits`, and the same for _rl_record_fail and
+-- _rl_locked (see tripoli-points-merchant-logo-security-tests.sql,
+-- Tests 15-17). But relying ONLY on that indirect, table-level denial
+-- is fragile: every one of these three functions still carries
+-- Postgres's default PUBLIC EXECUTE grant today (confirmed via
+-- has_function_privilege), so if anything ever grants anon/
+-- authenticated any privilege on auth_rate_limits in the future — even
+-- for an unrelated reason — these three become directly callable again
+-- with no function-level check of their own. The REVOKEs below close
+-- that off explicitly, as defense in depth, matching the pattern this
+-- project already needed once for merchant_reset_pin: never rely on an
+-- indirect/implicit denial when an explicit REVOKE is just as cheap.
+-- (REVOKEs placed right after each CREATE below, same as everywhere
+-- else in this file — a REVOKE ON FUNCTION must follow its CREATE.)
 
 -- Returns true while a key is currently locked out.
 CREATE OR REPLACE FUNCTION public._rl_locked(p_key text)
@@ -222,6 +244,7 @@ AS $function$
     where key = p_key and locked_until is not null and locked_until > now()
   );
 $function$;
+REVOKE ALL ON FUNCTION public._rl_locked(text) FROM PUBLIC;
 
 -- Records one failed attempt for a key; after 5 consecutive failures,
 -- locks that key out for 15 minutes. A failure recorded while already
@@ -249,6 +272,7 @@ begin
     update public.auth_rate_limits set locked_until = now() + interval '15 minutes' where key = p_key;
   end if;
 end; $function$;
+REVOKE ALL ON FUNCTION public._rl_record_fail(text) FROM PUBLIC;
 
 -- Clears a key's failure count/lock entirely, called on any successful
 -- verification so a legitimate login right after a few mistypes doesn't
@@ -260,6 +284,7 @@ CREATE OR REPLACE FUNCTION public._rl_reset(p_key text)
 AS $function$
   delete from public.auth_rate_limits where key = p_key;
 $function$;
+REVOKE ALL ON FUNCTION public._rl_reset(text) FROM PUBLIC;
 
 
 -- ---------------------------------------------------------------------
@@ -423,7 +448,20 @@ GRANT EXECUTE ON FUNCTION public.admin_reset_merchant_pin(uuid, text, uuid, text
 -- support. customer_reset_pin is UNCHANGED/out of scope — see the
 -- separate report for why, and for the recommendation to decide on it
 -- next.
-REVOKE EXECUTE ON FUNCTION public.merchant_reset_pin(text, text) FROM PUBLIC, anon, authenticated;
+--
+-- ALSO REVOKED FROM service_role (added after review): confirmed via
+-- has_function_privilege that production's service_role currently has
+-- EXECUTE on this function too -- purely as a side effect of the same
+-- PUBLIC grant, not an explicit grant of its own. Nothing in this
+-- project (client, the two existing edge functions, or any other
+-- function) calls merchant_reset_pin via service_role today, so
+-- revoking it here is a deliberate least-privilege choice, not an
+-- accident: if the team ever wants a service_role-only manual-reset
+-- tool, that is a separate, explicit GRANT to add later with its own
+-- justification, not something to leave standing as an unused side
+-- effect of a blanket PUBLIC grant. If you'd rather service_role kept
+-- this, say so and I'll adjust before this runs.
+REVOKE EXECUTE ON FUNCTION public.merchant_reset_pin(text, text) FROM PUBLIC, anon, authenticated, service_role;
 
 
 -- =====================================================================
@@ -479,4 +517,33 @@ REVOKE EXECUTE ON FUNCTION public.merchant_reset_pin(text, text) FROM PUBLIC, an
 --    admin_wipe_all_data and others that are NOT part of this PR's
 --    scope. See the full report for why it's split out and what it
 --    contains; nothing in it has been run either.
+-- 7. BACKUP, FIRST: before running this file (or the hardening file)
+--    against production, take a fresh backup. Confirm in the Supabase
+--    dashboard (Database -> Backups) what your project's plan provides
+--    (point-in-time recovery or daily backups) and that a recent-enough
+--    restore point will exist, or trigger a manual backup there if the
+--    plan supports it; I cannot trigger a project backup from here —
+--    only you can, via the dashboard. As an extra, cheap safety net
+--    that doesn't depend on the dashboard, export the handful of rows
+--    this migration can't un-delete data for:
+--      select id, phone, logo_url from public.merchants where logo_url is not null;
+--    (save the output -- there should be none yet, since merchant_set_logo
+--    doesn't exist until this migration runs, but re-run it right before
+--    any LATER rollback, once merchants have started saving logos.)
+-- 8. ROLLBACK: tripoli-points-migration-rollback.sql (same folder)
+--    restores every function this file touches to its exact current
+--    production definition (captured via pg_get_functiondef immediately
+--    before writing it) and drops what this file newly adds. Dry-run
+--    executed cleanly against the same throwaway Postgres instance used
+--    for the security tests. Read its data-loss warnings before using
+--    it -- in particular, it re-opens merchant_reset_pin and discards
+--    any logo_url/auth_rate_limits data saved since this migration ran.
+-- 9. RECOMMENDED EXECUTION ORDER (per your approval): 1) review and
+--    apply tripoli-points-admin-emergency-hardening.sql, 2) review and
+--    apply this file, 3) merge PR #3 and deploy/test the client code.
+--    Nothing here depends technically on that exact order (the two SQL
+--    files touch disjoint sets of functions), but doing hardening first
+--    closes the more severe, already-live admin holes before touching
+--    anything else, and keeps step 3 as a deliberate, separate action
+--    you take only once both SQL files are confirmed applied correctly.
 -- =====================================================================
