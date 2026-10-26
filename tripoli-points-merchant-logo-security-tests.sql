@@ -99,3 +99,90 @@ select id, phone, logo_url from public.merchants where phone = '72222222';
 -- EXPECT (showing the OLD bug, for contrast only): this SUCCEEDS and overwrites Merchant Bs
 -- logo with zero authorization — exactly what the shipped merchant_set_logo cannot do, since
 -- it never accepts a merchant id from the caller at all.
+
+-- =====================================================================
+-- Tests 9-14: merchant_reset_pin revocation, rate limiting, and the
+-- new admin_reset_merchant_pin RPC — added for the PIN-reset-security /
+-- rate-limiting request. Needs a few extra fixtures on top of the two
+-- merchants above:
+--   public.admin_users: a PRIMARY admin (id 33333333-...-333333333333,
+--     username 'primary_admin', pin '9999', is_primary=true) and a
+--     SECONDARY admin (id 44444444-...-444444444444, pin '8888',
+--     is_primary=false), both with EXECUTE on admin_reset_merchant_pin
+--     granted to anon (matching how the real client calls every RPC).
+--   public.auth_rate_limits must exist (created by the migration).
+-- I ran these against the same throwaway local Postgres instance as
+-- Tests 1-8 — not against the real Supabase project.
+-- =====================================================================
+
+\echo '--- Test 9: merchant_reset_pin (the old self-service reset) is now REVOKED from anon ---'
+\echo '--- entirely -- this IS the account-takeover fix the user flagged as the top priority. ---'
+set role anon;
+select public.merchant_reset_pin('71111111', '0000');
+reset role;
+-- EXPECT: ERROR: permission denied for function merchant_reset_pin — NOT a jsonb {"ok":...}
+-- result. (Caught during testing that REVOKE ... FROM anon, authenticated ALONE is NOT
+-- enough here, because every function in this project has an implicit EXECUTE grant to
+-- PUBLIC from creation time, and anon/authenticated are both members of PUBLIC — so the
+-- migration's REVOKE explicitly includes PUBLIC too. Re-run this test after applying the
+-- migration to confirm the real project behaves the same way.)
+
+\echo '--- Test 10: 5 wrong PINs for one merchant locks that merchant out, SHARED between the ---'
+\echo '--- login screen (merchant_verify_pin) and the logo-save PIN modal (merchant_set_logo), ---'
+\echo '--- so an attacker cannot multiply their guess budget by switching entry points. ---'
+set role anon;
+select public.merchant_verify_pin('72222222', 'wrong');
+select public.merchant_verify_pin('72222222', 'wrong');
+select public.merchant_verify_pin('72222222', 'wrong');
+select public.merchant_verify_pin('72222222', 'wrong');
+select public.merchant_set_logo('72222222', 'wrong', 'data:image/png;base64,X');
+\echo '--- the 6th attempt, even with the CORRECT pin, via either endpoint, is now rejected as locked ---'
+select public.merchant_verify_pin('72222222', '5678');
+select public.merchant_set_logo('72222222', '5678', 'data:image/png;base64,X');
+reset role;
+-- EXPECT: the first 5 calls all return {"ok":false,"reason":"wrong_pin"}; the 6th and 7th
+-- (both with the real PIN 5678) return {"ok":false,"reason":"locked"} instead.
+
+\echo '--- Test 11: the lockout is per-merchant -- Merchant A (71111111) is unaffected by Bs lockout ---'
+set role anon;
+select public.merchant_verify_pin('71111111', '1234');
+reset role;
+-- EXPECT: {"ok":true, ...} — Merchant A logs in normally despite Test 10 locking Merchant B.
+
+\echo '--- Test 12: admin_reset_merchant_pin requires the REAL primary admin PIN, not just an id ---'
+set role anon;
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'WRONGPIN', '11111111-1111-1111-1111-111111111111', '4321');
+select public.admin_reset_merchant_pin('44444444-4444-4444-4444-444444444444', '8888', '11111111-1111-1111-1111-111111111111', '4321');
+select public.admin_reset_merchant_pin('99999999-9999-9999-9999-999999999999', '0000', '11111111-1111-1111-1111-111111111111', '4321');
+reset role;
+select pin_hash from public.merchants where phone='71111111';
+-- EXPECT: all three calls return {"ok":false, "error":...} (wrong pin / not primary / invalid
+-- session, respectively) and Merchant As pin_hash is UNCHANGED by any of them.
+
+\echo '--- Test 13: the REAL primary admin + REAL pin succeeds, and only touches the named merchant ---'
+set role anon;
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', '9999', '11111111-1111-1111-1111-111111111111', '4321');
+select public.merchant_verify_pin('71111111', '4321');
+select public.merchant_verify_pin('71111111', '1234');
+reset role;
+select phone from public.merchants where phone='72222222' and logo_url is null;
+-- EXPECT: {"ok":true} for the reset; the new pin 4321 now logs Merchant A in; the old pin
+-- 1234 is rejected; Merchant B (72222222) is completely untouched by a call that only named
+-- Merchant A.
+
+\echo '--- Test 14: admin_reset_merchant_pin has its OWN rate limit too (throttles admin-pin ---'
+\echo '--- guessing against THIS endpoint specifically, independent of the merchant lockout above) ---'
+set role anon;
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'bad1', '11111111-1111-1111-1111-111111111111', '1111');
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'bad2', '11111111-1111-1111-1111-111111111111', '1111');
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'bad3', '11111111-1111-1111-1111-111111111111', '1111');
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'bad4', '11111111-1111-1111-1111-111111111111', '1111');
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', 'bad5', '11111111-1111-1111-1111-111111111111', '1111');
+select public.admin_reset_merchant_pin('33333333-3333-3333-3333-333333333333', '9999', '11111111-1111-1111-1111-111111111111', '2222');
+reset role;
+select phone from public.merchants where phone='71111111';
+set role anon;
+select public.merchant_verify_pin('71111111', '4321');
+reset role;
+-- EXPECT: the 6th call, even with the TRUE admin pin 9999, returns {"ok":false,"reason":"locked"};
+-- Merchant As pin is still 4321 from Test 13 (the locked-out call never reached the update).

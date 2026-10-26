@@ -1774,7 +1774,7 @@ async function pinSubmit(){
   if(S.pinMode==='enter'){
     const role=S.loginRole,code=S.code;
     const res=role==='merchant'?await sbRpc('merchant_verify_pin',{p_phone:S.phone,p_pin:code}):await sbRpc('customer_verify_pin',{p_phone:S.phone,p_pin:code});
-    if(!res||!res.ok){S.code='';toast(res&&res.reason==='frozen'?'هذا الحساب مجمّد':'رمز الحماية غير صحيح');return render()}
+    if(!res||!res.ok){S.code='';toast(res&&res.reason==='frozen'?'هذا الحساب مجمّد':res&&res.reason==='locked'?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':'رمز الحماية غير صحيح');return render()}
     if(role==='merchant')hydrateMerchant(res.merchant);else hydrateCustomer(res.customer);
     return completeLogin();
   }
@@ -1791,7 +1791,20 @@ async function pinSubmit(){
     S.pendingPin=pin;S.screen='welcome';render();
   }
 }
-function forgotPin(){S.resetRole=S.loginRole;S.pinMode='set';S.code='';S.pin1='';toast('أدخل رمزاً جديداً لإعادة تعيين رمز الحماية');render()}
+// نسيان رمز الحماية: بالنسبة للتاجر، لم نعد نسمح بتعيين رمز جديد فوراً بمجرد معرفة رقم الهاتف (كان هذا
+// هو السلوك القديم عبر merchant_reset_pin، وهو ثغرة تسمح لأي طرف يعرف رقم هاتف التاجر فقط بالاستيلاء
+// الكامل على حسابه، بدون أي تحقق من الهوية). استرجاع رمز التاجر الآن يتم فقط عبر فريق الدعم، الذي يتحقق
+// من هوية التاجر يدوياً (كمستند تسجيل المحل) قبل أن يطلب من الأدمن الأساسي إعادة تعيين الرمز من لوحة التحكم.
+// بالنسبة للزبون، لم يُطلب تغيير هذا السلوك في هذه المهمة (الخطر أقل: لا أموال أو بيانات تجارية مرتبطة
+// بحساب الزبون بالطريقة نفسها) فتُركت آلية الاسترجاع الذاتي كما كانت — هذا موضّح في تقرير الأمان المرفق.
+function forgotPin(){
+  if(S.loginRole==='merchant'){S.screen='mforgotpin';return render()}
+  S.resetRole=S.loginRole;S.pinMode='set';S.code='';S.pin1='';toast('أدخل رمزاً جديداً لإعادة تعيين رمز الحماية');render()}
+function mForgotPinView(){return `<div class="scr">${backBtn('pin')}<h1>نسيت رمز الحماية؟</h1>
+  <p class="sub">لحماية حساب محلك، لا يمكن تعيين رمز جديد تلقائياً بمعرفة رقم الهاتف فقط.</p>
+  <div class="card"><p class="muted" style="margin:0">تواصل مع فريق الدعم عبر واتساب وزوّدهم برقم هاتف محلك المسجّل. سيتحقق الفريق من هويتك، ثم يعيد لك الإدارة تعيين رمز حماية جديد من لوحة التحكم.</p></div>
+  <a class="btn blue" style="display:block;text-align:center;text-decoration:none;margin-top:14px" target="_blank" href="https://wa.me/${SUPPORT_WA}">تواصل مع الدعم عبر واتساب</a>
+  <button class="btn ghost" style="margin-top:10px" onclick="go('pin')">رجوع</button></div>`}
 async function completeLogin(){
   const p=S.phone,m=S.merchants.find(x=>x.phone===p);
   if(m){S.merchantId=m.id;if(m.status==='active'){if(!m.photo&&!m.photoPending){addMNote(m.id,'photo','لم تُضف صورة لمحلك بعد','أضف صورة واجهة محلك ليراها الزبائن بدل الصورة الافتراضية، وسترسل للإدارة للموافقة عليها.','info');S.mPhotoNag=true}S.mode='merchant';S.tab='mhome';S.screen='app';syncMerchantData(m.id)}else S.screen='mpending';return render()}
@@ -1989,7 +2002,7 @@ function mLogoPinKey(k){const st=S.mLogoPinPrompt;if(!st||st.busy)return;
   if(st.code.length===PIN_LEN)setTimeout(mLogoPinSubmit,150)}
 async function mLogoPinSubmit(){const st=S.mLogoPinPrompt;if(!st||st.busy)return;st.busy=true;
   const res=await sbRpc('merchant_set_logo',{p_phone:S.phone,p_pin:st.code,p_logo_url:st.pendingLogo});
-  if(!res||!res.ok){st.busy=false;st.code='';toast((res&&res.reason==='wrong_pin')?'رمز الحماية غير صحيح':(res&&res.error)||'تعذّر حفظ الشعار على الخادم');return render()}
+  if(!res||!res.ok){st.busy=false;st.code='';toast((res&&res.reason==='locked')?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':(res&&res.reason==='wrong_pin')?'رمز الحماية غير صحيح':(res&&res.error)||'تعذّر حفظ الشعار على الخادم');return render()}
   const m=M(S.merchantId);if(m)m.logo=res.logo_url||'';
   S.mLogoPinPrompt=null;toast(st.action==='remove'?'تم إزالة الشعار':'تم حفظ الشعار');render()}
 function mLogoPinModal(){const st=S.mLogoPinPrompt;if(!st)return'';
@@ -4000,7 +4013,24 @@ function merchReviewHtml(m){const k=CAT(m.cat);
   ${m.pendingName?`<div class="muted" style="font-size:13px">الاسم الجديد: <b style="color:var(--ink)">${m.pendingName}</b></div>`:''}
   ${m.pendingAddr?`<div class="muted" style="font-size:13px">العنوان الجديد: <b style="color:var(--ink)">${m.pendingAddr}</b></div>`:''}
   <div class="row" style="gap:6px;margin-top:8px"><button class="btn ok sm" style="flex:1" onclick="merchReviewApproveInfo('${m.id}')">موافقة على التعديل</button><button class="btn bad sm" style="flex:1" onclick="merchReviewRejectInfo('${m.id}')">رفض التعديل</button></div>`:''}
+  ${(S.adminInfo&&S.adminInfo.is_primary)?`<label class="muted" style="margin-top:14px;display:block">نسي التاجر رمز الحماية؟</label>
+  <div class="muted" style="font-size:11.5px;margin:2px 0 6px">تحقق أولاً من هوية التاجر (مثلاً عبر وثيقة تسجيل المحل) قبل تعيين رمز جديد له</div>
+  <button class="btn sm ghost" onclick="adminResetMerchantPin('${m.id}')">🔑 إعادة تعيين رمز الحماية</button>`:''}
   <button class="btn ghost" style="margin-top:14px" onclick="merchReviewClose()">إغلاق</button>`}
+// إعادة تعيين رمز حماية تاجر من قبل الإدارة — يحل محل الاسترجاع الذاتي القديم غير الآمن عبر merchant_reset_pin.
+// يتطلب أن يكون الأدمن "أساسياً" (نفس شرط باقي الإجراءات الحساسة كتصفير البيانات وحذف المحل)، ويطلب رمز
+// الإدارة الخاص بالأدمن نفسه في كل استدعاء (يتحقق منه الخادم مجدداً)، تماماً كما تفعل admin_wipe_all_data.
+async function adminResetMerchantPin(id){
+  if(!S.adminInfo||!S.adminInfo.is_primary)return toast('هذا الإجراء مسموح للأدمن الأساسي فقط');
+  const m=M(id);if(!m)return;
+  const newPin=prompt(`أدخل رمز حماية جديد من 4 أرقام لمحل "${m.name}" (+961 ${m.phone}):\nتأكد أولاً من هوية التاجر قبل المتابعة.`);
+  if(newPin===null)return;
+  if(!/^\d{4}$/.test(newPin.trim()))return toast('رمز الحماية يجب أن يكون 4 أرقام بالضبط');
+  const pin=prompt('أدخل رمز الإدارة الخاص بك لتأكيد هويتك وإتمام إعادة التعيين:');
+  if(pin===null)return;
+  const res=await sbRpc('admin_reset_merchant_pin',{p_admin_id:S.adminInfo.id,p_pin:pin.trim(),p_merchant_id:id,p_new_pin:newPin.trim()});
+  if(!res||!res.ok)return toast((res&&res.reason==='locked')?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':(res&&res.error)||'تعذّر إعادة التعيين');
+  toast('تم تعيين رمز حماية جديد للتاجر، أطلعه عليه بقناة موثوقة');merchReviewRefresh()}
 function openMerchantReview(mid){merchReviewClose();const m=M(mid);if(!m)return;merchReviewMid=mid;
   const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)merchReviewClose()};merchReviewModalEl=md;
   md.innerHTML=`<div class="sheet">${merchReviewHtml(m)}</div>`;document.body.appendChild(md)}
@@ -4071,7 +4101,7 @@ function render(){
   if(S.screen==='app'&&S.mode==='admin'){if(!S.adminOk||Date.now()>S.adminUntil){const was=S.adminOk;S.adminOk=false;S.mode=null;S.screen='splash';if(was)toast('انتهت جلسة الإدارة. سجّل الدخول من جديد')}else S.adminUntil=Date.now()+ADMIN_SESSION}
   sweep();const a=$('#app');
   if(S.screen==='app')a.innerHTML=S.mode==='customer'?customerView():S.mode==='merchant'?merchantView():adminView();
-  else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView}[S.screen]();
+  else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView,mforgotpin:mForgotPinView}[S.screen]();
   // نقل الشريط السفلي الثابت (.nav) إلى خارج #app (الذي له overflow-x:hidden) ليبقى ثابتاً فعلياً فوق الشاشة أثناء التمرير على بعض متصفحات الجوال، بدل أن يختفي أو يُقصّ بسبب تعشيشه داخل عنصر له overflow
   const navSlot=$('#navSlot');if(navSlot){const navEl=a.querySelector(':scope > .nav');navSlot.innerHTML='';if(navEl)navSlot.appendChild(navEl)}
   if(S.screen==='app'&&S.mode==='customer'&&S.sub==='calc')calcUpd();
