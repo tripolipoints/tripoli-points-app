@@ -1238,6 +1238,244 @@ body.tp23-map-open > #promoSlot{display:none!important}
 body.tp23-map-open #mapcard,body.tp23-map-open #storeSheet{display:none!important}
 body.tp23-map-open #rtchip{display:none!important}
 </style>
+<style id="tp31-categories-areas">
+/* Tripoli Points V14 — approved premium More / categories / neighborhoods mobile design.
+   CSS scoped to three More modals. Data selection and routing handlers unchanged. */
+.modal.tp14-choice,.modal.tp14-categories,.modal.tp14-areas{background:#eef4fd}
+.modal.tp14-choice .catSheet,.modal.tp14-categories .catSheet,.modal.tp14-areas .catSheet{
+  background:#f7faff !important;max-width:560px;max-height:100% !important;height:100% !important;
+  padding:16px 17px calc(28px + env(safe-area-inset-bottom,0px)) !important;
+  overflow-x:hidden;overflow-y:auto;box-sizing:border-box;
+}
+.modal.tp14-choice .catHd,.modal.tp14-categories .catHd,.modal.tp14-areas .catHd{
+  min-height:125px !important;margin:-16px -17px 18px !important;padding:17px 20px !important;
+  border-bottom:3px solid #ffc20e !important;background:#0b2e70 !important;
+}
+.modal.tp14-choice .catHd::after,.modal.tp14-categories .catHd::after,.modal.tp14-areas .catHd::after{
+  background:linear-gradient(110deg,rgba(6,28,76,.94) 0%,rgba(13,56,130,.86) 58%,rgba(12,47,116,.45) 100%) !important;
+}
+.modal.tp14-choice .catHdRow,.modal.tp14-categories .catHdRow,.modal.tp14-areas .catHdRow{position:relative;z-index:3;gap:8px}
+.modal.tp14-choice .catHdLogo,.modal.tp14-categories .catHdLogo,.modal.tp14-areas .catHdLogo{transform:none !important;flex:0 0 auto}
+.modal.tp14-choice .catHdLogo svg,.modal.tp14-categories .catHdLogo svg,.modal.tp14-areas .catHdLogo svg{width:35px !important;height:44px !important}
+.modal.tp14-choice .catHdTxt b,.modal.tp14-categories .catHdTxt b,.modal.tp14-areas .catHdTxt b{font-size:21px !important}
+.modal.tp14-choice .catHdTxt small,.modal.tp14-categories .catHdTxt small,.modal.tp14-areas .catHdTxt small{font-size:12px !important}
+.modal.tp14-choice .tp14-content{padding:17px 2px 0}
+.modal.tp14-choice .tp14-intro{text-align:center;margin:8px 0 22px;color:#0c2a6b}
+.modal.tp14-choice .tp14-eyebrow{display:inline-flex;padding:5px 13px;background:#fff0bf;border-radius:50px;color:#775000;font-size:12px;font-weight:800;margin-bottom:11px}
+.modal.tp14-choice .tp14-intro h2{font-size:clamp(21px,5.3vw,28px);line-height:1.25;margin:0;font-weight:800;color:#0c2a6b}
+.modal.tp14-choice .tp14-intro p{font-size:14px;color:#70809d;line-height:1.5;margin:9px 0 0}
+.modal.tp14-choice .tp14-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.modal.tp14-choice .tp14-choice-card{display:flex;position:relative;align-items:center;flex-direction:column;justify-content:center;min-width:0;min-height:206px;padding:20px 9px 30px;background:#fff;border:1.5px solid #c1d6ef;border-radius:22px;box-shadow:0 6px 18px #0c2a6b0a;font-family:inherit;color:#0b2e70;cursor:pointer;gap:9px;transition:transform .12s}
+.modal.tp14-choice .tp14-choice-card:active{transform:scale(.98)}
+.modal.tp14-choice .tp14-choice-card b{font-size:clamp(14px,3.6vw,17px);font-weight:800;line-height:1.3;text-align:center}
+.modal.tp14-choice .tp14-choice-card small{font-size:12px;color:#7383a1;line-height:1.4;text-align:center}
+.modal.tp14-choice .tp14-choice-icon{display:flex;align-items:center;justify-content:center;width:70px;height:70px;border-radius:21px;color:#0c2a6b}
+.modal.tp14-choice .tp14-gold{background:#fff0c2}
+.modal.tp14-choice .tp14-sky{background:#e5f0ff}
+.modal.tp14-choice .tp14-choice-arrow{position:absolute;bottom:9px;color:#8aa9d2}
+.modal.tp14-choice .tp14-choice-tip{display:flex;align-items:center;justify-content:center;gap:5px;text-align:center;font-size:12px;color:#7889a8;margin:22px 0}
+.modal.tp14-categories .catTitles,.modal.tp14-areas .catTitles{margin:5px 0 20px}
+.modal.tp14-categories .catTitles h2,.modal.tp14-areas .catTitles h2{font-size:clamp(20px,5vw,26px);line-height:1.3}
+.modal.tp14-categories .catTitles p,.modal.tp14-areas .catTitles p{font-size:13px;margin-top:7px}
+.modal.tp14-categories .catSearch2{background:#fff;border:1.5px solid #ccdcf2;border-radius:18px;min-height:52px;padding:11px 15px;box-shadow:0 2px 12px #0c2a6b08}
+.modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px !important;padding:0 0 20px !important;margin:0 !important}
+.modal.tp14-categories .catCardMain,.modal.tp14-areas .areaBox{
+  box-sizing:border-box;min-width:0;height:auto !important;min-height:138px !important;
+  border:1.5px solid #c3d8f0 !important;border-radius:20px !important;
+  background:#fff !important;box-shadow:0 4px 16px rgba(10,48,105,.055) !important;
+  padding:18px 10px 13px !important;gap:8px !important;justify-content:center !important;
+}
+.modal.tp14-categories .catCardMain i,.modal.tp14-areas .areaBoxIc{
+  width:58px !important;height:58px !important;border-radius:18px !important;
+  background:#e6f1ff !important;color:#104481 !important;flex:none;
+}
+.modal.tp14-areas .areaBoxIc{background:color-mix(in srgb,currentColor 13%,white) !important}
+.modal.tp14-categories .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+.modal.tp14-areas .areaBoxName{
+  font-size:clamp(13px,3.5vw,16px) !important;white-space:normal !important;
+  overflow:visible !important;text-overflow:clip !important;max-width:100%;line-height:1.25 !important;
+  font-weight:800 !important;color:#0b2e70 !important;text-align:center !important;
+  display:block !important;
+}
+.modal.tp14-categories .tp14-card-caption,.modal.tp14-areas .tp14-card-caption{
+  display:block !important;color:#7a8cab !important;font-size:11px !important;
+  font-weight:600 !important;text-align:center !important;line-height:1.3 !important;
+}
+.modal.tp14-categories .nbadge,.modal.tp14-areas .nbadge{
+  top:9px !important;left:9px !important;min-width:23px;min-height:23px;
+  display:flex;align-items:center;justify-content:center;border-radius:999px;
+  background:#fff0c7 !important;color:#765300 !important;border:1px solid #f6ca5e;
+  font-size:11px !important;line-height:1 !important;
+}
+.modal.tp14-categories .catAllBtn{margin:10px auto 24px !important;padding:13px 25px;font-size:14px;min-height:46px}
+.modal.tp14-categories .catFoot{margin-top:12px;opacity:.78}
+@media(min-width:561px){
+ .modal.tp14-choice .catSheet,.modal.tp14-categories .catSheet,.modal.tp14-areas .catSheet{max-width:680px;border-radius:20px;height:min(94vh,900px) !important}
+ .modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+}
+@media(max-width:350px){.modal.tp14-choice .tp14-choice-grid{gap:8px}.modal.tp14-choice .tp14-choice-card{padding-left:6px;padding-right:6px;min-height:185px}.modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{gap:9px !important}}
+
+
+/* Tripoli Points V15: compact, coherent More/Categories/Areas/Subcategories UI.
+   All overrides scoped to these three modal classes; customer homepage remains unchanged. */
+@media(max-width:560px){
+  .modal.tp14-choice .catSheet,
+  .modal.tp14-categories .catSheet,
+  .modal.tp14-areas .catSheet{
+    padding:12px 15px calc(28px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  .modal.tp14-choice .catHd,
+  .modal.tp14-categories .catHd,
+  .modal.tp14-areas .catHd{
+    min-height:102px !important;
+    margin:-12px -15px 14px !important;
+    padding:11px 18px !important;
+  }
+  .modal.tp14-choice .catHdTxt b,
+  .modal.tp14-categories .catHdTxt b,
+  .modal.tp14-areas .catHdTxt b{font-size:19px !important}
+  .modal.tp14-choice .catHdTxt small,
+  .modal.tp14-categories .catHdTxt small,
+  .modal.tp14-areas .catHdTxt small{font-size:11px !important}
+  .modal.tp14-choice .catHdLogo svg,
+  .modal.tp14-categories .catHdLogo svg,
+  .modal.tp14-areas .catHdLogo svg{width:29px !important;height:37px !important}
+  .modal.tp14-choice .tp14-content{padding:7px 2px 0}
+  .modal.tp14-choice .tp14-intro{margin:6px 0 17px}
+  .modal.tp14-choice .tp14-eyebrow{font-size:11px;padding:4px 12px;margin-bottom:8px}
+  .modal.tp14-choice .tp14-intro h2{font-size:clamp(19px,5vw,24px);line-height:1.25}
+  .modal.tp14-choice .tp14-intro p{font-size:12px;margin-top:7px}
+  .modal.tp14-choice .tp14-choice-grid{gap:10px}
+  .modal.tp14-choice .tp14-choice-card{
+    min-height:166px !important;
+    padding:13px 7px 24px !important;
+    border-radius:22px !important;
+    gap:7px !important;
+  }
+  .modal.tp14-choice .tp14-choice-icon{width:56px;height:56px;border-radius:18px}
+  .modal.tp14-choice .tp14-choice-icon svg{width:24px;height:24px}
+  .modal.tp14-choice .tp14-choice-card b{font-size:clamp(13px,3.6vw,16px)}
+  .modal.tp14-choice .tp14-choice-card small{font-size:11px}
+  .modal.tp14-choice .tp14-choice-tip{margin:17px 0;font-size:11px}
+  .modal.tp14-categories .catSearch2{
+    min-height:45px !important;padding:9px 13px !important;
+    border-radius:16px !important;margin-bottom:12px !important;
+  }
+  .modal.tp14-categories .catSearch2 input{font-size:16px !important}
+  .modal.tp14-categories .catTitles,.modal.tp14-areas .catTitles{margin:2px 0 14px !important}
+  .modal.tp14-categories .catTitles h2,.modal.tp14-areas .catTitles h2{
+    font-size:clamp(19px,5.0vw,23px) !important;
+  }
+  .modal.tp14-categories .catTitles p,.modal.tp14-areas .catTitles p{
+    font-size:12px !important;margin-top:5px !important;
+  }
+  .modal.tp14-categories .catgMain,
+  .modal.tp14-categories .catgBig,
+  .modal.tp14-areas .areaGrid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    padding:0 0 12px !important;margin:0 !important;
+  }
+  .modal.tp14-categories .catCardMain,
+  .modal.tp14-categories .catCardBig,
+  .modal.tp14-areas .areaBox{
+    position:relative;box-sizing:border-box;
+    min-width:0;width:100% !important;height:auto !important;
+    min-height:117px !important;
+    display:flex !important;flex-direction:column !important;
+    justify-content:center !important;align-items:center !important;
+    gap:5px !important;
+    padding:12px 8px 10px !important;
+    border:1.5px solid #c5d9f1 !important;
+    border-radius:19px !important;
+    background:#fff !important;
+    box-shadow:0 3px 12px rgba(11,46,112,.045) !important;
+    color:#0c2a6b !important;text-align:center !important;
+    overflow:visible !important;
+  }
+  .modal.tp14-categories .catCardMain i,
+  .modal.tp14-categories .catCardBig i,
+  .modal.tp14-areas .areaBoxIc{
+    width:48px !important;height:48px !important;
+    min-width:48px !important;min-height:48px !important;
+    border-radius:16px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    margin:0 auto 2px !important;
+    flex:0 0 auto !important;
+  }
+  .modal.tp14-categories .catCardMain i,
+  .modal.tp14-categories .catCardBig i{background:#e5f0ff !important;color:#104481 !important}
+  .modal.tp14-categories .catCardBig i svg,
+  .modal.tp14-categories .catCardMain i svg,
+  .modal.tp14-areas .areaBoxIc svg{width:23px !important;height:23px !important}
+  .modal.tp14-areas .areaBoxIc{
+    color:var(--tp15-area-color,#16518f) !important;
+    background:color-mix(in srgb,var(--tp15-area-color,#16518f) 14%,white) !important;
+  }
+  .modal.tp14-categories .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+  .modal.tp14-categories .catCardBig > span:not(.nbadge):not(.tp15-sub-caption),
+  .modal.tp14-areas .areaBoxName{
+    display:block !important;
+    color:#102f70 !important;
+    font-size:clamp(12px,3.25vw,15px) !important;
+    font-weight:800 !important;
+    line-height:1.22 !important;
+    overflow:visible !important;
+    white-space:normal !important;
+    text-overflow:clip !important;
+    max-width:100% !important;
+    margin:0 !important;
+  }
+  .modal.tp14-categories .tp14-card-caption,
+  .modal.tp14-areas .tp14-card-caption,
+  .modal.tp14-categories .tp15-sub-caption{
+    display:block !important;
+    color:#7b8dac !important;
+    font-size:10.5px !important;
+    font-weight:600 !important;
+    line-height:1.22 !important;
+    margin:2px 0 0 !important;
+  }
+  .modal.tp14-categories .catCardMain .nbadge,
+  .modal.tp14-categories .catCardBig .nbadge,
+  .modal.tp14-areas .areaBox .nbadge{
+    position:absolute !important;top:7px !important;left:7px !important;
+    min-width:21px !important;height:21px !important;min-height:21px !important;
+    padding:2px 5px !important;font-size:10px !important;
+    background:#fff0c7 !important;color:#765300 !important;
+    border:1px solid #f1c956 !important;border-radius:999px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    box-sizing:border-box;
+  }
+  .modal.tp14-categories .tp15-sub-header{
+    display:flex;align-items:center;gap:8px;direction:rtl;
+    margin:5px 0 12px !important;padding:0 2px;
+    color:#102e68;
+  }
+  .modal.tp14-categories .tp15-sub-header b{
+    font-size:clamp(17px,4.6vw,21px) !important;
+    font-weight:800 !important;line-height:1.25;
+  }
+  .modal.tp14-categories .tp15-sub-header .back{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    background:#fff !important;width:31px;height:31px;
+    border:1px solid #c6d8ef !important;border-radius:11px !important;
+    color:#123a78 !important;
+  }
+  .modal.tp14-categories .catAllBtn{
+    margin:13px auto 18px !important;
+    padding:12px 22px !important;
+    min-height:44px !important;font-size:14px !important;
+  }
+}
+@media(max-width:360px){
+  .modal.tp14-categories .catgMain,.modal.tp14-categories .catgBig,
+  .modal.tp14-areas .areaGrid{gap:8px !important}
+  .modal.tp14-categories .catCardMain,.modal.tp14-categories .catCardBig,
+  .modal.tp14-areas .areaBox{padding:11px 5px 9px !important;min-height:114px !important}
+}
+</style>
 </head>
 <body>
 <div class="app" id="app"></div>
@@ -2242,20 +2480,20 @@ function editAreaTap(lat,lng,name){S.editAreaSel=S.editAreaSel===name?null:name;
   if(TM){buildMarks();flyTo(lat,lng,15,700)}}
 function editPinTap(id){const m=M(id);if(!m)return;toast(m.name+(m.addr?' · '+m.addr:''))}
 // ===== تصفح الفئات: فئات رئيسية ← فئات فرعية (هرمي، ديناميكي من قاعدة البيانات) =====
-function catItemsGrid(items){return items.length?`<div class="catgBig">${items.map(c=>{const kids=subCats(c.id).length,n=catMerchantCount(c.slug);return `<button class="catCardBig" onclick='${kids?`catOpenSub(${JSON.stringify(c.id)})`:`catPick(${JSON.stringify(c.slug)})`}'>${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(catIcon(c),22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`:'<p class="muted" style="text-align:center;margin-top:10px">لا توجد نتائج</p>'}
+function catItemsGrid(items){return items.length?`<div class="catgBig">${items.map(c=>{const kids=subCats(c.id).length,n=catMerchantCount(c.slug);return `<button class="catCardBig" onclick='${kids?`catOpenSub(${JSON.stringify(c.id)})`:`catPick(${JSON.stringify(c.slug)})`}'>${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(catIcon(c),22)}</i><span>${c.name_ar}</span><span class="tp15-sub-caption">${kids?'عرض الفئات الفرعية':n?`${n} محل`:'استكشف المحلات'}</span></button>`}).join('')}</div>`:'<p class="muted" style="text-align:center;margin-top:10px">لا توجد نتائج</p>'}
 function catMainGrid(){const mains=mainCats();
   return `<div class="catTitles"><h2>اكتشف المحلات والخدمات في طرابلس</h2><p>اختر فئة للبدء</p></div>
-  <div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="catOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`}
+  <div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="catOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',28)}</i><span>${c.name_ar}</span><span class="tp14-card-caption">استكشف المحلات</span></button>`}).join('')}</div>`}
 function catSubGrid(mainId){const main=(S.cats||[]).find(c=>c.id===mainId),subs=subCats(mainId);
-  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="catBackToMain()">${ic('chev',18)}</button><b style="font-size:16px">${main?main.name_ar:''}</b></div>
+  return `<div class="tp15-sub-header"><button class="back" style="margin:0" onclick="catBackToMain()">${ic('chev',18)}</button><b style="font-size:16px">${main?main.name_ar:''}</b></div>
   ${catItemsGrid(subs)}`}
 function catSubSubGrid(subId){const sub=(S.cats||[]).find(c=>c.id===subId),items=subCats(subId);
-  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="catBackToSub()">${ic('chev',18)}</button><b style="font-size:16px">${sub?sub.name_ar:''}</b></div>
+  return `<div class="tp15-sub-header"><button class="back" style="margin:0" onclick="catBackToSub()">${ic('chev',18)}</button><b style="font-size:16px">${sub?sub.name_ar:''}</b></div>
   ${catItemsGrid(items)}`}
 function catBody(){return S.catNav.subId?catSubSubGrid(S.catNav.subId):S.catNav.mainId?catSubGrid(S.catNav.mainId):catMainGrid()}
 let catModalEl=null;
 function moreCats(){S.catNav={mainId:null,subId:null,q:''};
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-categories';md.onclick=e=>{if(e.target===md)md.remove()};
   catModalEl=md;
   md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(catModalEl){catModalEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><button class="catHdBell" onclick="if(catModalEl){catModalEl.remove()};openNotes()" aria-label="الإشعارات">${ic('bell',18)}${notifBadge(unread())}</button></div>
@@ -2284,15 +2522,16 @@ function catMerchPick(id){if(catModalEl)catModalEl.remove();openStore(id)}
 // ===== زر "المزيد": اختيار تصفّح حسب الفئة أو حسب المنطقة =====
 let moreChoiceEl=null;
 function moreChoice(){
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-choice';md.onclick=e=>{if(e.target===md)md.remove()};
   moreChoiceEl=md;
-  md.innerHTML=`<div class="sheet catSheet" style="height:auto;max-height:70vh">
+  md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(moreChoiceEl){moreChoiceEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><div style="width:30px"></div></div></div>
-  <div class="catTitles"><h2>كيف بدك تدوّر على المحلات؟</h2><p>اختر طريقة البحث يلي بتناسبك</p></div>
-  <div style="display:flex;flex-direction:column;gap:12px;padding:4px 2px 10px">
-   <button class="btn" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreCats()">${ic('store',20)} تصفّح حسب الفئة التجارية</button>
-   <button class="btn ghost" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreAreas()">${ic('pin',20)} تصفّح حسب المنطقة</button>
-  </div></div>`;
+  <div class="tp14-content"><div class="tp14-intro"><span class="tp14-eyebrow">اكتشف طرابلس</span><h2>على كيفك بتلاقي محلاتك</h2><p>اختار الطريقة اللي بتناسبك، وخلي طرابلس أقرب إلك</p></div>
+  <div class="tp14-choice-grid">
+    <button class="tp14-choice-card" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreCats()"><span class="tp14-choice-icon tp14-gold">${ic('store',28)}</span><b>حسب الفئة التجارية</b><small>مطاعم، تسوّق وخدمات</small><span class="tp14-choice-arrow">${ic('chev',18)}</span></button>
+    <button class="tp14-choice-card" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreAreas()"><span class="tp14-choice-icon tp14-sky">${ic('pin',28)}</span><b>حسب المنطقة</b><small>اكتشف محلات كل حي</small><span class="tp14-choice-arrow">${ic('chev',18)}</span></button>
+  </div><div class="tp14-choice-tip">${ic('pin',16)} كل المحلات الموجودة على الخريطة بمتناولك</div></div>
+  </div>`;
   document.body.appendChild(md)}
 let moreSortsEl=null;
 const OFF_SORT_OPTS=[
@@ -2317,12 +2556,12 @@ const areaDir=()=>[...TAREAS.map(a=>[a[0],a[2],a[3]]),...SUBAREAS];
 const areaDirSorted=()=>[...areaDir()].sort((a,b)=>a[0].localeCompare(b[0],'ar'));// نفس اللائحة مرتّبة أبجدياً عربياً، تُستخدم في شريط اختيار منطقة المحل عند التسجيل
 let areaModalEl=null;
 function moreAreas(){
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-areas';md.onclick=e=>{if(e.target===md)md.remove()};
   areaModalEl=md;
   md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(areaModalEl){areaModalEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><div style="width:30px"></div></div></div>
   <div class="catTitles"><h2>تصفّح حسب المنطقة</h2><p>اختر منطقة لعرض محلاتها على الخريطة</p></div>
-  <div class="areaGrid">${(()=>{const counts={};areaDir().forEach(([nm])=>counts[nm]=0);S.merchants.forEach(m=>{if(m.status!=='active')return;const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});return areaDir().map(([name,lat,lng])=>`<button class="areaBox" onclick='pickDirArea(${lat},${lng},${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="background:${AREA_COLORS[name]||'var(--navy)'}22;color:${AREA_COLORS[name]||'var(--navy)'}">${ic('pin',16)}</span><span class="areaBoxName">${name}</span></button>`).join('')})()}</div>
+  <div class="areaGrid">${(()=>{const counts={};areaDir().forEach(([nm])=>counts[nm]=0);S.merchants.forEach(m=>{if(m.status!=='active')return;const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});return areaDir().map(([name,lat,lng])=>`<button class="areaBox" onclick='pickDirArea(${lat},${lng},${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="--tp15-area-color:${AREA_COLORS[name]||'#1459a4'}">${ic('pin',24)}</span><span class="areaBoxName">${name}</span><span class="tp14-card-caption">${counts[name]?`${counts[name]} محل`:'استكشف المنطقة'}</span></button>`).join('')})()}</div>
   </div>`;
   document.body.appendChild(md)}
 function pickDirArea(lat,lng,name){if(areaModalEl){areaModalEl.remove();areaModalEl=null}if(S.tab==='offers'&&S.offView!=='map'){S.offView='map';S.sel=null;S.route=null;S.mv=null;render()}areaTap(lat,lng,name)}
