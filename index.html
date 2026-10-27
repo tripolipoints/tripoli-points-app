@@ -2799,6 +2799,32 @@ const addrLine=m=>{const raw=((m&&m.addr)||'').trim();if(!raw)return'طرابل�
 function pickSet(la,ln){S.reg.lat=la;S.reg.lng=ln;const e=$('#regloc');if(e)e.textContent=locTxt(la,ln)}
 let TM=null;
 
+// ===== وضع تشخيص التمركز المؤقت (?mapdebug=1) =====
+// يُفعَّل فقط عبر إضافة ?mapdebug=1 لرابط الصفحة؛ بلا أي أثر إطلاقاً في الوضع العادي. الهدف قياس الفرق الفعلي -مباشرة على أي جهاز حقيقي- بين المستطيل المرئي للخريطة، "المساحة القابلة للاستخدام"، والصندوق المحيط الفعلي بالدبابيس المعروضة بعد انتهاء كل حركة/رسم، كي يمكن تشخيص أي تفاوت دون الحاجة لتخمين سببه. يُزال هذا القسم بالكامل بعد انتهاء التشخيص.
+const MAP_DEBUG=/[?&]mapdebug=1(?:&|$)/.test(location.search);
+let _mapDebugEl=null;
+function renderMapDebug(t){
+  if(!MAP_DEBUG||!t||!t.el)return;
+  if(!_mapDebugEl){_mapDebugEl=document.createElement('div');_mapDebugEl.id='mapDebugOverlay';_mapDebugEl.style.cssText='position:absolute;inset:0;z-index:9999;pointer-events:none;font-family:monospace';t.el.appendChild(_mapDebugEl)}
+  const mapRect=t.el.getBoundingClientRect();
+  const usable=usableMapRectY(t.el,t.h);
+  const pins=[...t.el.querySelectorAll('.pn:not(.cluster)[data-id]')].map(el=>{const r=el.getBoundingClientRect();return{left:r.left-mapRect.left,right:r.right-mapRect.left,top:r.top-mapRect.top,bottom:r.bottom-mapRect.top}});
+  let bboxHtml='';
+  if(pins.length){
+    const L=Math.min(...pins.map(p=>p.left)),R=Math.max(...pins.map(p=>p.right)),T=Math.min(...pins.map(p=>p.top)),B=Math.max(...pins.map(p=>p.bottom));
+    const bcx=(L+R)/2,bcy=(T+B)/2,mcx=t.w/2,ucy=(usable.top+usable.bottom)/2;
+    bboxHtml=`<div style="position:absolute;left:${L}px;top:${T}px;width:${R-L}px;height:${B-T}px;border:3px solid #ff3b30;box-sizing:border-box"></div>
+    <div style="position:absolute;left:${bcx-4}px;top:${bcy-4}px;width:8px;height:8px;border-radius:50%;background:#ff3b30"></div>
+    <div style="position:absolute;left:4px;bottom:4px;max-width:92%;background:#000c;color:#0f0;padding:6px 8px;border-radius:6px;font-size:11px;line-height:1.5;white-space:pre">mapW=${Math.round(t.w)} mapH=${Math.round(t.h)} z=${(+t.z).toFixed(2)}
+usable.top=${Math.round(usable.top)} usable.bottom=${Math.round(usable.bottom)} usableCenterY=${Math.round(ucy)}
+pinsBBox: L=${Math.round(L)} R=${Math.round(R)} T=${Math.round(T)} B=${Math.round(B)} (n=${pins.length})
+bboxCenter=(${Math.round(bcx)},${Math.round(bcy)})  mapCenter=(${Math.round(mcx)},${Math.round(t.h/2)})
+deltaX(bbox-map)=${Math.round(bcx-mcx)}px  deltaY(bbox-usable)=${Math.round(bcy-ucy)}px  deltaY(bbox-fullH/2)=${Math.round(bcy-t.h/2)}px
+fullscreen=${t.el.classList.contains('tp23-fullscreen')} dpr=${window.devicePixelRatio} visualViewport.h=${window.visualViewport?Math.round(window.visualViewport.height):'n/a'} scrollY=${Math.round(window.scrollY)}</div>`;
+  }
+  _mapDebugEl.innerHTML=`<div style="position:absolute;left:${usable.top===0&&usable.bottom===t.h?0:0}px;top:${usable.top}px;width:100%;height:${usable.bottom-usable.top}px;border:3px dashed #ffd60a;box-sizing:border-box"></div>${bboxHtml}`;
+}
+
 // ===== Google Maps (يُفعَّل عند وضع مفتاح API) =====
 const GKEY='';  // ← ضع هنا مفتاح Google Maps JavaScript API (انظر الشرح)
 let GM=null,gLoad=null;
@@ -3090,7 +3116,8 @@ function drawMarks(){const t=TM;if(!t)return;const X=wx(t.lng,t.z),Y=wy(t.lat,t.
       const cx=cluster.reduce((s,c)=>s+c.x,0)/cluster.length,cy=cluster.reduce((s,c)=>s+c.y,0)/cluster.length;
       cluster.forEach((c,i)=>{c.x=cx+(i-(cluster.length-1)/2)*GAP;c.y=cy})}});
   raw.forEach(r=>{r.m.d.style.transform=`translate(${Math.round(r.x)}px,${Math.round(r.y)}px)`});
-  if(t.pinLayer)drawPinClusters(t,X,Y)}
+  if(t.pinLayer)drawPinClusters(t,X,Y);
+  if(MAP_DEBUG)requestAnimationFrame(()=>renderMapDebug(t))} // يُقرأ بعد الإطار التالي كي تُقاس المواضع الفعلية المرسومة فعلاً على الشاشة، لا القيم المحسوبة قبل الرسم
 function setMapStyle(){S.mapStyle=S.mapStyle==='sat'?'street':'sat';document.querySelectorAll('.mstyle').forEach(b=>b.textContent=S.mapStyle==='sat'?'🗺️ خريطة الطرق':'🛰️ قمر صناعي');
   if(GM&&GM.ok)GM.map.setMapTypeId(S.mapStyle==='sat'?'hybrid':'roadmap');
   if(TM){TM.tl.innerHTML='';TM.tiles={};TM.okc=0;TM.fail=0;TM.zcap=0;TM.okz={};TM.fz={};const e=$('#merr');if(e)e.style.display='none';drawMap()}}
