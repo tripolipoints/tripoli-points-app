@@ -261,6 +261,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap .pn.cluster b{font-size:11px}
 .rmap .pn.cluster.open{transform:scale(.88)}
 .rmap .pn.cluster.open .pnbody{opacity:.6}
+.rmap .pnname{position:absolute;top:4px;left:50%;transform:translateX(-50%);max-width:92px;padding:3px 8px;border-radius:10px;background:#fff;border:1px solid #d7e0ec;color:#163562;font-size:10px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(10,30,70,.28);pointer-events:none;z-index:1}
+.rmap .pnname.hi{border-color:#ffc20e;box-shadow:0 0 0 1.5px #ffc20e,0 2px 6px rgba(10,30,70,.28)}
 .rmap .pnlbl{position:absolute;top:5px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
 .rmap .lb{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 2px #000,0 0 6px #000;pointer-events:none;direction:rtl}
 .rmap .me{position:absolute;left:-7.5px;top:-7.5px;width:15px;height:15px;border-radius:50%;background:#1d63e0;border:2.5px solid #fff;box-shadow:0 0 0 6px #1d63e044;pointer-events:none}
@@ -2803,11 +2805,32 @@ let GM=null,gLoad=null;
 function gLoadApi(){if(window.google&&google.maps)return Promise.resolve();if(gLoad)return gLoad;
   gLoad=new Promise((ok,no)=>{window.__gmReady=ok;window.gm_authFailure=()=>{no(new Error('auth'))};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GKEY)+'&language=ar&region=LB&callback=__gmReady';sc.async=true;sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)});
   gLoad.catch(()=>{});return gLoad}
-const gIcon=(c,e,sel,route,zs,logo)=>{const big=sel||route,s=Math.round((route?56:(sel?44:40))*(zs||1)),vb=36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة (أو شعار المحل إن وُجد ومسموح بعرضه) بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد أو أثناء خط السير: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة؛ الحجم الأساسي (zs) يكبر تدريجياً مع اقتراب التكبير من مستوى الشارع، بنفس منطق خريطة TM، ودبّوس خط السير أكبر من دبّوس التحديد العادي
+// قياس عرض نص اسم المحل بالبكسل (قبل تضمينه كنص SVG) لاقتصاصه بعلامة حذف "…" ضمن عرض التسمية المتاح، دون كسر الشكل أو تجاوزه
+let _gMeasureCtx=null;
+function gTruncLabel(s,maxPx,fontPx){if(!s)return'';
+  _gMeasureCtx=_gMeasureCtx||document.createElement('canvas').getContext('2d');
+  _gMeasureCtx.font=`700 ${fontPx}px -apple-system,sans-serif`;
+  if(_gMeasureCtx.measureText(s).width<=maxPx)return s;
+  let lo=0,hi=s.length;
+  while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(_gMeasureCtx.measureText(s.slice(0,mid)+'…').width<=maxPx)lo=mid;else hi=mid-1}
+  return lo>0?s.slice(0,lo)+'…':'…'}
+const gIcon=(c,e,sel,route,zs,logo,label)=>{const big=sel||route,s=Math.round((route?56:(sel?44:40))*(zs||1)),unit=s/36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة (أو شعار المحل إن وُجد ومسموح بعرضه) بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد أو أثناء خط السير: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة؛ الحجم الأساسي (zs) يكبر تدريجياً مع اقتراب التكبير من مستوى الشارع، بنفس منطق خريطة TM، ودبّوس خط السير أكبر من دبّوس التحديد العادي
   const glow=big?`<path d="${pd}" fill="none" stroke="#ffc20e" stroke-width="2.4" opacity=".95" filter="url(#gl)"/>`:'';
   // الشعار (إن وُجد) يُرسم مُقتصّاً دائرياً فوق خلفية بيضاء بدل أيقونة الفئة النصّية؛ الرابط مُفحوص مسبقاً (safeLogoUrl) ومُحمَّل بنجاح (gLogoReady) قبل أن يصل هنا، ومُهرَّب (esc) عند تضمينه داخل سمة XML لمنع أي حقن HTML/SVG
   const center=logo?`<clipPath id="cp"><circle cx="12" cy="9" r="4.6"/></clipPath><circle cx="12" cy="9" r="4.6" fill="#fff"/><image href="${esc(logo)}" x="7.4" y="4.4" width="9.2" height="9.2" preserveAspectRatio="xMidYMid slice" clip-path="url(#cp)"/>`:`<circle cx="12" cy="9" r="4.6" fill="#fff"/><text x="12" y="12.1" font-size="7.2" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-weight="700">${e}</text>`;
-  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="${off} ${off} ${vb} ${vb}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter><filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${glow}<path filter="url(#sh)" d="${pd}" fill="${c}"/>${center}</svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(s*0.5,s*(28/36))}};
+  // اسم المحل (إن طُلب عرضه): لوحة بيضاء مدوّرة أسفل طرف الدبّوس مباشرة، بلا تغيير في حجم الدبّوس نفسه أو نقطة ارتكازه الجغرافية؛ توسيع viewBox يتم للأسفل والجانبين فقط حول نفس مركز الدبّوس، فتبقى نسبة البكسل للوحدة المحلية (unit) ثابتة كما لو لم تُضَف تسمية إطلاقاً
+  const hasLabel=!!label,vbW=hasLabel?72:36,vbH=hasLabel?50:36,vbX=12-vbW/2,vbY=off;
+  const imgW=Math.max(1,Math.round(vbW*unit)),imgH=Math.max(1,Math.round(vbH*unit));
+  let labelSvg='';
+  if(hasLabel){const maxTextPx=56*unit,fontPx=9*unit,txt=esc(gTruncLabel(label,maxTextPx,fontPx)),stroke=big?'#ffc20e':'#d7e0ec',sw=big?1.6:1;
+    labelSvg=`<rect x="-20" y="26" width="64" height="16" rx="8" fill="#fff" stroke="${stroke}" stroke-width="${sw}"/><text x="12" y="36.4" font-size="9" text-anchor="middle" dominant-baseline="middle" fill="#163562" font-weight="700">${txt}</text>`}
+  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}" viewBox="${vbX} ${vbY} ${vbW} ${vbH}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter><filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${glow}<path filter="url(#sh)" d="${pd}" fill="${c}"/>${center}${labelSvg}</svg>`),scaledSize:new google.maps.Size(imgW,imgH),anchor:new google.maps.Point(imgW/2,28*unit)}};
+// تحديد أي تسميات أسماء المحلات (من بين المرشّحة: المحدَّد أو وجهة خط السير أو عند أعلى تكبير) تُعرض فعلياً دون تراكب بصري على الشاشة؛ تُعطى الأولوية لوجهة خط السير ثم المحل المحدَّد، والمسافة التقريبية بين النقاط تُحسب بنفس رياضيات الإسقاط المستخدمة بخريطة TM (wx/wy)، فتطابق المسافة الحقيقية على الشاشة عند مستوى التكبير الحالي
+function gPlanLabels(cands,z){const LW=74,LH=20;
+  const pts=cands.map(c=>({...c,x:wx(c.lng,z),y:wy(c.lat,z)})).sort((a,b)=>b.pri-a.pri);
+  const kept=[],ok=new Set();
+  pts.forEach(p=>{const hit=kept.some(k=>Math.abs(k.x-p.x)<LW&&Math.abs(k.y-p.y)<LH);if(!hit){kept.push(p);ok.add(p.id)}});
+  return ok}
 function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.classList.add('g');const ea=el.querySelector('.attr');if(ea)ea.style.display='none';const rk=$('#rmk');if(rk)rk.style.pointerEvents='none';
   const mine={pick:!!el.dataset.pick};GM=mine;
   gLoadApi().then(()=>{if(GM!==mine)return;const v=mine.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16}:(S.mv||{lat:34.4425,lng:35.834,z:14});if(mine.pick)pickSet(v.lat,v.lng);
@@ -2821,11 +2844,15 @@ let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
   const curZ=m.map.getZoom()||14,zsBase=pinZoomScale(curZ),maxz=isMaxPinZoom(curZ),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
+  // اسم المحل يظهر فقط عند أعلى تكبير أو أثناء عرض خط السير (محل الوجهة فقط، والقائمة list نفسها محصورة به أصلاً في هذه الحالة)؛ عند تعارض بصري بين تسميتين، نُبقي وجهة خط السير ثم المحل المحدَّد أولاً
+  const labelCands=list.filter(x=>(S.route&&S.route.id===x.id)||maxz).map(x=>{const l=llOf(x);return{id:x.id,lat:l.lat,lng:l.lng,pri:(S.route&&S.route.id===x.id)?2:(S.sel===x.id?1:0)}});
+  const labelOk=labelCands.length?gPlanLabels(labelCands,curZ):new Set();
   list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,isRoute=!!(S.route&&S.route.id===x.id),area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b';
     const logoUrl=safeLogoUrl(x.logo),wantLogo=(on||isRoute||maxz)&&!!logoUrl;
     if(wantLogo)gEnsureLogoLoaded(logoUrl,()=>{if(GM===m&&m.ok)gBuild()}); // الشعار يُحمَّل مرة واحدة فقط لكل رابط (ذاكرة تخزين مؤقتة)؛ عند نجاح أول تحميل تُعاد بناء الدبابيس لإظهاره، وعند الفشل تبقى أيقونة الفئة
     const showLogo=wantLogo&&gLogoReady(logoUrl);
-    const mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on,isRoute,zs,showLogo?logoUrl:''),title:x.name,zIndex:isRoute?10:(on?9:3),optimized:false});
+    const labelTxt=labelOk.has(x.id)?(x.name||''):'';
+    const mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on,isRoute,zs,showLogo?logoUrl:'',labelTxt),title:x.name,zIndex:isRoute?10:(on?9:3),optimized:false});
     if(on&&!isRoute)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
   if(m.me)m.me.setMap(null);m.me=new google.maps.Marker({map:m.map,position:S.userLL,zIndex:2,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#1d63e0',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});m.marks.push(m.me);
   if(fit)gFit(zBoost)}
@@ -2886,7 +2913,7 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick){
     // دبابيس المحلات تُرسم ديناميكياً في طبقة منفصلة (pinLayer) لتُجمَّع أو تنفصل تلقائياً حسب مستوى التكبير
     t.pinLayer=document.createElement('div');t.pinLayer.className='pinLayer';t.mk.appendChild(t.pinLayer);
-    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);return{id:m.id,lat:l.lat,lng:l.lng,c:AREA_COLORS[area]||'var(--navy)',ic:c[2],area,logo:safeLogoUrl(m.logo)}}); // لون الدبّوس حسب المنطقة (AREA_COLORS)، أما الأيقونة في مركزه فتبقى حسب فئة المحل (CAT) — منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
+    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);return{id:m.id,lat:l.lat,lng:l.lng,c:AREA_COLORS[area]||'var(--navy)',ic:c[2],area,logo:safeLogoUrl(m.logo),name:m.name||''}}); // لون الدبّوس حسب المنطقة (AREA_COLORS)، أما الأيقونة في مركزه فتبقى حسب فئة المحل (CAT) — منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
   } else if(t.pick&&S.editAreaSel)S.merchants.filter(m=>m.id!==S.mapFocus&&m.lat!=null&&nearestTArea(m.lat,m.lng)===S.editAreaSel).forEach(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);add(`<div class="pn ref" style="--c:${AREA_COLORS[area]||'var(--navy)'}" data-id="${m.id}" onclick="editPinTap('${m.id}')"><i class="pnbody"></i><i class="pnring"></i><b>${c[2]}</b></div><div class="pnlbl">${esc(m.name)}</div>`,l.lat,l.lng,4,m.id)});
   // نُعيد تصفير حالة "الفتح/التقسيم" فقط إذا تغيّرت مجموعة المحلات الظاهرة فعلياً (فلتر/بحث جديد)؛ مجرد اختيار محل (pinTap) أو تحديث عادي -أو حتى إعادة بناء الخريطة بالكامل بسبب render() دوري- لا يُفقد ما فتحه الزبون سابقاً من تجمّعات، لأن هذه الحالة محفوظة على S (لا على كائن TM المؤقت الذي يُعاد إنشاؤه مع كل render())
   const sig=t.pins.map(p=>p.id).sort().join(',');
@@ -2962,8 +2989,10 @@ function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups|
 function drawPinClusters(t,X,Y){
   const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zsBase=pinZoomScale(t.z),maxz=isMaxPinZoom(t.z),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
   // ترميز دبّوس فردي واحد: الشعار المحفوظ يستبدل أيقونة الفئة داخل الحلقة البيضاء فقط عند التحديد، أو أثناء عرض خط السير لهذا المحل، أو عند أعلى مستوى تكبير — وإلا تبقى الأيقونة؛ onerror يُخفي صورة الشعار فتظهر الأيقونة خلفها دون أي قفزة بالتخطيط (نفس أبعاد الحلقة)
+  // اسم المحل يظهر أسفل الدبّوس فقط عند أعلى تكبير أو أثناء عرض خط السير لمحل الوجهة (وإلا تبقى الخريطة نظيفة بلا نصوص)؛ التحديد أو الوجهة يضيف إطاراً ذهبياً خفيفاً للتسمية نفسها
   const pinHtml=(p,on,isRoute)=>{const showLogo=(on||isRoute||maxz)&&p.logo,cls=isRoute?'route':(on?'sel':''),img=showLogo?`<img class="pnimg" src="${esc(p.logo)}" alt="" onerror="this.style.display='none'">`:'';
-    return `<div class="pn ${cls}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b>${img}</div>`};
+    const showLabel=(isRoute||maxz)&&p.name,lbl=showLabel?`<div class="pnname ${(on||isRoute)?'hi':''}" data-sel="${on?1:0}" data-route="${isRoute?1:0}">${esc(p.name)}</div>`:'';
+    return `<div class="pn ${cls}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b>${img}</div>${lbl}`};
   const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id,isRoute=!!(S.route&&S.route.id===p.id);
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     d.innerHTML=pinHtml(p,on,isRoute);
@@ -3002,7 +3031,17 @@ function drawPinClusters(t,X,Y){
     d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
-    if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})}
+    if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})
+  if(maxz||(S.route&&S.route.id))resolveLabelCollisions(t)}
+// عند تطابق تسميتين أو أكثر بصرياً (أسماء متجاورة تتراكب على الشاشة)، تُبقى تسمية المحل المحدَّد (أو وجهة خط السير) ظاهرة دوماً كأولوية أولى، وتُخفى التسميات الأخرى المتعارضة معها فقط — دون أي تغيير بموضع الدبّوس نفسه أو قابليته للمس
+function resolveLabelCollisions(t){
+  const els=[...t.pinLayer.querySelectorAll('.pnname')];if(els.length<2)return;
+  els.forEach(el=>el.style.display='');
+  const items=els.map(el=>({el,route:+el.dataset.route,sel:+el.dataset.sel})).sort((a,b)=>(b.route-a.route)||(b.sel-a.sel));
+  const kept=[];
+  items.forEach(it=>{const r=it.el.getBoundingClientRect();
+    const hit=kept.some(k=>!(r.right<k.left||r.left>k.right||r.bottom<k.top||r.top>k.bottom));
+    if(hit)it.el.style.display='none';else kept.push(r)})}
 function drawMarks(){const t=TM;if(!t)return;const X=wx(t.lng,t.z),Y=wy(t.lat,t.z);
   const raw=t.marks.map(m=>({m,x:t.w/2+wx(m.lng,t.z)-X,y:t.h/2+wy(m.lat,t.z)-Y}));
   // تفادي تراكب الدبابيس المرجعية (وضع اختيار الموقع): إذا كانت قريبة جداً على الشاشة، نفرّقها أفقياً قليلاً حول موضعها الحقيقي
