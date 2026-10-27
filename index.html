@@ -2949,8 +2949,9 @@ function pointInView(t,lat,lng,margin){const x=t.w/2+wx(lng,t.z)-wx(t.lng,t.z),y
 function usableMapRectY(el,h){
   if(!el||!h)return{top:0,bottom:h||0};
   const mapRect=el.getBoundingClientRect();let top=0,bottom=h;
-  const zb=el.querySelector?el.querySelector('.zb'):null;
-  if(zb){const zr=zb.getBoundingClientRect(),zBottom=zr.bottom-mapRect.top;if(zBottom>top&&zBottom<h*0.4)top=zBottom}
+  // زرّا + و− قد يكونان على ارتفاعين مختلفين (الثاني أسفل الأول)؛ نأخذ أسفل حافة بينهما كلاهما، لا أول عنصر .zb فقط، وإلا يُقاس الحد العلوي القابل للاستخدام بأقل من حقيقته فعلياً
+  const zbs=el.querySelectorAll?el.querySelectorAll('.zb'):[];
+  zbs.forEach(zb=>{const zr=zb.getBoundingClientRect(),zBottom=zr.bottom-mapRect.top;if(zBottom>top&&zBottom<h*0.4)top=zBottom});
   const sheet=document.getElementById('storeSheet');
   if(sheet){const sr=sheet.getBoundingClientRect();
     // أي تراكب فعلي للبطاقة مع الخريطة يُحتسب كاملاً (حتى لو غطّت أغلب الخريطة على شاشة قصيرة) — الحماية أدناه من الانهيار إلى مساحة شبه معدومة تكفي بمفردها
@@ -2961,6 +2962,16 @@ function usableMapRectY(el,h){
 function adjustLatForUsableCenter(lat,lng,z,el,h){
   const r=usableMapRectY(el,h),desiredY=(r.top+r.bottom)/2,shiftedWorldY=h/2+wy(lat,z)-desiredY;
   return wlat(shiftedWorldY,z)}
+// مركز الصندوق المحيط (bounding box) بمجموعة نقاط جغرافية حقيقية — منتصف الحدين الأدنى والأقصى لخطي العرض والطول، لا متوسط كل النقاط؛ هذا يضمن تناظر المسافة المتبقية حول المركز من كل الجهات، فلا ينحرف التمركز نحو جهة لمجرد كثافة نقاط فيها
+function clusterBBoxCenter(pts){const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng);return{lat:(Math.min(...la)+Math.max(...la))/2,lng:(Math.min(...ln)+Math.max(...ln))/2}}
+// أصغر تصغير يلزم فعلياً (دون تجاوزه) كي يتسع الصندوق المحيط بكل نقاط المجموعة ضمن عرض/ارتفاع الخريطة مع هامش كافٍ من كل جهة، عند مستوى تكبير لا يتجاوز الزوم المفضَّل المُعطى prefZ؛ إن كانت المجموعة متقاربة بما يكفي أصلاً كي تتسع عند prefZ لا يتغيّر شيء إطلاقاً (لا يُستخدَم أي تصغير افتراضي ثابت كما تفعل fitPts عند تطابق النقاط)
+function clusterFitZoom(pts,prefZ,w,h,pad){
+  if(pts.length<2||!w||!h)return prefZ;
+  const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),a=Math.min(...la),b=Math.max(...la),c=Math.min(...ln),d=Math.max(...ln);
+  const dx=wx(d,0)-wx(c,0),dy=wy(a,0)-wy(b,0);
+  if(dx<=0&&dy<=0)return prefZ; // كل النقاط متطابقة عملياً (أو شبه ذلك) على مستوى البكسل العالمي
+  const maxZforFit=Math.log2(Math.min(dx>0?(w-2*pad)/dx:1e9,dy>0?(h-2*pad)/dy:1e9));
+  return Math.max(10,Math.min(prefZ,maxZforFit))}
 // كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
 function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),groups={};
   pts.forEach(p=>{const k=key(p);(groups[k]=groups[k]||[]).push(p)});
@@ -2988,15 +2999,23 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;
     S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>g.area!==areaName);
     S._mapOpenGroup={type:'area',area:areaName,split:false};
   }
+  // قياس أبعاد الخريطة الحيّة الآن مباشرة قبل أي حساب تمركز (وليس الاعتماد فقط على آخر قيمة مخزَّنة)، احتياطاً من أي تغيير حجم حديث جداً (كالدخول لوضع ملء الشاشة للتو) لم يُحدَّث له t.w/t.h بعد عبر drawMap/ResizeObserver
+  t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
+  // هامش أمان حول الصندوق المحيط بمحلات التجمّع كي لا يُلامس أي دبّوس حافة الخريطة تماماً
+  const FIT_PAD=46;
   if(!wasOpen){
-    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجتان أساسيتان، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ؛ المركز يُحسب دوماً من متوسط الإحداثيات الحقيقية المخزَّنة لمحلات التجمّع (lat/lng الفعلية)، لا من موضع فقاعة التجمّع البصري، ويُعدَّل رأسياً كي تقع محلات التجمّع المفتوحة في منتصف المساحة القابلة للاستخدام فعلاً من الخريطة (فوق بطاقة تفاصيل المحل إن كانت ستظهر)
+    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجتان أساسيتان، ودرجتان إضافيتان للتجمّعات الصغيرة) كزوم "مفضَّل"، بسقف أعلى CLUSTER_MAXZ؛ لكن لا نتجاوز أصغر تصغير يضمن بقاء كل محلات التجمّع ظاهرة فعلياً ضمن حدود الخريطة بهامش كافٍ (بدل افتراض أن صيغة الزوم الثابتة تكفي دوماً، بصرف النظر عن مدى تباعد محلات التجمّع الحقيقي). المركز يُحسب من منتصف الصندوق المحيط بالإحداثيات الحقيقية المخزَّنة لمحلات التجمّع (لا متوسط بسيط قد ينحرف مع توزّع غير متماثل، ولا موضع فقاعة التجمّع البصري)، ويُعدَّل رأسياً كي تقع محلات التجمّع المفتوحة في منتصف المساحة القابلة للاستخدام فعلاً من الخريطة
     const skipZoom=!!(areaName&&S.areaSel===areaName); // قادم من صفحة "تصفّح حسب المنطقة" والزوم لهذه المنطقة منجز مسبقاً: لا حاجة لأي زوم إضافي
     let z=Math.min(CLUSTER_MAXZ,t.z+2);
     if(ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM);
-    if(skipZoom)drawMarks();else flyTo(adjustLatForUsableCenter(lat,lng,z,t.el,t.h),lng,z,650);
+    if(skipZoom)drawMarks();else{
+      const bc=clusterBBoxCenter(pts),finalZ=clusterFitZoom(pts,z,t.w,t.h,FIT_PAD);
+      flyTo(adjustLatForUsableCenter(bc.lat,bc.lng,finalZ,t.el,t.h),bc.lng,finalZ,650);
+    }
   } else {
-    // تبديل من تجمّع مفتوح إلى آخر: لا تكبير إطلاقاً (نفس درجة التكبير الحالية)، لكن التمركز يحدث دائماً على التجمّع الجديد — بصرف النظر عن موضعه الحالي على الشاشة — وليس فقط عند خروجه عن حدود العرض
-    flyTo(adjustLatForUsableCenter(lat,lng,t.z,t.el,t.h),lng,t.z,450);
+    // تبديل من تجمّع مفتوح إلى آخر: لا تكبير إطلاقاً ما دام التجمّع الجديد يتّسع فعلاً عند نفس درجة التكبير الحالية بالهامش المطلوب (نفس القاعدة المعتمدة أعلاه)؛ فقط إن كان أوسع انتشاراً مما يتّسع لعرضه الحالي، نُصغِّر بالقدر الضروري فقط. التمركز يحدث دائماً على التجمّع الجديد — بصرف النظر عن موضعه الحالي على الشاشة — وليس فقط عند خروجه عن حدود العرض
+    const bc=clusterBBoxCenter(pts),finalZ=clusterFitZoom(pts,t.z,t.w,t.h,FIT_PAD);
+    flyTo(adjustLatForUsableCenter(bc.lat,bc.lng,finalZ,t.el,t.h),bc.lng,finalZ,450);
   }
 }
 function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups||[]).find(x=>x.gid===gid);if(!g)return;
@@ -3170,7 +3189,7 @@ function pinTap(id){if(TM&&TM.moved)return;
       const adjLat=gH?adjustLatForUsableCenter(ll.lat,ll.lng,gZ,rmapEl,gH):ll.lat;
       GM.map.panTo({lat:adjLat,lng:ll.lng});
     }
-    else if(TM)flyTo(adjustLatForUsableCenter(ll.lat,ll.lng,TM.z,TM.el,TM.h),ll.lng,TM.z,550);
+    else if(TM){TM.w=TM.el.clientWidth||TM.w;TM.h=TM.el.clientHeight||TM.h;flyTo(adjustLatForUsableCenter(ll.lat,ll.lng,TM.z,TM.el,TM.h),ll.lng,TM.z,550)}
   }
   setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
