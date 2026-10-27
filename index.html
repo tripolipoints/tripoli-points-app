@@ -253,6 +253,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap .pn b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--c);font-weight:700;font-size:10px;line-height:1;pointer-events:none}
 .rmap .pn.sel{transform:scale(calc(var(--zs,1) * 1.12))}
 .rmap .pn.sel .pnbody{box-shadow:0 0 0 2px rgba(255,194,14,.9),0 0 6px 2px rgba(255,194,14,.55)}
+.rmap .pn.route{transform:scale(calc(var(--zs,1) * 1.4))}
+.rmap .pn.route .pnbody{box-shadow:0 0 0 2px rgba(255,194,14,.9),0 0 8px 3px rgba(255,194,14,.65)}
+.rmap .pn .pnimg{position:absolute;top:21%;left:21%;width:58%;height:58%;border-radius:50%;object-fit:contain;background:#fff;pointer-events:none}
 .rmap .pn.ref{width:24px;height:24px;left:-12px;top:-29px;opacity:.9}
 .rmap .pn.cluster{width:34px;height:34px;left:-17px;top:-41px}
 .rmap .pn.cluster b{font-size:11px}
@@ -2800,9 +2803,11 @@ let GM=null,gLoad=null;
 function gLoadApi(){if(window.google&&google.maps)return Promise.resolve();if(gLoad)return gLoad;
   gLoad=new Promise((ok,no)=>{window.__gmReady=ok;window.gm_authFailure=()=>{no(new Error('auth'))};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GKEY)+'&language=ar&region=LB&callback=__gmReady';sc.async=true;sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)});
   gLoad.catch(()=>{});return gLoad}
-const gIcon=(c,e,sel,zs)=>{const s=Math.round((sel?44:40)*(zs||1)),vb=36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة؛ الحجم الأساسي (zs) يكبر تدريجياً مع اقتراب التكبير من مستوى الشارع، بنفس منطق خريطة TM
-  const glow=sel?`<path d="${pd}" fill="none" stroke="#ffc20e" stroke-width="2.4" opacity=".95" filter="url(#gl)"/>`:'';
-  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="${off} ${off} ${vb} ${vb}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter><filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${glow}<path filter="url(#sh)" d="${pd}" fill="${c}"/><circle cx="12" cy="9" r="4.6" fill="#fff"/><text x="12" y="12.1" font-size="7.2" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-weight="700">${e}</text></svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(s*0.5,s*(28/36))}};
+const gIcon=(c,e,sel,route,zs,logo)=>{const big=sel||route,s=Math.round((route?56:(sel?44:40))*(zs||1)),vb=36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة (أو شعار المحل إن وُجد ومسموح بعرضه) بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد أو أثناء خط السير: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة؛ الحجم الأساسي (zs) يكبر تدريجياً مع اقتراب التكبير من مستوى الشارع، بنفس منطق خريطة TM، ودبّوس خط السير أكبر من دبّوس التحديد العادي
+  const glow=big?`<path d="${pd}" fill="none" stroke="#ffc20e" stroke-width="2.4" opacity=".95" filter="url(#gl)"/>`:'';
+  // الشعار (إن وُجد) يُرسم مُقتصّاً دائرياً فوق خلفية بيضاء بدل أيقونة الفئة النصّية؛ الرابط مُفحوص مسبقاً (safeLogoUrl) ومُحمَّل بنجاح (gLogoReady) قبل أن يصل هنا، ومُهرَّب (esc) عند تضمينه داخل سمة XML لمنع أي حقن HTML/SVG
+  const center=logo?`<clipPath id="cp"><circle cx="12" cy="9" r="4.6"/></clipPath><circle cx="12" cy="9" r="4.6" fill="#fff"/><image href="${esc(logo)}" x="7.4" y="4.4" width="9.2" height="9.2" preserveAspectRatio="xMidYMid slice" clip-path="url(#cp)"/>`:`<circle cx="12" cy="9" r="4.6" fill="#fff"/><text x="12" y="12.1" font-size="7.2" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-weight="700">${e}</text>`;
+  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="${off} ${off} ${vb} ${vb}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter><filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${glow}<path filter="url(#sh)" d="${pd}" fill="${c}"/>${center}</svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(s*0.5,s*(28/36))}};
 function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.classList.add('g');const ea=el.querySelector('.attr');if(ea)ea.style.display='none';const rk=$('#rmk');if(rk)rk.style.pointerEvents='none';
   const mine={pick:!!el.dataset.pick};GM=mine;
   gLoadApi().then(()=>{if(GM!==mine)return;const v=mine.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16}:(S.mv||{lat:34.4425,lng:35.834,z:14});if(mine.pick)pickSet(v.lat,v.lng);
@@ -2814,9 +2819,14 @@ function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.cla
     mine.ok=true;gBuild(!S.mv&&!mine.pick,(!S.mv&&!mine.pick)?TRIPOLI_ZOOM_BOOST:0)}).catch(()=>{if(GM!==mine)return;GM=null;toast('تعذّر تحميل خرائط Google — نعرض الخريطة البديلة');gFail=true;render()})}
 let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
-  const zs=pinZoomScale(m.map.getZoom()||14);
+  const curZ=m.map.getZoom()||14,zsBase=pinZoomScale(curZ),maxz=isMaxPinZoom(curZ),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
-  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b',mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on,zs),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
+  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,isRoute=!!(S.route&&S.route.id===x.id),area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b';
+    const logoUrl=safeLogoUrl(x.logo),wantLogo=(on||isRoute||maxz)&&!!logoUrl;
+    if(wantLogo)gEnsureLogoLoaded(logoUrl,()=>{if(GM===m&&m.ok)gBuild()}); // الشعار يُحمَّل مرة واحدة فقط لكل رابط (ذاكرة تخزين مؤقتة)؛ عند نجاح أول تحميل تُعاد بناء الدبابيس لإظهاره، وعند الفشل تبقى أيقونة الفئة
+    const showLogo=wantLogo&&gLogoReady(logoUrl);
+    const mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on,isRoute,zs,showLogo?logoUrl:''),title:x.name,zIndex:isRoute?10:(on?9:3),optimized:false});
+    if(on&&!isRoute)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
   if(m.me)m.me.setMap(null);m.me=new google.maps.Marker({map:m.map,position:S.userLL,zIndex:2,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#1d63e0',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});m.marks.push(m.me);
   if(fit)gFit(zBoost)}
 function gFit(zBoost){const m=GM;if(!m||!m.ok)return;const p=visibleMerchants().map(llOf);if(!p.length)return;const b=new google.maps.LatLngBounds();p.forEach(x=>b.extend(x));m.map.fitBounds(b,44);const zb=zBoost||0;if(p.length===1)setTimeout(()=>m.map.setZoom(15+zb),50);else setTimeout(()=>m.map.setZoom(Math.max(10,m.map.getZoom()-1+zb)),50)}
@@ -2876,7 +2886,7 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick){
     // دبابيس المحلات تُرسم ديناميكياً في طبقة منفصلة (pinLayer) لتُجمَّع أو تنفصل تلقائياً حسب مستوى التكبير
     t.pinLayer=document.createElement('div');t.pinLayer.className='pinLayer';t.mk.appendChild(t.pinLayer);
-    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);return{id:m.id,lat:l.lat,lng:l.lng,c:AREA_COLORS[area]||'var(--navy)',ic:c[2],area}}); // لون الدبّوس حسب المنطقة (AREA_COLORS)، أما الأيقونة في مركزه فتبقى حسب فئة المحل (CAT) — منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
+    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);return{id:m.id,lat:l.lat,lng:l.lng,c:AREA_COLORS[area]||'var(--navy)',ic:c[2],area,logo:safeLogoUrl(m.logo)}}); // لون الدبّوس حسب المنطقة (AREA_COLORS)، أما الأيقونة في مركزه فتبقى حسب فئة المحل (CAT) — منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
   } else if(t.pick&&S.editAreaSel)S.merchants.filter(m=>m.id!==S.mapFocus&&m.lat!=null&&nearestTArea(m.lat,m.lng)===S.editAreaSel).forEach(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);add(`<div class="pn ref" style="--c:${AREA_COLORS[area]||'var(--navy)'}" data-id="${m.id}" onclick="editPinTap('${m.id}')"><i class="pnbody"></i><i class="pnring"></i><b>${c[2]}</b></div><div class="pnlbl">${esc(m.name)}</div>`,l.lat,l.lng,4,m.id)});
   // نُعيد تصفير حالة "الفتح/التقسيم" فقط إذا تغيّرت مجموعة المحلات الظاهرة فعلياً (فلتر/بحث جديد)؛ مجرد اختيار محل (pinTap) أو تحديث عادي -أو حتى إعادة بناء الخريطة بالكامل بسبب render() دوري- لا يُفقد ما فتحه الزبون سابقاً من تجمّعات، لأن هذه الحالة محفوظة على S (لا على كائن TM المؤقت الذي يُعاد إنشاؤه مع كل render())
   const sig=t.pins.map(p=>p.id).sort().join(',');
@@ -2893,6 +2903,17 @@ const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 م
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=18,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65;
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
+// عند الوصول لأعلى مستوى تكبير مدعوم (PIN_ZOOM_HI)، تُكبَّر الدبابيس الفردية (لا فقاعات التجمّعات) درجة إضافية فوق سقف pinZoomScale العادي، لإظهار الشعار/الأيقونة بوضوح أكبر
+const PIN_MAXZ_BOOST=1.22;
+function isMaxPinZoom(z){return z>=PIN_ZOOM_HI-.05}
+// عامل تكبير دبّوس الوجهة أثناء عرض خط السير، أكبر من دبّوس التحديد العادي ليتميّز شعار المحل أو أيقونته بوضوح
+const PIN_ROUTE_SCALE=1.4;
+// شعار المحل يُعرض داخل الدبّوس فقط إذا كان رابطاً فعلياً http(s) (أو بروتوكول نسبي //) — يحجب أي قيمة مثل javascript: أو data: أو نص عشوائي قد يحاول حقن HTML/SVG
+const safeLogoUrl=u=>(typeof u==='string'&&/^(https?:)?\/\//i.test(u.trim()))?u.trim():'';
+// ذاكرة تخزين مؤقتة لنتيجة تحميل شعارات خرائط Google (مرة واحدة فقط لكل رابط، كي لا نعيد تحميل الشعار مع كل إعادة رسم)
+const _gLogoCache={};
+function gLogoReady(u){return _gLogoCache[u]===true}
+function gEnsureLogoLoaded(u,cb){if(!u||(u in _gLogoCache))return;_gLogoCache[u]='pending';const im=new Image();im.onload=()=>{_gLogoCache[u]=true;cb&&cb()};im.onerror=()=>{_gLogoCache[u]=false};im.src=u}
 // نقطة جغرافية ضمن حدود الشاشة الظاهرة حالياً أم لا (تُستخدم لتفادي أي تكبير/تحريك غير ضروري عند التبديل بين تجمّعين مفتوحين بالتتابع)
 function pointInView(t,lat,lng,margin){const x=t.w/2+wx(lng,t.z)-wx(t.lng,t.z),y=t.h/2+wy(lat,t.z)-wy(t.lat,t.z);return x>=margin&&x<=t.w-margin&&y>=margin&&y<=t.h-margin}
 // كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
@@ -2922,9 +2943,9 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;
     S._mapOpenGroup={type:'area',area:areaName,split:false};
   }
   if(!wasOpen){
-    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجة واحدة أساسية، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ
+    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجتان أساسيتان، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ
     const skipZoom=!!(areaName&&S.areaSel===areaName); // قادم من صفحة "تصفّح حسب المنطقة" والزوم لهذه المنطقة منجز مسبقاً: لا حاجة لأي زوم إضافي
-    let z=Math.min(CLUSTER_MAXZ,t.z+1);
+    let z=Math.min(CLUSTER_MAXZ,t.z+2);
     if(ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM);
     if(skipZoom)drawMarks();else flyTo(lat,lng,z,650);
   } else {
@@ -2939,16 +2960,19 @@ function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups|
   S._mapOpenGroup={type:'split',gid,area:g.area};
   drawMarks()}
 function drawPinClusters(t,X,Y){
-  const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zs=pinZoomScale(t.z);
-  const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id;
+  const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zsBase=pinZoomScale(t.z),maxz=isMaxPinZoom(t.z),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
+  // ترميز دبّوس فردي واحد: الشعار المحفوظ يستبدل أيقونة الفئة داخل الحلقة البيضاء فقط عند التحديد، أو أثناء عرض خط السير لهذا المحل، أو عند أعلى مستوى تكبير — وإلا تبقى الأيقونة؛ onerror يُخفي صورة الشعار فتظهر الأيقونة خلفها دون أي قفزة بالتخطيط (نفس أبعاد الحلقة)
+  const pinHtml=(p,on,isRoute)=>{const showLogo=(on||isRoute||maxz)&&p.logo,cls=isRoute?'route':(on?'sel':''),img=showLogo?`<img class="pnimg" src="${esc(p.logo)}" alt="" onerror="this.style.display='none'">`:'';
+    return `<div class="pn ${cls}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b>${img}</div>`};
+  const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id,isRoute=!!(S.route&&S.route.id===p.id);
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
-    d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
-    d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:3;t.pinLayer.appendChild(d)};
+    d.innerHTML=pinHtml(p,on,isRoute);
+    d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=isRoute?10:(on?9:3);t.pinLayer.appendChild(d)};
   // التجمّع المفتوح: كل محل يظهر عند إحداثياته الجغرافية الحقيقية تماماً (lat/lng المسجّلة)، لا موضعاً مصطنعاً حول مركز التجمّع؛ الإزاحة البسيطة تُطبَّق فقط إذا تطابق موضعان على الشاشة فعلاً
   const drawOpenGroup=group=>{const pts=declutterExact(group.map(p=>({p,id:p.id,lat:p.lat,lng:p.lng,x:t.w/2+wx(p.lng,t.z)-X,y:t.h/2+wy(p.lat,t.z)-Y})));
     pts.forEach(pt=>{const on=S.sel===pt.p.id;
       const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(pt.x)}px,${Math.round(pt.y)}px)`;
-      d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${pt.p.c};--zs:${zs}" data-id="${pt.p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${pt.p.ic}</b></div>`;
+      d.innerHTML=pinHtml(pt.p,on,false);
       d.firstChild.onclick=()=>pinTap(pt.p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
   t.pinLayer.innerHTML='';
   if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
