@@ -1672,7 +1672,8 @@ function hydrateMerchant(md){
    redeemPct:md.redeem_pct!=null?md.redeem_pct:m.redeemPct,redeemPctVip:md.redeem_pct_vip!=null?md.redeem_pct_vip:m.redeemPctVip,
    x:md.x!=null?md.x:m.x,y:md.y!=null?md.y:m.y,lat:md.lat!=null?md.lat:m.lat,lng:md.lng!=null?md.lng:m.lng,
    addr:md.addr||m.addr,area:md.area!==undefined?(md.area||''):(m.area||''),photo:md.photo_url||m.photo||'',
-   photoPending:md.photo_pending_url!==undefined?(md.photo_pending_url||null):(m.photoPending||null),posterPrinted:!!md.poster_printed,warns:md.warns||0,
+   photoPending:md.photo_pending_url!==undefined?(md.photo_pending_url||null):(m.photoPending||null),
+   logo:md.logo_url!==undefined?(md.logo_url||''):(m.logo||''),posterPrinted:!!md.poster_printed,warns:md.warns||0,
    pendingName:md.pending_name===undefined?m.pendingName:md.pending_name,pendingAddr:md.pending_addr===undefined?m.pendingAddr:md.pending_addr,
    pageBlurb:md.page_blurb!==undefined?(md.page_blurb||''):(m.pageBlurb||''),pageEnabled:md.page_enabled!=null?!!md.page_enabled:!!m.pageEnabled});
   if(md.phone)m.phone=md.phone;
@@ -1773,7 +1774,7 @@ async function pinSubmit(){
   if(S.pinMode==='enter'){
     const role=S.loginRole,code=S.code;
     const res=role==='merchant'?await sbRpc('merchant_verify_pin',{p_phone:S.phone,p_pin:code}):await sbRpc('customer_verify_pin',{p_phone:S.phone,p_pin:code});
-    if(!res||!res.ok){S.code='';toast(res&&res.reason==='frozen'?'هذا الحساب مجمّد':'رمز الحماية غير صحيح');return render()}
+    if(!res||!res.ok){S.code='';toast(res&&res.reason==='frozen'?'هذا الحساب مجمّد':res&&res.reason==='locked'?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':'رمز الحماية غير صحيح');return render()}
     if(role==='merchant')hydrateMerchant(res.merchant);else hydrateCustomer(res.customer);
     return completeLogin();
   }
@@ -1790,7 +1791,20 @@ async function pinSubmit(){
     S.pendingPin=pin;S.screen='welcome';render();
   }
 }
-function forgotPin(){S.resetRole=S.loginRole;S.pinMode='set';S.code='';S.pin1='';toast('أدخل رمزاً جديداً لإعادة تعيين رمز الحماية');render()}
+// نسيان رمز الحماية: بالنسبة للتاجر، لم نعد نسمح بتعيين رمز جديد فوراً بمجرد معرفة رقم الهاتف (كان هذا
+// هو السلوك القديم عبر merchant_reset_pin، وهو ثغرة تسمح لأي طرف يعرف رقم هاتف التاجر فقط بالاستيلاء
+// الكامل على حسابه، بدون أي تحقق من الهوية). استرجاع رمز التاجر الآن يتم فقط عبر فريق الدعم، الذي يتحقق
+// من هوية التاجر يدوياً (كمستند تسجيل المحل) قبل أن يطلب من الأدمن الأساسي إعادة تعيين الرمز من لوحة التحكم.
+// بالنسبة للزبون، لم يُطلب تغيير هذا السلوك في هذه المهمة (الخطر أقل: لا أموال أو بيانات تجارية مرتبطة
+// بحساب الزبون بالطريقة نفسها) فتُركت آلية الاسترجاع الذاتي كما كانت — هذا موضّح في تقرير الأمان المرفق.
+function forgotPin(){
+  if(S.loginRole==='merchant'){S.screen='mforgotpin';return render()}
+  S.resetRole=S.loginRole;S.pinMode='set';S.code='';S.pin1='';toast('أدخل رمزاً جديداً لإعادة تعيين رمز الحماية');render()}
+function mForgotPinView(){return `<div class="scr">${backBtn('pin')}<h1>نسيت رمز الحماية؟</h1>
+  <p class="sub">لحماية حساب محلك، لا يمكن تعيين رمز جديد تلقائياً بمعرفة رقم الهاتف فقط.</p>
+  <div class="card"><p class="muted" style="margin:0">تواصل مع فريق الدعم عبر واتساب وزوّدهم برقم هاتف محلك المسجّل. سيتحقق الفريق من هويتك، ثم يعيد لك الإدارة تعيين رمز حماية جديد من لوحة التحكم.</p></div>
+  <a class="btn blue" style="display:block;text-align:center;text-decoration:none;margin-top:14px" target="_blank" href="https://wa.me/${SUPPORT_WA}">تواصل مع الدعم عبر واتساب</a>
+  <button class="btn ghost" style="margin-top:10px" onclick="go('pin')">رجوع</button></div>`}
 async function completeLogin(){
   const p=S.phone,m=S.merchants.find(x=>x.phone===p);
   if(m){S.merchantId=m.id;if(m.status==='active'){if(!m.photo&&!m.photoPending){addMNote(m.id,'photo','لم تُضف صورة لمحلك بعد','أضف صورة واجهة محلك ليراها الزبائن بدل الصورة الافتراضية، وسترسل للإدارة للموافقة عليها.','info');S.mPhotoNag=true}S.mode='merchant';S.tab='mhome';S.screen='app';syncMerchantData(m.id)}else S.screen='mpending';return render()}
@@ -1975,8 +1989,32 @@ function mPhotoBox(m){if(S.mPhotoDraft)return `<div class="muted" style="margin-
   <div class="row" style="gap:6px;margin-top:8px"><button class="btn sm" style="background:var(--ok);color:#fff;flex:1" onclick="mPhotoSubmit()">✓ إرسال للموافقة</button><button class="btn sm ghost" style="color:var(--bad);flex:1" onclick="mPhotoDiscard()">🗑 حذف واختيار أخرى</button></div>`;
   return phBox(m.photo,'mPhoto',false,{label:'ارفع صورة عامة للمحل'})}
 const phBox=(img,fn,req,opts)=>{opts=opts||{};return `<label class="phbox ${opts.sq?'sq':''} ${img?'has':''}" ${img?`style="background-image:url(${img})"`:''}><input type="file" accept="image/*" hidden onchange="${fn}(this)"><span class="phl">${img?'📷 تغيير الصورة':'📷 '+(opts.label||'أضف صورة واجهة المحل')+(req?' *':'')}</span></label>`};
-function mLogo(inp){shrinkImg(inp.files[0],u=>{const m=M(S.merchantId);m.logo=u;toast('تم حفظ الشعار');render()},true)}
-function mLogoRemove(){const m=M(S.merchantId);m.logo='';toast('تم إزالة الشعار');render()}
+// حفظ/إزالة شعار المحل: يُرسل إلى الخادم عبر merchant_set_logo بعد تأكيد رمز الحماية الخاص بالتاجر (وليس فقط
+// بإرسال رقم المحل كما في النسخة الأولى غير الآمنة)، حتى يتعذّر على أي طرف غير التاجر نفسه تغيير شعار محله —
+// الخادم يتحقق من رمز الحماية مقابل رقم هاتف التاجر نفسه ويحدّث سجلّه هو فقط، ولا يثق إطلاقاً بمعرّف محل من العميل.
+// نُحدَّث في الذاكرة فقط بعد تأكيد الخادم، حتى يبقى الشعار محفوظاً فعلياً بعد تحديث الصفحة أو تسجيل الخروج والدخول من جديد.
+function mLogo(inp){shrinkImg(inp.files[0],u=>{S.mLogoPinPrompt={action:'save',pendingLogo:u,code:'',busy:false};render()},true)}
+function mLogoRemove(){S.mLogoPinPrompt={action:'remove',pendingLogo:null,code:'',busy:false};render()}
+function mLogoPinCancel(){S.mLogoPinPrompt=null;render()}
+function mLogoPinKey(k){const st=S.mLogoPinPrompt;if(!st||st.busy)return;
+  if(k==='x')st.code=st.code.slice(0,-1);else if(st.code.length<PIN_LEN)st.code+=k;
+  const e=$('#mLogoOtp');if(e)e.innerHTML=[0,1,2,3].map(i=>`<div class="${i===st.code.length?'cur':''}">${st.code[i]?'●':''}</div>`).join('');
+  if(st.code.length===PIN_LEN)setTimeout(mLogoPinSubmit,150)}
+async function mLogoPinSubmit(){const st=S.mLogoPinPrompt;if(!st||st.busy)return;st.busy=true;
+  const res=await sbRpc('merchant_set_logo',{p_phone:S.phone,p_pin:st.code,p_logo_url:st.pendingLogo});
+  if(!res||!res.ok){st.busy=false;st.code='';toast((res&&res.reason==='locked')?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':(res&&res.reason==='wrong_pin')?'رمز الحماية غير صحيح':(res&&res.error)||'تعذّر حفظ الشعار على الخادم');return render()}
+  const m=M(S.merchantId);if(m)m.logo=res.logo_url||'';
+  S.mLogoPinPrompt=null;toast(st.action==='remove'?'تم إزالة الشعار':'تم حفظ الشعار');render()}
+function mLogoPinModal(){const st=S.mLogoPinPrompt;if(!st)return'';
+  const b=[0,1,2,3].map(i=>`<div class="${i===st.code.length?'cur':''}">${st.code[i]?'●':''}</div>`).join('');
+  // نوضع الورقة في أعلى الشاشة (لا أسفلها كبقية النوافذ المنبثقة) كي لا تتداخل مع لوحة الأرقام
+  // الثابتة أسفل الشاشة (نفس لوحة شاشة الدخول)، فتبقى كل العناصر مقروءة وقابلة للنقر دون تراكب.
+  return `<div class="modal" style="align-items:flex-start;padding-top:14vh" onclick="if(event.target===this)mLogoPinCancel()"><div class="sheet" style="border-radius:20px">
+    <h3 style="margin:0 0 4px">${st.action==='remove'?'أدخل رمز الحماية لإزالة الشعار':'أدخل رمز الحماية لحفظ الشعار'}</h3>
+    <p class="muted" style="margin:0 0 10px">للتأكد أن هذا التغيير منك أنت فقط</p>
+    <div class="otp" id="mLogoOtp">${b}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="mLogoPinCancel()">إلغاء</button>
+  </div><div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="mLogoPinKey('${n}')">${n}</button>`).join('')}<span class="e"></span><button onclick="mLogoPinKey('0')">0</button><button onclick="mLogoPinKey('x')">⌫</button></div></div>`}
 // ===== نص جاهز للتاجر لتحسين صورة منتجه يدوياً عبر أداة ذكاء اصطناعي خارجية (Gemini / ChatGPT) =====
 const AI_PROMPT_TEXT='حوّل هذه الصورة إلى صورة إعلانية احترافية لعرض خاص على تطبيق Tripoli Points:\n- افصل المنتج الأساسي عن خلفيته الأصلية، وضعه على خلفية نظيفة واحترافية تناسب عرضه كمنتج للبيع.\n- اجعل مقاس الصورة النهائية مربعاً (نسبة 1:1).\n- احذف تماماً أي نصوص موجودة في الصورة الأصلية اذا كانت مضافه على الصورة، ولا تعتمد عليها كمرجع لأي نص جديد. لا تضف اي نصوص عريضة او اي عناوين.\n- اذا وجدت اي صور او علامات تجارية على المنتج اظهرها.\n- إذا أضفت أي نص جديد، يجب أن يكون باللغة العربية الفصحى وخالياً تماماً من أي خطأ إملائي أو لغوي.\nتجنب الكلمات العربية غير المفهومة أو التي تم تهجئتها بشكل خاطئ.\nضع شعار العرض محدود.\n\nيرجى تصميم شعار (Logo) لمبادرة "Tripoli Points" على خلفية بيضاء نقية ذات زوايا منحنية بلطف (Rounded Square background). الشعار بتصميم مسطح (Flat Design) ونظيف.\n\nالعناصر البصرية والتركيب:\n1. في الأعلى (أيقونة الخريطة والمدينة):\n  - دبوس موقع جغرافي (Map Pin) باللون الأزرق الداكن (Navy Blue).\n  - داخل الدبوس، يوجد رسم مبسط بالأبيض لمعالم مدينة طرابلس، يظهر فيها بوضوح برج ساعة عتيق (مثل ساعة طرابلس أو Mansouri Great Mosque minaret) وإلى جانبه نخلة.\n  - أعلى الدبوس وإلى اليمين قليلاً، توجد ثلاث خطوط إشعاعية صفراء صغيرة (مثل رمز الفكرة أو التألق).\n  - يوجد خط بيضاوي أصفر (مثل ظل أو مدار) يدور حول قاعدة الدبوس.\n2. في المنتصف (اسم المبادرة بالإنجليزية):\n  - كلمة "Tripoli" بحط إنجليزي عريض (Bold)، ولونها أزرق داكن (طابق لون دبوس الموقع).\n  - أسفلها مباشرة، كلمة "Points" بنفس الخط العريض، ولكن بلون برتقالي-أصفر (Golden Yellow/Orange).\n  - يجب أن يكون النص الإنجليزي متمركزاً عمودياً (centered align).\n3. في الأسفل (الشعار اللفظي بالعربية):\n  - عبارة محاذاة في الأسفل: "كل نقطة .. بتدعم مدينتك"\n  - الخط العربي يجب أن يكون خطاً حديثاً، رفيعاً وواضحاً (modern sans-serif Arabic script).\n  - لون الخط العربي أزرق داكن.\n\nالألوان المحددة (Palette):\n- الأزرق الداكن: Navy Blue (#002C6A أو مشابه).\n- البرتقالي الذهبي: Golden Orange/Yellow (#F9A826 أو مشابه).\n- الأبيض: للنقوش الداخلية داخل الدبوس وللخلفية.\n\nالأسلوب العام:\nتصميم احترافي، عصري، نظيف، وثنائي الأبعاد (2D) بدون تدرجات لونية (solid colors).\n\n- بخصوص شعار تطبيق Tripoli Points، ضعه صغيراً وشفافاً (بدون أي خلفية بيضاء خلفه) في إحدى زوايا الصورة فقط دون أن يغطي المنتج. لا تعيد تكرار الشعار ولا تخترع شعاراً بديلاً بنفسك مهما كان شكله، ولا تضف أي شعار من تصميمك الخاص. استخدم مواصفات الشعار في الأعلى.';
 function copyAiPrompt(){const t=AI_PROMPT_TEXT;(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('تم نسخ النص، الصقه بأداة الذكاء الاصطناعي')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('تم نسخ النص، الصقه بأداة الذكاء الاصطناعي')}catch(e){toast('تعذّر النسخ التلقائي، انسخ النص يدوياً من الأسفل')}ta.remove()})}
@@ -3077,7 +3115,7 @@ function merchantView(){
   if(S.sub)body=({new:mnewView,detail:mdetailV,wallet:mwalletV,ledger:mledgerV,reports:mrepV,notes:mnotesV,info:minfoV,help:mhelpV,buy:buyV,pay:payV,rank:rankV,qr:mqrV,gallery:mgalleryV,mypageEdit:mPageEditV,mypage:myPageV}[S.sub])(m);
   else body=({mhome:mhomeV,mops:mopsV,moff:moffView,macc:maccV}[S.tab]||mhomeV)(m);
   const mpend=S.tx.filter(t=>t.mid===m.id&&t.status==='PENDING').length;
-  return `<div class="scr">${body}</div>${(S.mPhotoNag&&m&&!m.photo&&!m.photoPending)?photoNagModal():''}${nav([['mhome','الرئيسية','home'],['mops','العمليات','list',mpend],['moff','العروض','gift'],['macc','حسابي','user']])}`}
+  return `<div class="scr">${body}</div>${(S.mPhotoNag&&m&&!m.photo&&!m.photoPending)?photoNagModal():''}${mLogoPinModal()}${nav([['mhome','الرئيسية','home'],['mops','العمليات','list',mpend],['moff','العروض','gift'],['macc','حسابي','user']])}`}
 function photoNagModal(){return `<div class="modal"><div class="sheet"><div style="font-size:44px">⚠️</div><h2 style="margin:6px 0">لم تُضف صورة لمحلك بعد</h2><p class="sub">صورة واجهة المحل تساعد الزبائن على التعرّف عليه بسهولة أكبر.</p><p class="small">راجع الإشعارات 🔔 في أعلى الصفحة لإضافتها.</p><button class="btn blue" onclick="S.mPhotoNag=false;openMNotes()">فتح الإشعارات</button><button class="btn ghost" style="margin-top:8px" onclick="S.mPhotoNag=false;render()">لاحقاً</button></div></div>`}
 
 // ===== شراء النقاط (بطاقات الشحن) والدفع عبر Wish =====
@@ -3264,7 +3302,7 @@ function mrepV(m){const n=S.rr,t0=todayStart(),from=t0-(n-1)*D,cf=S.tx.filter(t=
 function mnotesV(m){const col={sale:'var(--ok)',offer:'var(--yellow)',wallet:'var(--blue)',warn:'var(--bad)',general:'var(--navy)',photo:'var(--blue)'},icn={sale:'star',offer:'gift',wallet:'wallet',warn:'bell',general:'bell',photo:'store'},l=S.mnotes.filter(n=>n.mid===m.id);
   return subHead('الإشعارات')+(l.length?l.map(n=>`<div class="card row" style="align-items:flex-start;justify-content:flex-start;gap:12px"><span class="dot" style="width:38px;height:38px;flex:none;background:${col[n.type]};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type],18)}</span><div style="flex:1"><b>${n.title}</b><div>${n.body}</div><div class="muted">${ago(n.at)}</div>${n.cta==='info'?`<button class="btn sm blue" style="margin-top:8px" onclick="S.sub='info';render()">${ic('store',16)} أضف صورة واجهة المحل</button>`:''}</div></div>`).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
 function minfoV(m){return subHead('معلومات المحل')
- +`<div class="card"><label class="muted">شعار المحل (اختياري)</label><div class="tp21-logo-preview">${tpStoreLogoHtml(m)}<span>${m.logo?'شعار المحل الحالي':'يظهر شعار Tripoli Points لحين رفع شعار المحل'}</span></div>${phBox(m.logo,'mLogo',false,{sq:true,label:'رفع شعار المحل'})}${m.logo?`<button class="btn sm ghost" style="margin-top:8px;color:var(--bad)" onclick="mLogoRemove()">🗑 إزالة الشعار</button>`:''}<p class="muted" style="margin:8px 0 0;font-size:12px">إذا كان لمحلك شعار خاص، يظهر بدل الأيقونة الافتراضية في صفحة «حسابي».</p></div>`
+ +`<div class="card"><label class="muted">شعار المحل (اختياري)</label><div class="tp21-logo-preview">${tpStoreLogoHtml(m)}<span>${m.logo?'شعار المحل الحالي':'يظهر شعار Tripoli Points لحين رفع شعار المحل'}</span></div>${phBox(m.logo,'mLogo',false,{sq:true,label:'رفع شعار المحل'})}${m.logo?`<button class="btn sm ghost" style="margin-top:8px;color:var(--bad)" onclick="mLogoRemove()">🗑 إزالة الشعار</button>`:''}<p class="muted" style="margin:8px 0 0;font-size:12px">إذا كان لمحلك شعار خاص، يظهر بدل الأيقونة الافتراضية في صفحة «حسابي». يُطلب منك رمز الحماية في كل مرة تغيّره لضمان أن التغيير منك أنت فقط.</p></div>`
  +`<div class="card"><h3 style="margin:0 0 6px">📸 الصورة العامة للمحل</h3><p class="muted" style="margin:0 0 9px;font-size:12px">ارفع صورة واضحة لواجهة أو داخل المحل. هذه هي الصورة الرئيسية الظاهرة للزبائن في الخريطة وصفحة المتجر، وهي مختلفة عن صور العروض ومعرض المنتجات. تُنشر بعد موافقة الإدارة.</p><label class="muted">${m.photo?'الصورة العامة الحالية':'لم تُرفع صورة عامة بعد (يظهر حالياً البديل حسب الفئة)'}</label>${mPhotoBox(m)}${(m.photoPending&&!S.mPhotoDraft)?`<div class="info" style="color:var(--blue);margin-top:6px">${ic('bell',18)}<span style="flex:1">أرسلت صورة جديدة، بانتظار موافقة الإدارة عليها</span></div>`:''}<p class="muted" style="margin:8px 0 0;font-size:12px">تظهر هذه الصورة أيضاً كصورة غلاف لصفحة محلك («صفحتي»).</p></div>`
  +`<div class="card"><label class="muted">اسم المحل</label><div class="field"><input id="in1" value="${m.pendingName||m.name}"></div>${m.pendingName?`<div class="info" style="color:var(--blue);margin-top:6px">${ic('bell',18)}<span style="flex:1">طلب تعديل الاسم بانتظار موافقة الإدارة · «${m.pendingName}»</span></div>`:''}<button class="btn sm" style="margin-top:8px" onclick="saveName()">إرسال للموافقة</button></div>`
  +`<div class="card"><label class="muted">العنوان</label><div class="field"><input id="in2" value="${m.pendingAddr!=null?m.pendingAddr:(m.addr||'')}"></div>${m.pendingAddr?`<div class="info" style="color:var(--blue);margin-top:6px">${ic('bell',18)}<span style="flex:1">طلب تعديل العنوان بانتظار موافقة الإدارة · «${m.pendingAddr}»</span></div>`:''}<button class="btn sm" style="margin-top:8px" onclick="saveAddr()">إرسال للموافقة</button></div>`
@@ -3975,7 +4013,24 @@ function merchReviewHtml(m){const k=CAT(m.cat);
   ${m.pendingName?`<div class="muted" style="font-size:13px">الاسم الجديد: <b style="color:var(--ink)">${m.pendingName}</b></div>`:''}
   ${m.pendingAddr?`<div class="muted" style="font-size:13px">العنوان الجديد: <b style="color:var(--ink)">${m.pendingAddr}</b></div>`:''}
   <div class="row" style="gap:6px;margin-top:8px"><button class="btn ok sm" style="flex:1" onclick="merchReviewApproveInfo('${m.id}')">موافقة على التعديل</button><button class="btn bad sm" style="flex:1" onclick="merchReviewRejectInfo('${m.id}')">رفض التعديل</button></div>`:''}
+  ${(S.adminInfo&&S.adminInfo.is_primary)?`<label class="muted" style="margin-top:14px;display:block">نسي التاجر رمز الحماية؟</label>
+  <div class="muted" style="font-size:11.5px;margin:2px 0 6px">تحقق أولاً من هوية التاجر (مثلاً عبر وثيقة تسجيل المحل) قبل تعيين رمز جديد له</div>
+  <button class="btn sm ghost" onclick="adminResetMerchantPin('${m.id}')">🔑 إعادة تعيين رمز الحماية</button>`:''}
   <button class="btn ghost" style="margin-top:14px" onclick="merchReviewClose()">إغلاق</button>`}
+// إعادة تعيين رمز حماية تاجر من قبل الإدارة — يحل محل الاسترجاع الذاتي القديم غير الآمن عبر merchant_reset_pin.
+// يتطلب أن يكون الأدمن "أساسياً" (نفس شرط باقي الإجراءات الحساسة كتصفير البيانات وحذف المحل)، ويطلب رمز
+// الإدارة الخاص بالأدمن نفسه في كل استدعاء (يتحقق منه الخادم مجدداً)، تماماً كما تفعل admin_wipe_all_data.
+async function adminResetMerchantPin(id){
+  if(!S.adminInfo||!S.adminInfo.is_primary)return toast('هذا الإجراء مسموح للأدمن الأساسي فقط');
+  const m=M(id);if(!m)return;
+  const newPin=prompt(`أدخل رمز حماية جديد من 4 أرقام لمحل "${m.name}" (+961 ${m.phone}):\nتأكد أولاً من هوية التاجر قبل المتابعة.`);
+  if(newPin===null)return;
+  if(!/^\d{4}$/.test(newPin.trim()))return toast('رمز الحماية يجب أن يكون 4 أرقام بالضبط');
+  const pin=prompt('أدخل رمز الإدارة الخاص بك لتأكيد هويتك وإتمام إعادة التعيين:');
+  if(pin===null)return;
+  const res=await sbRpc('admin_reset_merchant_pin',{p_admin_id:S.adminInfo.id,p_pin:pin.trim(),p_merchant_id:id,p_new_pin:newPin.trim()});
+  if(!res||!res.ok)return toast((res&&res.reason==='locked')?'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة':(res&&res.error)||'تعذّر إعادة التعيين');
+  toast('تم تعيين رمز حماية جديد للتاجر، أطلعه عليه بقناة موثوقة');merchReviewRefresh()}
 function openMerchantReview(mid){merchReviewClose();const m=M(mid);if(!m)return;merchReviewMid=mid;
   const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)merchReviewClose()};merchReviewModalEl=md;
   md.innerHTML=`<div class="sheet">${merchReviewHtml(m)}</div>`;document.body.appendChild(md)}
@@ -4046,7 +4101,7 @@ function render(){
   if(S.screen==='app'&&S.mode==='admin'){if(!S.adminOk||Date.now()>S.adminUntil){const was=S.adminOk;S.adminOk=false;S.mode=null;S.screen='splash';if(was)toast('انتهت جلسة الإدارة. سجّل الدخول من جديد')}else S.adminUntil=Date.now()+ADMIN_SESSION}
   sweep();const a=$('#app');
   if(S.screen==='app')a.innerHTML=S.mode==='customer'?customerView():S.mode==='merchant'?merchantView():adminView();
-  else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView}[S.screen]();
+  else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView,mforgotpin:mForgotPinView}[S.screen]();
   // نقل الشريط السفلي الثابت (.nav) إلى خارج #app (الذي له overflow-x:hidden) ليبقى ثابتاً فعلياً فوق الشاشة أثناء التمرير على بعض متصفحات الجوال، بدل أن يختفي أو يُقصّ بسبب تعشيشه داخل عنصر له overflow
   const navSlot=$('#navSlot');if(navSlot){const navEl=a.querySelector(':scope > .nav');navSlot.innerHTML='';if(navEl)navSlot.appendChild(navEl)}
   if(S.screen==='app'&&S.mode==='customer'&&S.sub==='calc')calcUpd();

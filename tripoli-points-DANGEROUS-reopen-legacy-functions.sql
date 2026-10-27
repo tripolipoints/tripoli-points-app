@@ -1,0 +1,156 @@
+-- =====================================================================
+-- Tripoli Points — DANGEROUS: reopen legacy insecure functions
+-- =====================================================================
+-- NOT EXECUTED. This file is deliberately separate from both
+-- tripoli-points-migration-rollback.sql and the rollback material that
+-- used to live inside tripoli-points-admin-emergency-hardening.sql, per
+-- review: a routine "roll back the feature" action must never be able
+-- to silently reintroduce a fixed vulnerability. Nothing in this repo's
+-- normal rollback path references this file or runs any part of it.
+--
+-- WHAT THIS FILE IS: the exact reverse of the two security fixes in
+-- this round -- re-granting EXECUTE on the OLD, insecure
+-- merchant_reset_pin (the account-takeover function), and recreating
+-- the OLD, zero-check admin_* RPC overloads and leftover test functions
+-- the emergency-hardening file drops. Running ANY part of this file
+-- puts a closed vulnerability back into production.
+--
+-- WHEN (IF EVER) THIS IS THE RIGHT FILE: essentially never, for an
+-- ordinary rollback. The only situation where part of this might be
+-- justified is an unrelated, severe production incident where you need
+-- to restore the schema to BIT-FOR-BIT the exact state it was in before
+-- these migrations ran, for forensic or compatibility reasons, understand
+-- the security implications, and plan to re-apply the fix immediately
+-- after. If you're rolling back because the LOGO FEATURE has a bug, use
+-- tripoli-points-migration-rollback.sql instead -- it reverts the
+-- feature and leaves every security fix in place. If you're
+-- reconsidering the ADMIN HARDENING specifically, talk it through first
+-- rather than reaching for this file; the old overloads being dropped
+-- have no legitimate caller today (see the hardening file's own
+-- dependency-check section).
+--
+-- Each statement below is commented out. Uncommenting and running one
+-- is a deliberate, individual choice, not an "all of the above" action
+-- -- there is no scenario where you'd want every statement in this file
+-- at once.
+-- =====================================================================
+
+
+-- ---------------------------------------------------------------------
+-- Reopen merchant_reset_pin (reverses the account-takeover fix)
+-- ---------------------------------------------------------------------
+-- Restores EXECUTE to exactly what production had before this PR's
+-- security fixes: anyone with the public anon key can reset any
+-- merchant's PIN given only their phone number. This is the single most
+-- severe statement in this file.
+-- GRANT EXECUTE ON FUNCTION public.merchant_reset_pin(text, text) TO PUBLIC, anon, authenticated, service_role;
+
+
+-- ---------------------------------------------------------------------
+-- Reopen the old insecure admin_* overloads / leftover test functions
+-- (reverses the emergency-hardening fix) -- exact bodies each one had
+-- in production, captured via pg_get_functiondef() before this review.
+-- ---------------------------------------------------------------------
+-- CREATE OR REPLACE FUNCTION public.admin_wipe_all_data()
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   truncate table public.merchants, public.customers cascade;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_wipe_all_data() TO anon, authenticated, service_role;
+
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare cnt int;
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   get diagnostics cnt = row_count;
+--   return jsonb_build_object('ok', cnt > 0);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا المحل لوجود عمليات أو مشتريات مسجّلة عليه. جمّده أو استبعده بدلاً من الحذف.');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant(uuid) TO anon, authenticated, service_role;
+
+-- CREATE OR REPLACE FUNCTION public.admin_delete_customer(p_phone text)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare cnt int;
+-- begin
+--   delete from public.customers where phone = p_phone;
+--   get diagnostics cnt = row_count;
+--   return jsonb_build_object('ok', cnt > 0);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'لا يمكن حذف هذا الزبون لوجود عمليات مسجّلة عليه. جمّده بدلاً من الحذف.');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_customer(text) TO anon, authenticated, service_role;
+
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test2(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test2(uuid) TO anon;
+
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test6(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test6(uuid) TO anon;
+
+-- CREATE OR REPLACE FUNCTION public.admin_delete_merchant_test7(p_merchant_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- begin
+--   delete from public.merchants where id = p_merchant_id;
+--   return jsonb_build_object('ok', true);
+-- exception when foreign_key_violation then
+--   return jsonb_build_object('ok', false, 'error', 'blocked');
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_delete_merchant_test7(uuid) TO anon;
+
+-- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test2(p_merchant_id uuid, p_admin_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare a public.admin_users; ok boolean;
+-- begin
+--   select * into a from public.admin_users where id = p_admin_id;
+--   ok := a.id is not null and coalesce(a.is_primary,false);
+--   if ok then
+--     delete from public.topup_orders where merchant_id = p_merchant_id;
+--   end if;
+--   return jsonb_build_object('ok', ok);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test2(uuid, uuid) TO anon;
+
+-- CREATE OR REPLACE FUNCTION public.admin_force_delete_merchant_test6(p_merchant_id uuid, p_admin_id uuid)
+--  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+-- AS $function$
+-- declare a public.admin_users; ok boolean;
+-- begin
+--   select * into a from public.admin_users where id = p_admin_id;
+--   ok := a.id is not null and coalesce(a.is_primary,false);
+--   if ok then
+--     with d1 as (delete from public.topup_orders where merchant_id = p_merchant_id returning 1),
+--          d2 as (delete from public.wallet_orders where merchant_id = p_merchant_id returning 1)
+--     select 1 into ok from (select 1) z where ok;
+--   end if;
+--   return jsonb_build_object('ok', ok);
+-- end; $function$;
+-- GRANT EXECUTE ON FUNCTION public.admin_force_delete_merchant_test6(uuid, uuid) TO anon;
+
+-- =====================================================================
+-- If you ever uncomment and run anything in this file, immediately:
+--   1. Tell the rest of the team -- a closed vulnerability is open again.
+--   2. Set a concrete date/trigger to re-apply the fix.
+--   3. Re-run the matching negative security tests (merchant-logo-
+--      security-tests.sql Test 9, or the hardening file's verification
+--      queries) to confirm the reopened state is what you expected --
+--      nothing more.
+-- =====================================================================
