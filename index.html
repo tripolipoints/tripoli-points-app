@@ -244,18 +244,20 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap #rtl,.rmap #rmk{position:absolute;inset:0}.rmap #rtl{z-index:0}.rmap #rmk{z-index:2}
 .rmap #rtl img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;transition:opacity .25s}
 .rmap .mk{position:absolute;left:0;top:0;will-change:transform}
-.rmap .pn{position:absolute;left:-14px;top:-33.8px;width:28px;height:28px;cursor:pointer;transform-origin:50% 100%;transition:transform .15s ease}
+.rmap .pn{position:absolute;left:-14px;top:-33.8px;width:28px;height:28px;cursor:pointer;transform-origin:50% 100%;transition:transform .15s ease;transform:scale(var(--zs,1))}
 .phbox{display:flex;align-items:flex-end;justify-content:center;aspect-ratio:3/2;max-height:230px;width:100%;border:2px dashed #9db3dd;border-radius:16px;background:#eef3fc center/cover no-repeat;margin-bottom:12px;cursor:pointer;overflow:hidden}.phbox:not(.has){align-items:center}.phbox .phl{font-weight:700;color:var(--navy);font-size:14px}.phbox.has{border-style:solid;border-color:#fff;box-shadow:0 1px 6px #0003}.phbox.has .phl{background:#0c2a6bcc;color:#fff;width:100%;text-align:center;padding:7px}.phbox.sq{aspect-ratio:1/1;max-height:260px;max-width:260px;margin:0 auto 12px}
 .cfr{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:14px;background:#000;touch-action:none;cursor:grab;border:2px solid var(--yellow)}.cfr img{position:absolute;left:0;top:0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}.cfr.sq{aspect-ratio:1/1}
 .mph{display:block;width:100%;aspect-ratio:3/2;max-height:230px;object-fit:cover;border-radius:12px;margin-bottom:10px}
 .rmap .pn .pnbody{position:absolute;inset:0;border-radius:50% 50% 50% 0;background:var(--c);transform:rotate(-45deg);filter:drop-shadow(0 2px 3px rgba(10,30,70,.35))}
 .rmap .pn .pnring{position:absolute;inset:21%;border-radius:50%;background:#fff}
 .rmap .pn b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--c);font-weight:700;font-size:10px;line-height:1;pointer-events:none}
-.rmap .pn.sel{transform:scale(1.12)}
+.rmap .pn.sel{transform:scale(calc(var(--zs,1) * 1.12))}
 .rmap .pn.sel .pnbody{box-shadow:0 0 0 2px rgba(255,194,14,.9),0 0 6px 2px rgba(255,194,14,.55)}
 .rmap .pn.ref{width:24px;height:24px;left:-12px;top:-29px;opacity:.9}
 .rmap .pn.cluster{width:34px;height:34px;left:-17px;top:-41px}
 .rmap .pn.cluster b{font-size:11px}
+.rmap .pn.cluster.open{transform:scale(.88)}
+.rmap .pn.cluster.open .pnbody{opacity:.6}
 .rmap .pnlbl{position:absolute;top:5px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
 .rmap .lb{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 2px #000,0 0 6px #000;pointer-events:none;direction:rtl}
 .rmap .me{position:absolute;left:-7.5px;top:-7.5px;width:15px;height:15px;border-radius:50%;background:#1d63e0;border:2.5px solid #fff;box-shadow:0 0 0 6px #1d63e044;pointer-events:none}
@@ -1216,10 +1218,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 <style id="tp23-big-map-preview">
 /* V23 map-size preview: keep all route, pin and data behavior unchanged. */
 .rmap.tp23-home-map{height:88vh!important;height:88dvh!important;min-height:460px!important;max-height:none!important;flex:none!important}
-.rmap .tp23-fullscreen-btn{position:absolute;z-index:8;top:91px;right:10px;display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:12px;color:#0c2a6b;background:#fff;box-shadow:0 2px 10px #0003;font-size:24px;line-height:1;cursor:pointer}
+.rmap .tp23-fullscreen-btn{position:absolute;z-index:8;top:91px;right:10px;display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:13px;color:var(--navy);background:var(--yellow);box-shadow:0 3px 10px rgba(12,42,107,.4);font-size:20px;line-height:1;cursor:pointer}
 .rmap.tp23-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;border-radius:0!important;margin:0!important;z-index:10010!important;flex:none!important}
 body.tp23-map-open{overflow:hidden!important}
-.rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;background:#fff;color:#0c2a6b}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;background:var(--yellow);color:var(--navy);font-size:22px}
 .rmap.tp23-fullscreen .zb{right:12px}
 .rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(70px + env(safe-area-inset-top))!important}
 .rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(108px + env(safe-area-inset-top))!important}
@@ -1230,7 +1232,7 @@ body.tp23-map-open{overflow:hidden!important}
 /* Full-screen map is portaled into body to avoid clipped fixed children. */
 body > .rmap.tp23-fullscreen{position:fixed!important;inset:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-height:0!important;margin:0!important;transform:none!important;z-index:2147483000!important;border:0!important;border-radius:0!important;box-shadow:none!important}
 body.tp23-map-open #navSlot{visibility:hidden!important}
-body > .rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(16px + env(safe-area-inset-top))!important;right:16px!important}
+body > .rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(16px + env(safe-area-inset-top))!important;right:16px!important;background:var(--yellow)!important;color:var(--navy)!important}
 body > .rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(80px + env(safe-area-inset-top))!important}
 body > .rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(126px + env(safe-area-inset-top))!important}
 body > .rmap.tp23-fullscreen .mchip.mround{bottom:calc(28px + env(safe-area-inset-bottom))!important}
@@ -2547,7 +2549,7 @@ function setMapBig(on){const rm=$('#rmap');if(!rm)return;const was=rm.classList.
   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h}
   requestAnimationFrame(()=>{if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize');const ll=S.sel&&M(S.sel)&&llOf(M(S.sel));if(ll)GM.map.panTo(ll)}if(TM)drawMap()})}
 const TRIPOLI_ZOOM_BOOST=1;
-function resetMapFilter(){S.filter=null;S.q='';S.mapFocus=null;S.mapOfferFocus=null;S.sel=null;S.sheetFull=false;S.mapBig=false;S.areaSel=null;S._mapForcedOpen=new Set();S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)}
+function resetMapFilter(){S.filter=null;S.q='';S.mapFocus=null;S.mapOfferFocus=null;S.sel=null;S.sheetFull=false;S.mapBig=false;S.areaSel=null;S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)}
 const TAREAS=[['أبو سمراء','ihill3',34.425963,35.842226],['القبة','imosque3',34.433147,35.850526],['ضم والفرز','iexpo3',34.431427,35.829508],['التل','iclock3',34.436767,35.838634],['الميناء','iport3',34.450111,35.812804]];
 function nearestTArea(lat,lng){if(lat==null||lng==null)return'';return TAREAS.reduce((best,a)=>{const d=hav({lat,lng},{lat:a[2],lng:a[3]});return d<best.d?{d,name:a[0]}:best},{d:Infinity,name:''}).name}
 const AREASVG={
@@ -2798,7 +2800,7 @@ let GM=null,gLoad=null;
 function gLoadApi(){if(window.google&&google.maps)return Promise.resolve();if(gLoad)return gLoad;
   gLoad=new Promise((ok,no)=>{window.__gmReady=ok;window.gm_authFailure=()=>{no(new Error('auth'))};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GKEY)+'&language=ar&region=LB&callback=__gmReady';sc.async=true;sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)});
   gLoad.catch(()=>{});return gLoad}
-const gIcon=(c,e,sel)=>{const s=sel?44:40,vb=36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة
+const gIcon=(c,e,sel,zs)=>{const s=Math.round((sel?44:40)*(zs||1)),vb=36,off=-6,pd="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، أيقونة الفئة بلون الدبّوس داخل دائرة بيضاء؛ عند التحديد: توهّج أصفر ناعم يتبع محيط شكل الدبّوس نفسه (بما فيها الذيل المدبب)، وليس حلقة دائرية كبيرة؛ الحجم الأساسي (zs) يكبر تدريجياً مع اقتراب التكبير من مستوى الشارع، بنفس منطق خريطة TM
   const glow=sel?`<path d="${pd}" fill="none" stroke="#ffc20e" stroke-width="2.4" opacity=".95" filter="url(#gl)"/>`:'';
   return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="${off} ${off} ${vb} ${vb}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter><filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${glow}<path filter="url(#sh)" d="${pd}" fill="${c}"/><circle cx="12" cy="9" r="4.6" fill="#fff"/><text x="12" y="12.1" font-size="7.2" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-weight="700">${e}</text></svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(s*0.5,s*(28/36))}};
 function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.classList.add('g');const ea=el.querySelector('.attr');if(ea)ea.style.display='none';const rk=$('#rmk');if(rk)rk.style.pointerEvents='none';
@@ -2806,13 +2808,15 @@ function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.cla
   gLoadApi().then(()=>{if(GM!==mine)return;const v=mine.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16}:(S.mv||{lat:34.4425,lng:35.834,z:14});if(mine.pick)pickSet(v.lat,v.lng);
     mine.map=new google.maps.Map(box,{center:{lat:v.lat,lng:v.lng},zoom:Math.round(v.z),mapTypeId:S.mapStyle==='sat'?'hybrid':'roadmap',disableDefaultUI:true,gestureHandling:'greedy',clickableIcons:false,mapTypeControl:false});
     mine.map.addListener('idle',()=>{const c=mine.map.getCenter();if(mine.pick){S.reg.z=mine.map.getZoom();pickSet(c.lat(),c.lng())}else S.mv={lat:c.lat(),lng:c.lng(),z:mine.map.getZoom()}});
+    if(!mine.pick)mine.map.addListener('zoom_changed',()=>{if(GM===mine&&mine.ok)gBuild()}); // إعادة بناء أيقونات الدبابيس بالحجم المناسب لمستوى التكبير الجديد (بلا تغيير أي بيانات أو تحديد)
     if(mine.pick)mine.map.addListener('center_changed',()=>{const c=mine.map.getCenter();pickSet(c.lat(),c.lng())});
     if(!mine.pick)mine.map.addListener('click',()=>{if(S.sel){S.sel=null;updateMap()}});
     mine.ok=true;gBuild(!S.mv&&!mine.pick,(!S.mv&&!mine.pick)?TRIPOLI_ZOOM_BOOST:0)}).catch(()=>{if(GM!==mine)return;GM=null;toast('تعذّر تحميل خرائط Google — نعرض الخريطة البديلة');gFail=true;render()})}
 let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
+  const zs=pinZoomScale(m.map.getZoom()||14);
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
-  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b',mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
+  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b',mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on,zs),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
   if(m.me)m.me.setMap(null);m.me=new google.maps.Marker({map:m.map,position:S.userLL,zIndex:2,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#1d63e0',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});m.marks.push(m.me);
   if(fit)gFit(zBoost)}
 function gFit(zBoost){const m=GM;if(!m||!m.ok)return;const p=visibleMerchants().map(llOf);if(!p.length)return;const b=new google.maps.LatLngBounds();p.forEach(x=>b.extend(x));m.map.fitBounds(b,44);const zb=zBoost||0;if(p.length===1)setTimeout(()=>m.map.setZoom(15+zb),50);else setTimeout(()=>m.map.setZoom(Math.max(10,m.map.getZoom()-1+zb)),50)}
@@ -2876,72 +2880,81 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   } else if(t.pick&&S.editAreaSel)S.merchants.filter(m=>m.id!==S.mapFocus&&m.lat!=null&&nearestTArea(m.lat,m.lng)===S.editAreaSel).forEach(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);add(`<div class="pn ref" style="--c:${AREA_COLORS[area]||'var(--navy)'}" data-id="${m.id}" onclick="editPinTap('${m.id}')"><i class="pnbody"></i><i class="pnring"></i><b>${c[2]}</b></div><div class="pnlbl">${esc(m.name)}</div>`,l.lat,l.lng,4,m.id)});
   // نُعيد تصفير حالة "الفتح/التقسيم" فقط إذا تغيّرت مجموعة المحلات الظاهرة فعلياً (فلتر/بحث جديد)؛ مجرد اختيار محل (pinTap) أو تحديث عادي -أو حتى إعادة بناء الخريطة بالكامل بسبب render() دوري- لا يُفقد ما فتحه الزبون سابقاً من تجمّعات، لأن هذه الحالة محفوظة على S (لا على كائن TM المؤقت الذي يُعاد إنشاؤه مع كل render())
   const sig=t.pins.map(p=>p.id).sort().join(',');
-  if(sig!==prevSig){S._mapForcedOpen=new Set();S._mapSplitGroups=[]}
-  else{S._mapForcedOpen=S._mapForcedOpen||new Set();S._mapSplitGroups=S._mapSplitGroups||[]}
+  if(sig!==prevSig){S._mapOpenGroup=null;S._mapSplitGroups=[]}
+  else{S._mapSplitGroups=S._mapSplitGroups||[]}
   S._mapPinsSig=sig;
   if(!t.pick)add('<div class="me"></div>',S.userLL.lat,S.userLL.lng,2);drawMarks()}
 const AREA_MIN_CLUSTER=3; // منطقة عدد محلاتها الظاهرة أقل من هذا الرقم تُعرض محلاتها مباشرة دون أي تجميع
 function areaLL(name){const a=areaDir().find(x=>x[0]===name);return a?{lat:a[1],lng:a[2]}:null}
-const CLUSTER_MAXZ=21; // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي 18)، يسمح بفصل محلات متلاصقة جداً على الأرض ضمن حدود ما يبقيها كلها ظاهرة على الشاشة (fitPts نفسها تضمن ذلك عبر معادلة اتساع الصندوق المحيط بنقاط هذا التجمّع بالتحديد)
 const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التجمّع هذا الرقم، يُقسَّم إلى دبّوسين متقاربين بدل تكبير الخريطة لفصل الجميع دفعة واحدة
 const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
-const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح فور فتحها
+// حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
+const PIN_ZOOM_LO=12,PIN_ZOOM_HI=18,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65;
+function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
+// توزيع دبابيس متقاربة جداً حول نقطة مركزية بشكل مروحة مدمجة (spiderfy) بدل تكبير الخريطة لفصلها؛ لا يُغيّر هذا إحداثيات المحلات المخزَّنة، بل فقط موضعها المرئي المؤقت فوق الخريطة
+function fanOffsets(n){if(n<=1)return[{dx:0,dy:0}];const R=n<=3?24:n<=5?32:38;return Array.from({length:n},(_,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;return{dx:Math.round(R*Math.cos(a)),dy:Math.round(R*Math.sin(a))}})}
+// حالة "التجمّع المفتوح حالياً" على الخريطة: واحد فقط في كل لحظة (منطقة كاملة، أو أحد دبّوسَي تقسيم تجمّع كبير)؛ فتح تجمّع آخر يُغلق السابق تلقائياً، وإعادة الضغط على التجمّع المفتوح نفسه يُغلقه، في الحالتين دون أي تغيير بموضع أو مستوى تكبير الخريطة
 let splitGid=0;
-function clusterTap(ids,areaName){const t=TM;if(!t)return;const pts=ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
-  // قادم من صفحة "تصفّح حسب المنطقة" ولم تتغيّر المنطقة المختارة: الزوم لهذه المنطقة منجز مسبقاً (عبر areaTap)، فلا حاجة لأي زوم إضافي عند الفتح
-  const skipZoom=!!(areaName&&S.areaSel===areaName);
-  // الضغط على أي دبّوس (منفرد التجمّع) يقرّب درجة تكبير واحدة من مستوى العرض الحالي كأساس، بدل حساب تكبير معقّد يفصل كل الأعضاء دفعة واحدة
-  const lat=pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng=pts.reduce((s,p)=>s+p.lng,0)/pts.length;
-  let z=Math.min(CLUSTER_MAXZ,t.z+1);
+function clusterTap(ids,areaName){const t=TM;if(!t)return;
+  if(S._mapOpenGroup&&S._mapOpenGroup.type==='area'&&S._mapOpenGroup.area===areaName&&!S._mapOpenGroup.split){S._mapOpenGroup=null;drawMarks();return}
   if(ids.length>CLUSTER_SPLIT_THRESHOLD){
-    // تجمّع كبير (أكثر من 6 محلات): بدل تكبير الخريطة أكثر لفصل الجميع، نقسّم القائمة فقط إلى نصفين ونعرضهما كدبّوسين متقاربين ضمن نفس المنطقة المحدّدة (دون أي بحث جغرافي إضافي)
-    S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>!g.ids.some(id=>ids.includes(id))); // إزالة أي تقسيم سابق متداخل مع هذا التجمّع نفسه
+    // تجمّع كبير (أكثر من 6 محلات): بدل تكبير الخريطة أكثر لفصل الجميع، نقسّم القائمة فقط إلى نصفين ونعرضهما كدبّوسين متقاربين ضمن نفس المنطقة المحدّدة
+    const pts=ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
+    const lat=pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng=pts.reduce((s,p)=>s+p.lng,0)/pts.length;
     const sorted=[...ids].sort((a,b)=>String(a).localeCompare(String(b)));
     const mid=Math.ceil(sorted.length/2);
-    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(0,mid),clat:lat,clng:lng,off:-1,area:areaName});
-    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(mid),clat:lat,clng:lng,off:1,area:areaName});
+    S._mapSplitGroups=[{gid:++splitGid,ids:sorted.slice(0,mid),clat:lat,clng:lng,off:-1,area:areaName},{gid:++splitGid,ids:sorted.slice(mid),clat:lat,clng:lng,off:1,area:areaName}];
+    S._mapOpenGroup={type:'area',area:areaName,split:true};
   } else {
-    // تجمّع صغير (6 محلات أو أقل): يُفتح فوراً فتظهر كل محلاته منفردة (التجميع بالمنطقة لا يختفي بمجرد التكبير وحده، بخلاف التجميع القديم حسب تقارب البكسل)
-    if(!skipZoom&&ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM); // أقل من 6: تكبير إضافي درجتين بعد الدرجة الأساسية (إلا إذا كان الزوم منجزاً أصلاً من صفحة المنطقة)
-    S._mapForcedOpen=new Set([...(S._mapForcedOpen||[]),...ids]);
+    // تجمّع صغير (6 محلات أو أقل): يُفتح فوراً فتظهر كل محلاته منفردة حول موضع فقاعة التجمّع نفسها (مروحة مدمجة)، بلا أي تكبير إضافي للخريطة
+    S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>g.area!==areaName);
+    S._mapOpenGroup={type:'area',area:areaName,split:false};
   }
-  if(skipZoom)drawMarks();else flyTo(lat,lng,z,650)}
+  drawMarks()}
 function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups||[]).find(x=>x.gid===gid);if(!g)return;
-  // فتح أحد دبّوسي التقسيم يعرض محلاته منفردة فوراً دون أي عملية تكبير إضافية، كما طُلب تحديداً
-  S._mapForcedOpen=new Set([...(S._mapForcedOpen||[]),...g.ids]);
-  S._mapSplitGroups=(S._mapSplitGroups||[]).filter(x=>x.gid!==gid);
+  if(S._mapOpenGroup&&S._mapOpenGroup.type==='split'&&S._mapOpenGroup.gid===gid){S._mapOpenGroup=null;drawMarks();return}
+  S._mapOpenGroup={type:'split',gid,area:g.area};
   drawMarks()}
 function drawPinClusters(t,X,Y){
-  const forcedOpen=S._mapForcedOpen||new Set(),splitGroups=S._mapSplitGroups||[];
-  const splitIds=new Set(splitGroups.flatMap(g=>g.ids));
+  const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zs=pinZoomScale(t.z);
   const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
-    d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
+    d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
     d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:3;t.pinLayer.appendChild(d)};
+  const drawFanned=(group,cx,cy)=>{const offs=fanOffsets(group.length);
+    group.forEach((p,i)=>{const on=S.sel===p.id;
+      const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(cx+offs[i].dx)}px,${Math.round(cy+offs[i].dy)}px)`;
+      d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
+      d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
   t.pinLayer.innerHTML='';
-  // التجميع الآن حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
-  const byArea={};
   if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
-  t.pins.forEach(p=>{if(forcedOpen.has(p.id)||splitIds.has(p.id))return;const a=p.area||'';(byArea[a]=byArea[a]||[]).push(p)});
+  // التجميع حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
+  const splitIds=new Set(splitGroups.flatMap(g=>g.ids));
+  const byArea={};
+  t.pins.forEach(p=>{if(splitIds.has(p.id))return;const a=p.area||'';(byArea[a]=byArea[a]||[]).push(p)});
   Object.keys(byArea).forEach(areaName=>{
     const group=byArea[areaName],coord=areaLL(areaName);
     if(group.length<AREA_MIN_CLUSTER||!coord){group.forEach(drawSingle);return} // منطقة بعدد قليل (أقل من 3) تظهر محلاتها مباشرة دون أي دبّوس تجميع
+    if(og&&og.type==='area'&&og.area===areaName&&og.split)return; // استُبدلت فقاعة المنطقة هذه بدبّوسَي التقسيم (يُرسمان أدناه)
+    const isOpen=!!(og&&og.type==='area'&&og.area===areaName&&!og.split);
     // دبّوس المنطقة يظهر تماماً عند إحداثياتها المسجّلة بالإدارة، بلون المنطقة، وبعدد محلاتها الظاهرة حالياً (نفس العدد المعروض بشاشة «مناطق طرابلس»)
     const x=t.w/2+wx(coord.lng,t.z)-X,y=t.h/2+wy(coord.lat,t.z)-Y;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     const ids=group.map(p=>p.id),clr=AREA_COLORS[areaName]||'var(--navy)';
-    d.innerHTML=`<div class="pn cluster" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
-    d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=5;
-    t.pinLayer.appendChild(d)});
-  t.pins.filter(p=>forcedOpen.has(p.id)).forEach(drawSingle);
+    d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
+    d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=isOpen?4:5;
+    t.pinLayer.appendChild(d);
+    if(isOpen)drawFanned(group,x,y)}); // التجمّع المفتوح: محلاته الفردية تظهر بمروحة مدمجة حول موضع الفقاعة نفسه دون أي تكبير
   // دبّوسا التقسيم (عند تجمّع كبير تجاوز العدد المسموح): يُعرضان قريبين من بعضهما حول مركز التجمّع الأصلي نفسه
   splitGroups.forEach(gr=>{
     const cx=t.w/2+wx(gr.clng,t.z)-X+gr.off*(CLUSTER_SPLIT_GAP/2),cy=t.h/2+wy(gr.clat,t.z)-Y;
+    const isOpen=!!(og&&og.type==='split'&&og.gid===gr.gid);
     const d=document.createElement('div');d.className='mk';
     d.style.transform=`translate(${Math.round(cx)}px,${Math.round(cy)}px)`;
-    d.innerHTML=`<div class="pn cluster split" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
-    d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=6;
-    t.pinLayer.appendChild(d)})}
+    d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
+    d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
+    t.pinLayer.appendChild(d);
+    if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawFanned(grpPins,cx,cy)}})}
 function drawMarks(){const t=TM;if(!t)return;const X=wx(t.lng,t.z),Y=wy(t.lat,t.z);
   const raw=t.marks.map(m=>({m,x:t.w/2+wx(m.lng,t.z)-X,y:t.h/2+wy(m.lat,t.z)-Y}));
   // تفادي تراكب الدبابيس المرجعية (وضع اختيار الموقع): إذا كانت قريبة جداً على الشاشة، نفرّقها أفقياً قليلاً حول موضعها الحقيقي
@@ -3048,7 +3061,7 @@ function pinTap(id){if(TM&&TM.moved)return;
     else if(TM)flyTo(ll.lat,ll.lng,Math.max(TM.z,16),550);
   }
   setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
-function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapForcedOpen=new Set();S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
+function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
 const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(18,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
 const fitAll=()=>{if(GM)return gFit();if(!TM)return;const v=fitPts(visibleMerchants().map(llOf),44);flyTo(v.lat,v.lng,v.z,700)};
