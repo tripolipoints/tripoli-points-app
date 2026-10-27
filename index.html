@@ -3556,8 +3556,8 @@ function tripoliOffersV(){
   ${promoCard()}
   ${!promoActive()&&collectedCount(S.phone)>=S.collectPics.length?'<p class="muted">لا توجد عروض إضافية حالياً. تابعنا لمعرفة العروض القادمة!</p>':''}`}
 function homeV(c){const u=unread();
+  // تمت إزالة شريط البحث الأبيض المستقل أسفل البانر مباشرة (كان مكرِّراً لوظيفة البحث الموجودة أصلاً ضمن زر "بحث وفئات" الذهبي)؛ البحث عن محل بالاسم ما زال متاحاً بالكامل من خلال "بحث وفئات" ← "حسب الفئة التجارية" (catSearchInput يطابق أسماء المحلات أيضاً، وليس الفئات فقط)
   return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button></div>
-  <div class="srch2"><input placeholder="ابحث عن محل، مطعم، خدمة..." value="${S.q}" oninput="S.q=this.value;S.sel=null;updateMap(true)">${ic('search',18)}</div>
   <button class="bal2" onclick="S.tab='wallet';render()"><div class="g"><span class="bag">🛍️</span><div style="font-size:12.5px;line-height:1.3;font-weight:700">استخدم نقاطك في<br>المحلات المشاركة</div></div><div class="sep"></div>
   <div class="g" style="flex:none"><div><div style="font-size:10.5px;opacity:.9">رصيدك من النقاط</div><div class="n">${fmt(c.points)} <span style="font-size:11.5px;color:var(--yellow)">نقطة</span></div></div><div class="wr">${ic('wallet',18)}</div></div></button>
   ${pendingBanner()}
@@ -4800,7 +4800,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102701';
+  b.textContent='Tripoli Points v31.1 · build 2026102702';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
