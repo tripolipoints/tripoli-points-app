@@ -1476,6 +1476,97 @@ body.tp23-map-open #rtchip{display:none!important}
   .modal.tp14-areas .areaBox{padding:11px 5px 9px !important;min-height:114px !important}
 }
 </style>
+<style id="tp32-shoptab-cards">
+/* "تسوّق" bottom-tab screen (shopChooserV/shopHomeV/shopAreaPickV): same approved compact
+   card look as the More/Categories/Areas modals above, but this screen is inline in the
+   page (not a modal sheet), so it gets its own non-modal-scoped copy of just the card/grid
+   rules — the modal chrome (catHd/catSheet/catTitles/catSearch2) does not apply here. */
+.tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px !important;padding:0 0 4px !important;margin:0 0 14px !important}
+.tp15-shoptab .catCardMain,.tp15-shoptab .areaBox{
+  box-sizing:border-box;min-width:0;height:auto !important;min-height:138px !important;
+  border:1.5px solid #c3d8f0 !important;border-radius:20px !important;
+  background:#fff !important;box-shadow:0 4px 16px rgba(10,48,105,.055) !important;
+  padding:18px 10px 13px !important;gap:8px !important;justify-content:center !important;
+}
+.tp15-shoptab .catCardMain i,.tp15-shoptab .areaBoxIc{
+  width:58px !important;height:58px !important;border-radius:18px !important;
+  background:#e6f1ff !important;color:#104481 !important;flex:none;
+}
+.tp15-shoptab .catCardMain i.tp14-gold{background:#fff0c2 !important;color:#8a5a00 !important}
+.tp15-shoptab .catCardMain i.tp14-sky{background:#e5f0ff !important;color:#0c2a6b !important}
+.tp15-shoptab .areaBoxIc{background:color-mix(in srgb,currentColor 13%,white) !important}
+.tp15-shoptab .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+.tp15-shoptab .areaBoxName{
+  font-size:clamp(13px,3.5vw,16px) !important;white-space:normal !important;
+  overflow:visible !important;text-overflow:clip !important;max-width:100%;line-height:1.25 !important;
+  font-weight:800 !important;color:#0b2e70 !important;text-align:center !important;
+  display:block !important;
+}
+.tp15-shoptab .tp14-card-caption{
+  display:block !important;color:#7a8cab !important;font-size:11px !important;
+  font-weight:600 !important;text-align:center !important;line-height:1.3 !important;
+}
+.tp15-shoptab .nbadge{
+  top:9px !important;left:9px !important;min-width:23px;min-height:23px;
+  display:flex;align-items:center;justify-content:center;border-radius:999px;
+  background:#fff0c7 !important;color:#765300 !important;border:1px solid #f6ca5e;
+  font-size:11px !important;line-height:1 !important;
+}
+@media(min-width:561px){
+ .tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+ .tp15-shoptab .tp15-shop-chooser{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:560px){
+  .tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{gap:10px !important}
+  .tp15-shoptab .catCardMain,.tp15-shoptab .areaBox{
+    position:relative;box-sizing:border-box;
+    min-width:0;width:100% !important;height:auto !important;
+    min-height:117px !important;
+    display:flex !important;flex-direction:column !important;
+    justify-content:center !important;align-items:center !important;
+    gap:5px !important;
+    padding:12px 8px 10px !important;
+    border:1.5px solid #c5d9f1 !important;
+    border-radius:19px !important;
+    background:#fff !important;
+    box-shadow:0 3px 12px rgba(11,46,112,.045) !important;
+    color:#0c2a6b !important;text-align:center !important;
+    overflow:visible !important;
+  }
+  .tp15-shoptab .catCardMain i,.tp15-shoptab .areaBoxIc{
+    width:48px !important;height:48px !important;
+    min-width:48px !important;min-height:48px !important;
+    border-radius:16px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    margin:0 auto 2px !important;
+    flex:0 0 auto !important;
+  }
+  .tp15-shoptab .areaBoxIc{
+    color:var(--tp15-area-color,#16518f) !important;
+    background:color-mix(in srgb,var(--tp15-area-color,#16518f) 14%,white) !important;
+  }
+  .tp15-shoptab .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+  .tp15-shoptab .areaBoxName{
+    display:block !important;color:#102f70 !important;
+    font-size:clamp(12px,3.25vw,15px) !important;font-weight:800 !important;
+    line-height:1.22 !important;overflow:visible !important;white-space:normal !important;
+    text-overflow:clip !important;max-width:100% !important;margin:0 !important;
+  }
+  .tp15-shoptab .tp14-card-caption{
+    display:block !important;color:#7b8dac !important;font-size:10.5px !important;
+    font-weight:600 !important;line-height:1.22 !important;margin:2px 0 0 !important;
+  }
+  .tp15-shoptab .nbadge{
+    position:absolute !important;top:7px !important;left:7px !important;
+    min-width:21px !important;height:21px !important;min-height:21px !important;
+    padding:2px 5px !important;font-size:10px !important;
+    background:#fff0c7 !important;color:#765300 !important;
+    border:1px solid #f1c956 !important;border-radius:999px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    box-sizing:border-box;
+  }
+}
+</style>
 </head>
 <body>
 <div class="app" id="app"></div>
@@ -2996,9 +3087,9 @@ function shopPickMode(mode){S.shopMode=mode;S.shopNav={mainId:null};S.shopCat='a
 function shopBackMode(){S.shopMode=null;S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopArea=null;render()}
 function shopChooserV(){
  const banner=`<div class="shopBanner"><span class="ico">🛍️</span><div><b>تسوّق في طرابلس</b><span>كيف بدك تدوّر على محلات المدينة؟</span></div></div>`;
- return banner+`<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-  <button class="btn" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="shopPickMode('cat')">${ic('store',20)} تصفّح حسب الفئة التجارية</button>
-  <button class="btn ghost" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="shopPickMode('area')">${ic('pin',20)} تصفّح حسب المنطقة</button>
+ return banner+`<div class="catgMain tp15-shop-chooser" style="margin-top:6px">
+  <button class="catCardMain" onclick="shopPickMode('cat')"><i class="tp14-gold">${ic('store',28)}</i><span>تصفّح حسب الفئة التجارية</span></button>
+  <button class="catCardMain" onclick="shopPickMode('area')"><i class="tp14-sky">${ic('pin',28)}</i><span>تصفّح حسب المنطقة</span></button>
  </div>`}
 function shopHomeV(){
  const q=(S.shopQ||'').trim().toLowerCase();
@@ -3007,7 +3098,7 @@ function shopHomeV(){
  if(q){const merch=allActiveMerchants().filter(m=>m.name.toLowerCase().includes(q)||CAT(effCat(m))[1].toLowerCase().includes(q));
   return banner+search+`<h3 style="margin:4px 0 8px">نتائج البحث</h3>`+shopStoreCards(merch)}
  const mains=mainCats();
- const catsGrid=`<h3 style="margin:4px 0 8px">تصفّح حسب الفئة</h3><div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="shopOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`;
+ const catsGrid=`<h3 style="margin:4px 0 8px">تصفّح حسب الفئة</h3><div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="shopOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',28)}</i><span>${c.name_ar}</span><span class="tp14-card-caption">استكشف المحلات</span></button>`}).join('')}</div>`;
  const feat=shopFeaturedMerchants();
  const featSec=feat.length?`<h3 style="margin:16px 0 8px">محلات مميزة</h3>${shopStoreCards(feat)}`:'';
  return banner+search+catsGrid+featSec}
@@ -3029,7 +3120,7 @@ function shopAreaPickV(){
  const counts={};areaDir().forEach(([nm])=>counts[nm]=0);
  allActiveMerchants().forEach(m=>{const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});
  const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="shopBackMode()">${ic('back',22)}</button><b style="font-size:17px">تصفّح حسب المنطقة</b></div>`;
- const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='shopPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="background:${AREA_COLORS[name]||'var(--navy)'}22;color:${AREA_COLORS[name]||'var(--navy)'}">${ic('pin',16)}</span><span class="areaBoxName">${name}</span></button>`).join('')}</div>`;
+ const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='shopPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="--tp15-area-color:${AREA_COLORS[name]||'#1459a4'}">${ic('pin',24)}</span><span class="areaBoxName">${name}</span><span class="tp14-card-caption">${counts[name]?`${counts[name]} محل`:'استكشف المنطقة'}</span></button>`).join('')}</div>`;
  return head+grid}
 function shopAreaResultsV(){
  const list0=allActiveMerchants().filter(m=>(m.area||nearestArea(m.lat,m.lng))===S.shopArea);
@@ -3209,7 +3300,7 @@ function myPageV(){const m=M(S.mypageMid);
   ${(!items.length&&!offs.length&&!m.pageBlurb&&!galleryLoading)?'<p class="muted" style="text-align:center;margin-top:12px">لم يُضِف هذا المحل محتوى إضافياً بعد.</p>':''}`}
 function customerView(){
   const c=S.customers[S.phone];let body;
-  if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=shopV();else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
+  if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=`<div class="tp15-shoptab">${shopV()}</div>`;else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
   const hm=!S.sub&&S.tab==='home';
   return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${S.sub==='offer'||hm?'':pendingBanner()}${body}</div>${pendOverlay()}${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']])}`}
 function newPicModal(){const p=S.newPicUnlock,done=collectedCount(S.phone)>=S.collectPics.length;
