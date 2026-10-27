@@ -4798,10 +4798,10 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
   window.addEventListener('pointerup',e=>{update(`UP id=${e.pointerId}`)},true);
   function update(extra){box.textContent=downInfo+(extra?(String.fromCharCode(10)+extra):'')+String.fromCharCode(10)+'TM.ptr.size='+(TM?TM.ptr.size:'-')+' TM.moved='+(TM?TM.moved:'-')+String.fromCharCode(10)+'scrollX='+window.scrollX+' scrollY='+window.scrollY+' docW='+document.documentElement.scrollWidth+' winW='+innerWidth}
 })();
-(function(){ // علامة نسخة صغيرة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح)
+(function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='build 2025102514';
-  b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:9px monospace;color:#9994;pointer-events:none;direction:ltr';
+  b.textContent='Tripoli Points v31.1 · build 2026102701';
+  b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
 })();
