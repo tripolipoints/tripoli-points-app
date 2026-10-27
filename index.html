@@ -2945,6 +2945,22 @@ function gLogoReady(u){return _gLogoCache[u]===true}
 function gEnsureLogoLoaded(u,cb){if(!u||(u in _gLogoCache))return;_gLogoCache[u]='pending';const im=new Image();im.onload=()=>{_gLogoCache[u]=true;cb&&cb()};im.onerror=()=>{_gLogoCache[u]=false};im.src=u}
 // نقطة جغرافية ضمن حدود الشاشة الظاهرة حالياً أم لا (تُستخدم لتفادي أي تكبير/تحريك غير ضروري عند التبديل بين تجمّعين مفتوحين بالتتابع)
 function pointInView(t,lat,lng,margin){const x=t.w/2+wx(lng,t.z)-wx(t.lng,t.z),y=t.h/2+wy(lat,t.z)-wy(t.lat,t.z);return x>=margin&&x<=t.w-margin&&y>=margin&&y<=t.h-margin}
+// المساحة "القابلة للاستخدام" فعلياً من ارتفاع الخريطة، بعد استبعاد ما تُغطّيه عناصر ثابتة فوقها: زر التكبير العلوي من الأعلى، وبطاقة تفاصيل المحل الثابتة (storeSheet) من الأسفل إن كانت ظاهرة حالياً ومتراكبة فعلاً مع الخريطة — تُقاس العناصر مباشرة من DOM الحقيقي فتُراعي تلقائياً الحواف الآمنة لهاتف آيفون (env(safe-area-inset-*)) دون أي أرقام ثابتة مفترَضة
+function usableMapRectY(el,h){
+  if(!el||!h)return{top:0,bottom:h||0};
+  const mapRect=el.getBoundingClientRect();let top=0,bottom=h;
+  const zb=el.querySelector?el.querySelector('.zb'):null;
+  if(zb){const zr=zb.getBoundingClientRect(),zBottom=zr.bottom-mapRect.top;if(zBottom>top&&zBottom<h*0.4)top=zBottom}
+  const sheet=document.getElementById('storeSheet');
+  if(sheet){const sr=sheet.getBoundingClientRect();
+    // أي تراكب فعلي للبطاقة مع الخريطة يُحتسب كاملاً (حتى لو غطّت أغلب الخريطة على شاشة قصيرة) — الحماية أدناه من الانهيار إلى مساحة شبه معدومة تكفي بمفردها
+    if(sr.width>0&&sr.height>0&&sr.top<mapRect.bottom&&sr.bottom>mapRect.top){const sTop=sr.top-mapRect.top;if(sTop<bottom&&sTop>top)bottom=sTop}}
+  if(bottom-top<80){top=0;bottom=h} // حماية: قياس غير معقول (مساحة شبه معدومة) يُتجاهل بدل كسر التمركز
+  return{top,bottom}}
+// يحسب خط العرض الذي يجب تمركز الخريطة حوله كي تظهر النقطة (lat,lng) في منتصف المساحة "القابلة للاستخدام" رأسياً (لا منتصف الخريطة الهندسي الكامل)، عند مستوى تكبير z مُعطى؛ خط الطول لا يتغيّر (لا حجب أفقي يُعتدّ به حالياً)
+function adjustLatForUsableCenter(lat,lng,z,el,h){
+  const r=usableMapRectY(el,h),desiredY=(r.top+r.bottom)/2,shiftedWorldY=h/2+wy(lat,z)-desiredY;
+  return wlat(shiftedWorldY,z)}
 // كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
 function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),groups={};
   pts.forEach(p=>{const k=key(p);(groups[k]=groups[k]||[]).push(p)});
@@ -2973,14 +2989,14 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;
     S._mapOpenGroup={type:'area',area:areaName,split:false};
   }
   if(!wasOpen){
-    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجتان أساسيتان، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ
+    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجتان أساسيتان، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ؛ المركز يُحسب دوماً من متوسط الإحداثيات الحقيقية المخزَّنة لمحلات التجمّع (lat/lng الفعلية)، لا من موضع فقاعة التجمّع البصري، ويُعدَّل رأسياً كي تقع محلات التجمّع المفتوحة في منتصف المساحة القابلة للاستخدام فعلاً من الخريطة (فوق بطاقة تفاصيل المحل إن كانت ستظهر)
     const skipZoom=!!(areaName&&S.areaSel===areaName); // قادم من صفحة "تصفّح حسب المنطقة" والزوم لهذه المنطقة منجز مسبقاً: لا حاجة لأي زوم إضافي
     let z=Math.min(CLUSTER_MAXZ,t.z+2);
     if(ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM);
-    if(skipZoom)drawMarks();else flyTo(lat,lng,z,650);
+    if(skipZoom)drawMarks();else flyTo(adjustLatForUsableCenter(lat,lng,z,t.el,t.h),lng,z,650);
   } else {
-    // تبديل من تجمّع مفتوح إلى آخر: لا تكبير إطلاقاً؛ نحرّك المركز فقط إذا كان التجمّع الجديد فعلاً خارج حدود الشاشة الحالية، وبنفس درجة التكبير الحالية
-    if(pointInView(t,lat,lng,40))drawMarks();else flyTo(lat,lng,t.z,450);
+    // تبديل من تجمّع مفتوح إلى آخر: لا تكبير إطلاقاً (نفس درجة التكبير الحالية)، لكن التمركز يحدث دائماً على التجمّع الجديد — بصرف النظر عن موضعه الحالي على الشاشة — وليس فقط عند خروجه عن حدود العرض
+    flyTo(adjustLatForUsableCenter(lat,lng,t.z,t.el,t.h),lng,t.z,450);
   }
 }
 function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups||[]).find(x=>x.gid===gid);if(!g)return;
@@ -3147,8 +3163,14 @@ function pinTap(id){if(TM&&TM.moved)return;
   // card transition never reset the zoom, route line, or selected merchant.
   if(!alreadySelected&&!routeForThis){
     const ll=llOf(m);
-    if(GM&&GM.ok){GM.map.panTo(ll);if(GM.map.getZoom()<16)GM.map.setZoom(16)}
-    else if(TM)flyTo(ll.lat,ll.lng,Math.max(TM.z,16),550);
+    // تمركز سلس دائماً نحو منتصف المساحة "القابلة للاستخدام" من الخريطة عند أول نقرة على محل مستقل (أو عضو داخل تجمّع مفتوح)، دون أي تكبير إضافي: نفس درجة التكبير الحالية تماماً
+    if(GM&&GM.ok){
+      // عنصر #rmap هو الحاوية الفعلية المشتركة التي تضم زرّي +/− (.zb) وبطاقة تفاصيل المحل (#storeSheet) كشقيقين لعنصر خريطة GM (#rtl)، وليس العنصر الذي تُعيده getDiv() نفسه؛ لذا نقيس المساحة القابلة للاستخدام من #rmap كي يُحتسب موضع زرّي التكبير بشكل صحيح أيضاً مع GM تماماً كما يحدث مع TM
+      const rmapEl=document.getElementById('rmap'),gH=rmapEl&&rmapEl.clientHeight||0,gZ=GM.map.getZoom();
+      const adjLat=gH?adjustLatForUsableCenter(ll.lat,ll.lng,gZ,rmapEl,gH):ll.lat;
+      GM.map.panTo({lat:adjLat,lng:ll.lng});
+    }
+    else if(TM)flyTo(adjustLatForUsableCenter(ll.lat,ll.lng,TM.z,TM.el,TM.h),ll.lng,TM.z,550);
   }
   setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
