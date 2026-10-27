@@ -2886,33 +2886,56 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick)add('<div class="me"></div>',S.userLL.lat,S.userLL.lng,2);drawMarks()}
 const AREA_MIN_CLUSTER=3; // منطقة عدد محلاتها الظاهرة أقل من هذا الرقم تُعرض محلاتها مباشرة دون أي تجميع
 function areaLL(name){const a=areaDir().find(x=>x[0]===name);return a?{lat:a[1],lng:a[2]}:null}
+const CLUSTER_MAXZ=21; // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
 const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التجمّع هذا الرقم، يُقسَّم إلى دبّوسين متقاربين بدل تكبير الخريطة لفصل الجميع دفعة واحدة
 const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
+const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=18,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65;
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
-// توزيع دبابيس متقاربة جداً حول نقطة مركزية بشكل مروحة مدمجة (spiderfy) بدل تكبير الخريطة لفصلها؛ لا يُغيّر هذا إحداثيات المحلات المخزَّنة، بل فقط موضعها المرئي المؤقت فوق الخريطة
-function fanOffsets(n){if(n<=1)return[{dx:0,dy:0}];const R=n<=3?24:n<=5?32:38;return Array.from({length:n},(_,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;return{dx:Math.round(R*Math.cos(a)),dy:Math.round(R*Math.sin(a))}})}
-// حالة "التجمّع المفتوح حالياً" على الخريطة: واحد فقط في كل لحظة (منطقة كاملة، أو أحد دبّوسَي تقسيم تجمّع كبير)؛ فتح تجمّع آخر يُغلق السابق تلقائياً، وإعادة الضغط على التجمّع المفتوح نفسه يُغلقه، في الحالتين دون أي تغيير بموضع أو مستوى تكبير الخريطة
+// نقطة جغرافية ضمن حدود الشاشة الظاهرة حالياً أم لا (تُستخدم لتفادي أي تكبير/تحريك غير ضروري عند التبديل بين تجمّعين مفتوحين بالتتابع)
+function pointInView(t,lat,lng,margin){const x=t.w/2+wx(lng,t.z)-wx(t.lng,t.z),y=t.h/2+wy(lat,t.z)-wy(t.lat,t.z);return x>=margin&&x<=t.w-margin&&y>=margin&&y<=t.h-margin}
+// كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
+function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),groups={};
+  pts.forEach(p=>{const k=key(p);(groups[k]=groups[k]||[]).push(p)});
+  Object.values(groups).forEach(g=>{if(g.length<2)return;
+    g.sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+    const GAP=16,cx=g[0].x,cy=g[0].y;
+    g.forEach((c,i)=>{c.x=cx+(i-(g.length-1)/2)*GAP;c.y=cy})});
+  return pts}
+// حالة "التجمّع المفتوح حالياً" على الخريطة: واحد فقط في كل لحظة (منطقة كاملة، أو أحد دبّوسَي تقسيم تجمّع كبير)؛ فتح تجمّع آخر يُغلق السابق تلقائياً، وإعادة الضغط على التجمّع المفتوح نفسه يُغلقه
 let splitGid=0;
 function clusterTap(ids,areaName){const t=TM;if(!t)return;
-  if(S._mapOpenGroup&&S._mapOpenGroup.type==='area'&&S._mapOpenGroup.area===areaName&&!S._mapOpenGroup.split){S._mapOpenGroup=null;drawMarks();return}
+  cancelAnimationFrame(t.anim); // إيقاف فوري لأي حركة تكبير/تحريك سابقة لا تزال قيد التنفيذ، كي لا يستمر الزوم بالتغيّر بعد هذه الضغطة دون قصد
+  if(S._mapOpenGroup&&S._mapOpenGroup.type==='area'&&S._mapOpenGroup.area===areaName&&!S._mapOpenGroup.split){S._mapOpenGroup=null;drawMarks();return} // نفس التجمّع المفتوح: إغلاقه، دون أي تغيير بالزوم
+  const wasOpen=!!S._mapOpenGroup; // هل كان هناك تجمّع آخر مفتوحاً مسبقاً؟ (فتح أول من حالة مطوية بالكامل يختلف عن مجرد التبديل بين تجمّعين)
+  const pts=ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
+  const lat=pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng=pts.reduce((s,p)=>s+p.lng,0)/pts.length;
   if(ids.length>CLUSTER_SPLIT_THRESHOLD){
     // تجمّع كبير (أكثر من 6 محلات): بدل تكبير الخريطة أكثر لفصل الجميع، نقسّم القائمة فقط إلى نصفين ونعرضهما كدبّوسين متقاربين ضمن نفس المنطقة المحدّدة
-    const pts=ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
-    const lat=pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng=pts.reduce((s,p)=>s+p.lng,0)/pts.length;
     const sorted=[...ids].sort((a,b)=>String(a).localeCompare(String(b)));
     const mid=Math.ceil(sorted.length/2);
     S._mapSplitGroups=[{gid:++splitGid,ids:sorted.slice(0,mid),clat:lat,clng:lng,off:-1,area:areaName},{gid:++splitGid,ids:sorted.slice(mid),clat:lat,clng:lng,off:1,area:areaName}];
     S._mapOpenGroup={type:'area',area:areaName,split:true};
   } else {
-    // تجمّع صغير (6 محلات أو أقل): يُفتح فوراً فتظهر كل محلاته منفردة حول موضع فقاعة التجمّع نفسها (مروحة مدمجة)، بلا أي تكبير إضافي للخريطة
     S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>g.area!==areaName);
     S._mapOpenGroup={type:'area',area:areaName,split:false};
   }
-  drawMarks()}
+  if(!wasOpen){
+    // أول فتح من حالة مطوية بالكامل: نعيد استخدام منطق التكبير المعتمد سابقاً لفتح التجمّعات (درجة واحدة أساسية، ودرجتان إضافيتان للتجمّعات الصغيرة)، بسقف أعلى CLUSTER_MAXZ
+    const skipZoom=!!(areaName&&S.areaSel===areaName); // قادم من صفحة "تصفّح حسب المنطقة" والزوم لهذه المنطقة منجز مسبقاً: لا حاجة لأي زوم إضافي
+    let z=Math.min(CLUSTER_MAXZ,t.z+1);
+    if(ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM);
+    if(skipZoom)drawMarks();else flyTo(lat,lng,z,650);
+  } else {
+    // تبديل من تجمّع مفتوح إلى آخر: لا تكبير إطلاقاً؛ نحرّك المركز فقط إذا كان التجمّع الجديد فعلاً خارج حدود الشاشة الحالية، وبنفس درجة التكبير الحالية
+    if(pointInView(t,lat,lng,40))drawMarks();else flyTo(lat,lng,t.z,450);
+  }
+}
 function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups||[]).find(x=>x.gid===gid);if(!g)return;
+  cancelAnimationFrame(t.anim);
   if(S._mapOpenGroup&&S._mapOpenGroup.type==='split'&&S._mapOpenGroup.gid===gid){S._mapOpenGroup=null;drawMarks();return}
+  // فتح أحد دبّوسي التقسيم يعرض محلاته منفردة فوراً دون أي زوم إضافي (التجمّع الأصل الذي انقسم منه كان قد كبّر الخريطة أصلاً عند أول فتحه)
   S._mapOpenGroup={type:'split',gid,area:g.area};
   drawMarks()}
 function drawPinClusters(t,X,Y){
@@ -2921,11 +2944,12 @@ function drawPinClusters(t,X,Y){
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
     d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:3;t.pinLayer.appendChild(d)};
-  const drawFanned=(group,cx,cy)=>{const offs=fanOffsets(group.length);
-    group.forEach((p,i)=>{const on=S.sel===p.id;
-      const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(cx+offs[i].dx)}px,${Math.round(cy+offs[i].dy)}px)`;
-      d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b></div>`;
-      d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
+  // التجمّع المفتوح: كل محل يظهر عند إحداثياته الجغرافية الحقيقية تماماً (lat/lng المسجّلة)، لا موضعاً مصطنعاً حول مركز التجمّع؛ الإزاحة البسيطة تُطبَّق فقط إذا تطابق موضعان على الشاشة فعلاً
+  const drawOpenGroup=group=>{const pts=declutterExact(group.map(p=>({p,id:p.id,lat:p.lat,lng:p.lng,x:t.w/2+wx(p.lng,t.z)-X,y:t.h/2+wy(p.lat,t.z)-Y})));
+    pts.forEach(pt=>{const on=S.sel===pt.p.id;
+      const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(pt.x)}px,${Math.round(pt.y)}px)`;
+      d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${pt.p.c};--zs:${zs}" data-id="${pt.p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${pt.p.ic}</b></div>`;
+      d.firstChild.onclick=()=>pinTap(pt.p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
   t.pinLayer.innerHTML='';
   if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
   // التجميع حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
@@ -2944,7 +2968,7 @@ function drawPinClusters(t,X,Y){
     d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
     d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=isOpen?4:5;
     t.pinLayer.appendChild(d);
-    if(isOpen)drawFanned(group,x,y)}); // التجمّع المفتوح: محلاته الفردية تظهر بمروحة مدمجة حول موضع الفقاعة نفسه دون أي تكبير
+    if(isOpen)drawOpenGroup(group)}); // التجمّع المفتوح: محلاته الفردية تظهر عند مواقعها الحقيقية على الخريطة
   // دبّوسا التقسيم (عند تجمّع كبير تجاوز العدد المسموح): يُعرضان قريبين من بعضهما حول مركز التجمّع الأصلي نفسه
   splitGroups.forEach(gr=>{
     const cx=t.w/2+wx(gr.clng,t.z)-X+gr.off*(CLUSTER_SPLIT_GAP/2),cy=t.h/2+wy(gr.clat,t.z)-Y;
@@ -2954,7 +2978,7 @@ function drawPinClusters(t,X,Y){
     d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
-    if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawFanned(grpPins,cx,cy)}})}
+    if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})}
 function drawMarks(){const t=TM;if(!t)return;const X=wx(t.lng,t.z),Y=wy(t.lat,t.z);
   const raw=t.marks.map(m=>({m,x:t.w/2+wx(m.lng,t.z)-X,y:t.h/2+wy(m.lat,t.z)-Y}));
   // تفادي تراكب الدبابيس المرجعية (وضع اختيار الموقع): إذا كانت قريبة جداً على الشاشة، نفرّقها أفقياً قليلاً حول موضعها الحقيقي
