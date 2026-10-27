@@ -244,16 +244,16 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap #rtl,.rmap #rmk{position:absolute;inset:0}.rmap #rtl{z-index:0}.rmap #rmk{z-index:2}
 .rmap #rtl img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;transition:opacity .25s}
 .rmap .mk{position:absolute;left:0;top:0;will-change:transform}
-.rmap .pn{position:absolute;left:-11px;top:-30px;width:22px;height:22px;border-radius:50%;background:var(--c);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 6px #0007;cursor:pointer;transform-origin:50% 30px}
+.rmap .pn{position:absolute;left:-11px;top:-30px;width:22px;height:22px;border-radius:50%;background:#fff;border:2.5px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 7px rgba(10,30,70,.28),0 0 0 1px rgba(255,255,255,.6);cursor:pointer;transform-origin:50% 30px;transition:transform .12s}
 .phbox{display:flex;align-items:flex-end;justify-content:center;aspect-ratio:3/2;max-height:230px;width:100%;border:2px dashed #9db3dd;border-radius:16px;background:#eef3fc center/cover no-repeat;margin-bottom:12px;cursor:pointer;overflow:hidden}.phbox:not(.has){align-items:center}.phbox .phl{font-weight:700;color:var(--navy);font-size:14px}.phbox.has{border-style:solid;border-color:#fff;box-shadow:0 1px 6px #0003}.phbox.has .phl{background:#0c2a6bcc;color:#fff;width:100%;text-align:center;padding:7px}.phbox.sq{aspect-ratio:1/1;max-height:260px;max-width:260px;margin:0 auto 12px}
 .cfr{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:14px;background:#000;touch-action:none;cursor:grab;border:2px solid var(--yellow)}.cfr img{position:absolute;left:0;top:0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}.cfr.sq{aspect-ratio:1/1}
 .mph{display:block;width:100%;aspect-ratio:3/2;max-height:230px;object-fit:cover;border-radius:12px;margin-bottom:10px}
-.rmap .pn b{filter:brightness(0) invert(1);font-weight:400;line-height:1}
-.rmap .pn::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-4px;border:4px solid transparent;border-top:5px solid var(--c);border-bottom:0}
-.rmap .pn.sel{transform:scale(1.28);box-shadow:0 0 0 4px #ffc20e,0 3px 8px #000a}
+.rmap .pn b{color:var(--c);font-weight:700;line-height:1}
+.rmap .pn::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-3.5px;border:3.5px solid transparent;border-top:4.5px solid var(--c);border-bottom:0}
+.rmap .pn.sel{transform:scale(1.32);box-shadow:0 0 0 4px #ffc20e,0 3px 10px rgba(10,30,70,.35)}
 .rmap .pn.ref{width:19px;height:19px;left:-9.5px;top:-26px;opacity:.92}
-.rmap .pn.cluster{width:32px;height:32px;left:-16px;top:-35px;font-size:13px}
-.rmap .pn.cluster b{font-weight:800}
+.rmap .pn.cluster{width:32px;height:32px;left:-16px;top:-35px;font-size:13px;border-width:2px}
+.rmap .pn.cluster b{font-weight:800;color:var(--c)}
 .rmap .pnlbl{position:absolute;top:4px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
 .rmap .lb{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 2px #000,0 0 6px #000;pointer-events:none;direction:rtl}
 .rmap .me{position:absolute;left:-7.5px;top:-7.5px;width:15px;height:15px;border-radius:50%;background:#1d63e0;border:2.5px solid #fff;box-shadow:0 0 0 6px #1d63e044;pointer-events:none}
@@ -477,6 +477,21 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 }
 .scr:has(> .hero2) > .cats2 .cat2art{width:clamp(27px,8vw,36px);height:clamp(27px,8vw,36px)}
 .scr:has(> .hero2) > .cats2 .cat2name{font-size:clamp(8px,2.25vw,10px);line-height:1.2}
+/* V25 — homepage only: prioritize the map, highlight discover entry. */
+.scr:has(> .hero2) > .cats2 .cat2.tp25-discover {
+  background:linear-gradient(155deg,#ffdf74,#ffc627 72%,#f4ad13);
+  border:1.5px solid #d79b0b;
+  box-shadow:0 3px 10px rgba(161,112,5,.21);
+  color:#09275e;
+}
+.scr:has(> .hero2) > .cats2 .cat2.tp25-discover .cat2art {
+  background:#fff8de; color:#09275e; border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.scr:has(> .hero2) > .cats2 .cat2.tp25-discover .cat2name {
+  font-weight:900;font-size:clamp(8px,2.15vw,11px);
+  white-space:nowrap;letter-spacing:-.25px;
+}
 .scr:has(> .hero2) .rmap{
   border-radius:22px;box-shadow:0 5px 18px rgba(12,42,107,.19);
   border:1px solid rgba(188,209,238,.85);
@@ -1177,6 +1192,380 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .tp21-logo-preview .tp21-store-logo{width:48px;height:48px}
 .tp22-gallery-loading{margin:15px 0;padding:18px;text-align:center;color:#637da6;background:#eef4ff;border:1px solid #d2e2fa;border-radius:15px}
 
+/* V29: In-map navigation, no clutter during routing. */
+.rmap .tp29-direction{font-weight:800!important;color:#102e70!important;background:#fff!important;white-space:nowrap;box-shadow:0 4px 14px #072b6450!important;max-width:55%;z-index:12!important}
+.rmap.tp23-fullscreen .tp29-direction{bottom:calc(16px + env(safe-area-inset-bottom))!important;left:12px!important}
+
+/* V30: Google navigation is a distinct opt-in action after the internal route appears.
+   The button stays inside the map in both regular and fullscreen modes. */
+.tp30-google-nav{
+  position:absolute!important;left:12px!important;bottom:57px!important;z-index:13!important;
+  max-width:min(70%,264px);border:1px solid #c2d8f6!important;
+  background:#fff!important;color:#0c2a6b!important;
+  font-size:12px!important;font-weight:800!important;
+  line-height:1.3;gap:5px;align-items:center;justify-content:center;
+  padding:9px 12px!important;border-radius:13px!important;
+  text-decoration:none!important;box-shadow:0 4px 14px #072b6442!important;
+}
+.rmap.tp23-fullscreen .tp30-google-nav{
+  bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;
+}
+</style>
+<style id="tp23-big-map-preview">
+/* V23 map-size preview: keep all route, pin and data behavior unchanged. */
+.rmap.tp23-home-map{height:88vh!important;height:88dvh!important;min-height:460px!important;max-height:none!important;flex:none!important}
+.rmap .tp23-fullscreen-btn{position:absolute;z-index:8;top:91px;right:10px;display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:12px;color:#0c2a6b;background:#fff;box-shadow:0 2px 10px #0003;font-size:24px;line-height:1;cursor:pointer}
+.rmap.tp23-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;border-radius:0!important;margin:0!important;z-index:10010!important;flex:none!important}
+body.tp23-map-open{overflow:hidden!important}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;background:#fff;color:#0c2a6b}
+.rmap.tp23-fullscreen .zb{right:12px}
+.rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(70px + env(safe-area-inset-top))!important}
+.rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(108px + env(safe-area-inset-top))!important}
+.rmap.tp23-fullscreen .mchip.mround{bottom:calc(20px + env(safe-area-inset-bottom))!important}
+@media(min-width:900px){.rmap.tp23-home-map{height:min(82vh,930px)!important;min-height:550px!important}}
+</style>
+<style id="tp24-fullscreen-fix">
+/* Full-screen map is portaled into body to avoid clipped fixed children. */
+body > .rmap.tp23-fullscreen{position:fixed!important;inset:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-height:0!important;margin:0!important;transform:none!important;z-index:2147483000!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+body.tp23-map-open #navSlot{visibility:hidden!important}
+body > .rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(16px + env(safe-area-inset-top))!important;right:16px!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(80px + env(safe-area-inset-top))!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(126px + env(safe-area-inset-top))!important}
+body > .rmap.tp23-fullscreen .mchip.mround{bottom:calc(28px + env(safe-area-inset-bottom))!important}
+</style><style id="tp28-clean-fullscreen">
+/* Fullscreen: unobstructed live map, markers, navigation and route. No merchant cards. */
+body.tp23-map-open > #promoSlot{display:none!important}
+body.tp23-map-open #mapcard,body.tp23-map-open #storeSheet{display:none!important}
+body.tp23-map-open #rtchip{display:none!important}
+</style>
+<style id="tp31-categories-areas">
+/* Tripoli Points V14 — approved premium More / categories / neighborhoods mobile design.
+   CSS scoped to three More modals. Data selection and routing handlers unchanged. */
+.modal.tp14-choice,.modal.tp14-categories,.modal.tp14-areas{background:#eef4fd}
+.modal.tp14-choice .catSheet,.modal.tp14-categories .catSheet,.modal.tp14-areas .catSheet{
+  background:#f7faff !important;max-width:560px;max-height:100% !important;height:100% !important;
+  padding:16px 17px calc(28px + env(safe-area-inset-bottom,0px)) !important;
+  overflow-x:hidden;overflow-y:auto;box-sizing:border-box;
+}
+.modal.tp14-choice .catHd,.modal.tp14-categories .catHd,.modal.tp14-areas .catHd{
+  min-height:125px !important;margin:-16px -17px 18px !important;padding:17px 20px !important;
+  border-bottom:3px solid #ffc20e !important;background:#0b2e70 !important;
+}
+.modal.tp14-choice .catHd::after,.modal.tp14-categories .catHd::after,.modal.tp14-areas .catHd::after{
+  background:linear-gradient(110deg,rgba(6,28,76,.94) 0%,rgba(13,56,130,.86) 58%,rgba(12,47,116,.45) 100%) !important;
+}
+.modal.tp14-choice .catHdRow,.modal.tp14-categories .catHdRow,.modal.tp14-areas .catHdRow{position:relative;z-index:3;gap:8px}
+.modal.tp14-choice .catHdLogo,.modal.tp14-categories .catHdLogo,.modal.tp14-areas .catHdLogo{transform:none !important;flex:0 0 auto}
+.modal.tp14-choice .catHdLogo svg,.modal.tp14-categories .catHdLogo svg,.modal.tp14-areas .catHdLogo svg{width:35px !important;height:44px !important}
+.modal.tp14-choice .catHdTxt b,.modal.tp14-categories .catHdTxt b,.modal.tp14-areas .catHdTxt b{font-size:21px !important}
+.modal.tp14-choice .catHdTxt small,.modal.tp14-categories .catHdTxt small,.modal.tp14-areas .catHdTxt small{font-size:12px !important}
+.modal.tp14-choice .tp14-content{padding:17px 2px 0}
+.modal.tp14-choice .tp14-intro{text-align:center;margin:8px 0 22px;color:#0c2a6b}
+.modal.tp14-choice .tp14-eyebrow{display:inline-flex;padding:5px 13px;background:#fff0bf;border-radius:50px;color:#775000;font-size:12px;font-weight:800;margin-bottom:11px}
+.modal.tp14-choice .tp14-intro h2{font-size:clamp(21px,5.3vw,28px);line-height:1.25;margin:0;font-weight:800;color:#0c2a6b}
+.modal.tp14-choice .tp14-intro p{font-size:14px;color:#70809d;line-height:1.5;margin:9px 0 0}
+.modal.tp14-choice .tp14-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.modal.tp14-choice .tp14-choice-card{display:flex;position:relative;align-items:center;flex-direction:column;justify-content:center;min-width:0;min-height:206px;padding:20px 9px 30px;background:#fff;border:1.5px solid #c1d6ef;border-radius:22px;box-shadow:0 6px 18px #0c2a6b0a;font-family:inherit;color:#0b2e70;cursor:pointer;gap:9px;transition:transform .12s}
+.modal.tp14-choice .tp14-choice-card:active{transform:scale(.98)}
+.modal.tp14-choice .tp14-choice-card b{font-size:clamp(14px,3.6vw,17px);font-weight:800;line-height:1.3;text-align:center}
+.modal.tp14-choice .tp14-choice-card small{font-size:12px;color:#7383a1;line-height:1.4;text-align:center}
+.modal.tp14-choice .tp14-choice-icon{display:flex;align-items:center;justify-content:center;width:70px;height:70px;border-radius:21px;color:#0c2a6b}
+.modal.tp14-choice .tp14-gold{background:#fff0c2}
+.modal.tp14-choice .tp14-sky{background:#e5f0ff}
+.modal.tp14-choice .tp14-choice-arrow{position:absolute;bottom:9px;color:#8aa9d2}
+.modal.tp14-choice .tp14-choice-tip{display:flex;align-items:center;justify-content:center;gap:5px;text-align:center;font-size:12px;color:#7889a8;margin:22px 0}
+.modal.tp14-categories .catTitles,.modal.tp14-areas .catTitles{margin:5px 0 20px}
+.modal.tp14-categories .catTitles h2,.modal.tp14-areas .catTitles h2{font-size:clamp(20px,5vw,26px);line-height:1.3}
+.modal.tp14-categories .catTitles p,.modal.tp14-areas .catTitles p{font-size:13px;margin-top:7px}
+.modal.tp14-categories .catSearch2{background:#fff;border:1.5px solid #ccdcf2;border-radius:18px;min-height:52px;padding:11px 15px;box-shadow:0 2px 12px #0c2a6b08}
+.modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px !important;padding:0 0 20px !important;margin:0 !important}
+.modal.tp14-categories .catCardMain,.modal.tp14-areas .areaBox{
+  box-sizing:border-box;min-width:0;height:auto !important;min-height:138px !important;
+  border:1.5px solid #c3d8f0 !important;border-radius:20px !important;
+  background:#fff !important;box-shadow:0 4px 16px rgba(10,48,105,.055) !important;
+  padding:18px 10px 13px !important;gap:8px !important;justify-content:center !important;
+}
+.modal.tp14-categories .catCardMain i,.modal.tp14-areas .areaBoxIc{
+  width:58px !important;height:58px !important;border-radius:18px !important;
+  background:#e6f1ff !important;color:#104481 !important;flex:none;
+}
+.modal.tp14-areas .areaBoxIc{background:color-mix(in srgb,currentColor 13%,white) !important}
+.modal.tp14-categories .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+.modal.tp14-areas .areaBoxName{
+  font-size:clamp(13px,3.5vw,16px) !important;white-space:normal !important;
+  overflow:visible !important;text-overflow:clip !important;max-width:100%;line-height:1.25 !important;
+  font-weight:800 !important;color:#0b2e70 !important;text-align:center !important;
+  display:block !important;
+}
+.modal.tp14-categories .tp14-card-caption,.modal.tp14-areas .tp14-card-caption{
+  display:block !important;color:#7a8cab !important;font-size:11px !important;
+  font-weight:600 !important;text-align:center !important;line-height:1.3 !important;
+}
+.modal.tp14-categories .nbadge,.modal.tp14-areas .nbadge{
+  top:9px !important;left:9px !important;min-width:23px;min-height:23px;
+  display:flex;align-items:center;justify-content:center;border-radius:999px;
+  background:#fff0c7 !important;color:#765300 !important;border:1px solid #f6ca5e;
+  font-size:11px !important;line-height:1 !important;
+}
+.modal.tp14-categories .catAllBtn{margin:10px auto 24px !important;padding:13px 25px;font-size:14px;min-height:46px}
+.modal.tp14-categories .catFoot{margin-top:12px;opacity:.78}
+@media(min-width:561px){
+ .modal.tp14-choice .catSheet,.modal.tp14-categories .catSheet,.modal.tp14-areas .catSheet{max-width:680px;border-radius:20px;height:min(94vh,900px) !important}
+ .modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+}
+@media(max-width:350px){.modal.tp14-choice .tp14-choice-grid{gap:8px}.modal.tp14-choice .tp14-choice-card{padding-left:6px;padding-right:6px;min-height:185px}.modal.tp14-categories .catgMain,.modal.tp14-areas .areaGrid{gap:9px !important}}
+
+
+/* Tripoli Points V15: compact, coherent More/Categories/Areas/Subcategories UI.
+   All overrides scoped to these three modal classes; customer homepage remains unchanged. */
+@media(max-width:560px){
+  .modal.tp14-choice .catSheet,
+  .modal.tp14-categories .catSheet,
+  .modal.tp14-areas .catSheet{
+    padding:12px 15px calc(28px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  .modal.tp14-choice .catHd,
+  .modal.tp14-categories .catHd,
+  .modal.tp14-areas .catHd{
+    min-height:102px !important;
+    margin:-12px -15px 14px !important;
+    padding:11px 18px !important;
+  }
+  .modal.tp14-choice .catHdTxt b,
+  .modal.tp14-categories .catHdTxt b,
+  .modal.tp14-areas .catHdTxt b{font-size:19px !important}
+  .modal.tp14-choice .catHdTxt small,
+  .modal.tp14-categories .catHdTxt small,
+  .modal.tp14-areas .catHdTxt small{font-size:11px !important}
+  .modal.tp14-choice .catHdLogo svg,
+  .modal.tp14-categories .catHdLogo svg,
+  .modal.tp14-areas .catHdLogo svg{width:29px !important;height:37px !important}
+  .modal.tp14-choice .tp14-content{padding:7px 2px 0}
+  .modal.tp14-choice .tp14-intro{margin:6px 0 17px}
+  .modal.tp14-choice .tp14-eyebrow{font-size:11px;padding:4px 12px;margin-bottom:8px}
+  .modal.tp14-choice .tp14-intro h2{font-size:clamp(19px,5vw,24px);line-height:1.25}
+  .modal.tp14-choice .tp14-intro p{font-size:12px;margin-top:7px}
+  .modal.tp14-choice .tp14-choice-grid{gap:10px}
+  .modal.tp14-choice .tp14-choice-card{
+    min-height:166px !important;
+    padding:13px 7px 24px !important;
+    border-radius:22px !important;
+    gap:7px !important;
+  }
+  .modal.tp14-choice .tp14-choice-icon{width:56px;height:56px;border-radius:18px}
+  .modal.tp14-choice .tp14-choice-icon svg{width:24px;height:24px}
+  .modal.tp14-choice .tp14-choice-card b{font-size:clamp(13px,3.6vw,16px)}
+  .modal.tp14-choice .tp14-choice-card small{font-size:11px}
+  .modal.tp14-choice .tp14-choice-tip{margin:17px 0;font-size:11px}
+  .modal.tp14-categories .catSearch2{
+    min-height:45px !important;padding:9px 13px !important;
+    border-radius:16px !important;margin-bottom:12px !important;
+  }
+  .modal.tp14-categories .catSearch2 input{font-size:16px !important}
+  .modal.tp14-categories .catTitles,.modal.tp14-areas .catTitles{margin:2px 0 14px !important}
+  .modal.tp14-categories .catTitles h2,.modal.tp14-areas .catTitles h2{
+    font-size:clamp(19px,5.0vw,23px) !important;
+  }
+  .modal.tp14-categories .catTitles p,.modal.tp14-areas .catTitles p{
+    font-size:12px !important;margin-top:5px !important;
+  }
+  .modal.tp14-categories .catgMain,
+  .modal.tp14-categories .catgBig,
+  .modal.tp14-areas .areaGrid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    padding:0 0 12px !important;margin:0 !important;
+  }
+  .modal.tp14-categories .catCardMain,
+  .modal.tp14-categories .catCardBig,
+  .modal.tp14-areas .areaBox{
+    position:relative;box-sizing:border-box;
+    min-width:0;width:100% !important;height:auto !important;
+    min-height:117px !important;
+    display:flex !important;flex-direction:column !important;
+    justify-content:center !important;align-items:center !important;
+    gap:5px !important;
+    padding:12px 8px 10px !important;
+    border:1.5px solid #c5d9f1 !important;
+    border-radius:19px !important;
+    background:#fff !important;
+    box-shadow:0 3px 12px rgba(11,46,112,.045) !important;
+    color:#0c2a6b !important;text-align:center !important;
+    overflow:visible !important;
+  }
+  .modal.tp14-categories .catCardMain i,
+  .modal.tp14-categories .catCardBig i,
+  .modal.tp14-areas .areaBoxIc{
+    width:48px !important;height:48px !important;
+    min-width:48px !important;min-height:48px !important;
+    border-radius:16px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    margin:0 auto 2px !important;
+    flex:0 0 auto !important;
+  }
+  .modal.tp14-categories .catCardMain i,
+  .modal.tp14-categories .catCardBig i{background:#e5f0ff !important;color:#104481 !important}
+  .modal.tp14-categories .catCardBig i svg,
+  .modal.tp14-categories .catCardMain i svg,
+  .modal.tp14-areas .areaBoxIc svg{width:23px !important;height:23px !important}
+  .modal.tp14-areas .areaBoxIc{
+    color:var(--tp15-area-color,#16518f) !important;
+    background:color-mix(in srgb,var(--tp15-area-color,#16518f) 14%,white) !important;
+  }
+  .modal.tp14-categories .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+  .modal.tp14-categories .catCardBig > span:not(.nbadge):not(.tp15-sub-caption),
+  .modal.tp14-areas .areaBoxName{
+    display:block !important;
+    color:#102f70 !important;
+    font-size:clamp(12px,3.25vw,15px) !important;
+    font-weight:800 !important;
+    line-height:1.22 !important;
+    overflow:visible !important;
+    white-space:normal !important;
+    text-overflow:clip !important;
+    max-width:100% !important;
+    margin:0 !important;
+  }
+  .modal.tp14-categories .tp14-card-caption,
+  .modal.tp14-areas .tp14-card-caption,
+  .modal.tp14-categories .tp15-sub-caption{
+    display:block !important;
+    color:#7b8dac !important;
+    font-size:10.5px !important;
+    font-weight:600 !important;
+    line-height:1.22 !important;
+    margin:2px 0 0 !important;
+  }
+  .modal.tp14-categories .catCardMain .nbadge,
+  .modal.tp14-categories .catCardBig .nbadge,
+  .modal.tp14-areas .areaBox .nbadge{
+    position:absolute !important;top:7px !important;left:7px !important;
+    min-width:21px !important;height:21px !important;min-height:21px !important;
+    padding:2px 5px !important;font-size:10px !important;
+    background:#fff0c7 !important;color:#765300 !important;
+    border:1px solid #f1c956 !important;border-radius:999px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    box-sizing:border-box;
+  }
+  .modal.tp14-categories .tp15-sub-header{
+    display:flex;align-items:center;gap:8px;direction:rtl;
+    margin:5px 0 12px !important;padding:0 2px;
+    color:#102e68;
+  }
+  .modal.tp14-categories .tp15-sub-header b{
+    font-size:clamp(17px,4.6vw,21px) !important;
+    font-weight:800 !important;line-height:1.25;
+  }
+  .modal.tp14-categories .tp15-sub-header .back{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    background:#fff !important;width:31px;height:31px;
+    border:1px solid #c6d8ef !important;border-radius:11px !important;
+    color:#123a78 !important;
+  }
+  .modal.tp14-categories .catAllBtn{
+    margin:13px auto 18px !important;
+    padding:12px 22px !important;
+    min-height:44px !important;font-size:14px !important;
+  }
+}
+@media(max-width:360px){
+  .modal.tp14-categories .catgMain,.modal.tp14-categories .catgBig,
+  .modal.tp14-areas .areaGrid{gap:8px !important}
+  .modal.tp14-categories .catCardMain,.modal.tp14-categories .catCardBig,
+  .modal.tp14-areas .areaBox{padding:11px 5px 9px !important;min-height:114px !important}
+}
+</style>
+<style id="tp32-shoptab-cards">
+/* "تسوّق" bottom-tab screen (shopChooserV/shopHomeV/shopAreaPickV): same approved compact
+   card look as the More/Categories/Areas modals above, but this screen is inline in the
+   page (not a modal sheet), so it gets its own non-modal-scoped copy of just the card/grid
+   rules — the modal chrome (catHd/catSheet/catTitles/catSearch2) does not apply here. */
+.tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:12px !important;padding:0 0 4px !important;margin:0 0 14px !important}
+.tp15-shoptab .catCardMain,.tp15-shoptab .areaBox{
+  box-sizing:border-box;min-width:0;height:auto !important;min-height:138px !important;
+  border:1.5px solid #c3d8f0 !important;border-radius:20px !important;
+  background:#fff !important;box-shadow:0 4px 16px rgba(10,48,105,.055) !important;
+  padding:18px 10px 13px !important;gap:8px !important;justify-content:center !important;
+}
+.tp15-shoptab .catCardMain i,.tp15-shoptab .areaBoxIc{
+  width:58px !important;height:58px !important;border-radius:18px !important;
+  background:#e6f1ff !important;color:#104481 !important;flex:none;
+}
+.tp15-shoptab .catCardMain i.tp14-gold{background:#fff0c2 !important;color:#8a5a00 !important}
+.tp15-shoptab .catCardMain i.tp14-sky{background:#e5f0ff !important;color:#0c2a6b !important}
+.tp15-shoptab .areaBoxIc{background:color-mix(in srgb,currentColor 13%,white) !important}
+.tp15-shoptab .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+.tp15-shoptab .areaBoxName{
+  font-size:clamp(13px,3.5vw,16px) !important;white-space:normal !important;
+  overflow:visible !important;text-overflow:clip !important;max-width:100%;line-height:1.25 !important;
+  font-weight:800 !important;color:#0b2e70 !important;text-align:center !important;
+  display:block !important;
+}
+.tp15-shoptab .tp14-card-caption{
+  display:block !important;color:#7a8cab !important;font-size:11px !important;
+  font-weight:600 !important;text-align:center !important;line-height:1.3 !important;
+}
+.tp15-shoptab .nbadge{
+  top:9px !important;left:9px !important;min-width:23px;min-height:23px;
+  display:flex;align-items:center;justify-content:center;border-radius:999px;
+  background:#fff0c7 !important;color:#765300 !important;border:1px solid #f6ca5e;
+  font-size:11px !important;line-height:1 !important;
+}
+@media(min-width:561px){
+ .tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+ .tp15-shoptab .tp15-shop-chooser{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:560px){
+  .tp15-shoptab .catgMain,.tp15-shoptab .areaGrid{gap:10px !important}
+  .tp15-shoptab .catCardMain,.tp15-shoptab .areaBox{
+    position:relative;box-sizing:border-box;
+    min-width:0;width:100% !important;height:auto !important;
+    min-height:117px !important;
+    display:flex !important;flex-direction:column !important;
+    justify-content:center !important;align-items:center !important;
+    gap:5px !important;
+    padding:12px 8px 10px !important;
+    border:1.5px solid #c5d9f1 !important;
+    border-radius:19px !important;
+    background:#fff !important;
+    box-shadow:0 3px 12px rgba(11,46,112,.045) !important;
+    color:#0c2a6b !important;text-align:center !important;
+    overflow:visible !important;
+  }
+  .tp15-shoptab .catCardMain i,.tp15-shoptab .areaBoxIc{
+    width:48px !important;height:48px !important;
+    min-width:48px !important;min-height:48px !important;
+    border-radius:16px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    margin:0 auto 2px !important;
+    flex:0 0 auto !important;
+  }
+  .tp15-shoptab .areaBoxIc{
+    color:var(--tp15-area-color,#16518f) !important;
+    background:color-mix(in srgb,var(--tp15-area-color,#16518f) 14%,white) !important;
+  }
+  .tp15-shoptab .catCardMain > span:not(.nbadge):not(.tp14-card-caption),
+  .tp15-shoptab .areaBoxName{
+    display:block !important;color:#102f70 !important;
+    font-size:clamp(12px,3.25vw,15px) !important;font-weight:800 !important;
+    line-height:1.22 !important;overflow:visible !important;white-space:normal !important;
+    text-overflow:clip !important;max-width:100% !important;margin:0 !important;
+  }
+  .tp15-shoptab .tp14-card-caption{
+    display:block !important;color:#7b8dac !important;font-size:10.5px !important;
+    font-weight:600 !important;line-height:1.22 !important;margin:2px 0 0 !important;
+  }
+  .tp15-shoptab .nbadge{
+    position:absolute !important;top:7px !important;left:7px !important;
+    min-width:21px !important;height:21px !important;min-height:21px !important;
+    padding:2px 5px !important;font-size:10px !important;
+    background:#fff0c7 !important;color:#765300 !important;
+    border:1px solid #f1c956 !important;border-radius:999px !important;
+    display:flex !important;align-items:center !important;justify-content:center !important;
+    box-sizing:border-box;
+  }
+}
 </style>
 </head>
 <body>
@@ -2116,11 +2505,41 @@ function cardHtml(){
   return card}
 const SVG_NAV='<svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:#0c2a6b"><path d="M12 2l6 16-6-4-6 4z"/></svg>';
 const SVG_TGT='<svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:none;stroke:#0c2a6b;stroke-width:2"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="#0c2a6b"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>';
-function mapBlock(tall){return `<div class="rmap ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>
- ${styleBtn('bottom:12px')}${tall?'':`<button class="mchip" style="top:12px;left:12px" onclick="resetMapFilter()"><span>🗺️</span>طرابلس</button>`}
+function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>
+ ${directionBtn('bottom:12px')}${tp30GoogleNavButton()}${tall?'':`<button class="mchip" style="top:12px;left:12px" onclick="resetMapFilter()"><span>🗺️</span>طرابلس</button>`}
+ <button class="tp23-fullscreen-btn" type="button" onclick="toggleMapFullscreen()" aria-label="عرض الخريطة بملء الشاشة" title="ملء الشاشة">⛶</button>
  <button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
  <button class="mchip mround" style="bottom:10px;right:10px" onclick="locateMe()" aria-label="موقعي">${SVG_TGT}</button>
  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div><div id="mapcard">${tall?cardHtml():''}</div>`}
+let tp24MapHome=null,tp24MapPlaceholder=null;
+function toggleMapFullscreen(force){
+ const rm=document.getElementById('rmap');if(!rm)return;
+ const on=typeof force==='boolean'?force:!rm.classList.contains('tp23-fullscreen');
+ if(on===rm.classList.contains('tp23-fullscreen'))return;
+ if(on){
+   // Move the live map outside the clipped/scrolling .app so fixed positioning
+   // really fills the iPhone viewport. Keep the exact same DOM and map instance.
+   tp24MapHome=rm.parentNode;
+   tp24MapPlaceholder=document.createComment('Tripoli map original position');
+   tp24MapHome.insertBefore(tp24MapPlaceholder,rm);
+   document.body.appendChild(rm);
+ }else if(tp24MapPlaceholder&&tp24MapPlaceholder.parentNode){
+   tp24MapPlaceholder.parentNode.insertBefore(rm,tp24MapPlaceholder);
+   tp24MapPlaceholder.remove();tp24MapPlaceholder=null;tp24MapHome=null;
+ }
+ rm.classList.toggle('tp23-fullscreen',on);
+ // أي render() خلفي تأجّل أثناء ملء الشاشة (انظر التعليق داخل render) يُنفَّذ الآن فور إعادة الخريطة لمكانها
+ if(!on&&typeof __pendingBgRender!=='undefined'&&__pendingBgRender){__pendingBgRender=false;render()}
+ document.body.classList.toggle('tp23-map-open',on);
+ const btn=rm.querySelector('.tp23-fullscreen-btn');
+ if(btn){btn.textContent=on?'✕':'⛶';btn.setAttribute('aria-label',on?'إغلاق ملء الشاشة':'عرض الخريطة بملء الشاشة');btn.title=on?'إغلاق':'ملء الشاشة'}
+ const sync=()=>{
+   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h;drawMap()}
+   if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize')}
+ };
+ requestAnimationFrame(()=>{sync();requestAnimationFrame(sync)});
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('rmap')?.classList.contains('tp23-fullscreen'))toggleMapFullscreen(false)});
 function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
 function setMapBig(on){const rm=$('#rmap');if(!rm)return;const was=rm.classList.contains('big');if(was===on)return;rm.classList.toggle('big',on);
   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h}
@@ -2138,7 +2557,7 @@ const AREASVG={
  igrid3:'<img src="data:image/png;base64,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" alt="">'
 };
 function catsHtml(){return TAREAS.map(([name,icn,lat,lng])=>`<button class="cat2${S.areaSel===name?' on':''}" onclick='areaTap(${lat},${lng},${JSON.stringify(name)})'><span class="cat2art">${AREASVG[icn]}</span><span class="cat2name">${name}</span></button>`).join('')
-  +`<button class="cat2 more" onclick="moreChoice()"><span class="cat2art">${AREASVG.igrid3}</span><span class="cat2name">المزيد</span></button>`}
+  +`<button class="cat2 more tp25-discover" onclick="moreChoice()" aria-label="بحث وفئات: تصفح المحلات حسب الفئة أو المنطقة"><span class="cat2art">${ic('search',22)}</span><span class="cat2name">بحث وفئات</span></button>`}
 function areaTap(lat,lng,name){S.areaSel=name;
   // أي تقييد سابق على الدبابيس (عزل دبوس واحد من "الاتجاهات"، أو فلتر فئة من "تصفّح حسب الفئة") لازم يُلغى عند اختيار منطقة جديدة،
   // وإلا تظهر المنطقة فارغة لأن الدبوس الوحيد المسموح به (المعزول أو المطابق للفئة) يقع فعلياً خارج هذه المنطقة
@@ -2152,20 +2571,20 @@ function editAreaTap(lat,lng,name){S.editAreaSel=S.editAreaSel===name?null:name;
   if(TM){buildMarks();flyTo(lat,lng,15,700)}}
 function editPinTap(id){const m=M(id);if(!m)return;toast(m.name+(m.addr?' · '+m.addr:''))}
 // ===== تصفح الفئات: فئات رئيسية ← فئات فرعية (هرمي، ديناميكي من قاعدة البيانات) =====
-function catItemsGrid(items){return items.length?`<div class="catgBig">${items.map(c=>{const kids=subCats(c.id).length,n=catMerchantCount(c.slug);return `<button class="catCardBig" onclick='${kids?`catOpenSub(${JSON.stringify(c.id)})`:`catPick(${JSON.stringify(c.slug)})`}'>${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(catIcon(c),22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`:'<p class="muted" style="text-align:center;margin-top:10px">لا توجد نتائج</p>'}
+function catItemsGrid(items){return items.length?`<div class="catgBig">${items.map(c=>{const kids=subCats(c.id).length,n=catMerchantCount(c.slug);return `<button class="catCardBig" onclick='${kids?`catOpenSub(${JSON.stringify(c.id)})`:`catPick(${JSON.stringify(c.slug)})`}'>${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(catIcon(c),22)}</i><span>${c.name_ar}</span><span class="tp15-sub-caption">${kids?'عرض الفئات الفرعية':n?`${n} محل`:'استكشف المحلات'}</span></button>`}).join('')}</div>`:'<p class="muted" style="text-align:center;margin-top:10px">لا توجد نتائج</p>'}
 function catMainGrid(){const mains=mainCats();
   return `<div class="catTitles"><h2>اكتشف المحلات والخدمات في طرابلس</h2><p>اختر فئة للبدء</p></div>
-  <div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="catOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`}
+  <div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="catOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',28)}</i><span>${c.name_ar}</span><span class="tp14-card-caption">استكشف المحلات</span></button>`}).join('')}</div>`}
 function catSubGrid(mainId){const main=(S.cats||[]).find(c=>c.id===mainId),subs=subCats(mainId);
-  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="catBackToMain()">${ic('chev',18)}</button><b style="font-size:16px">${main?main.name_ar:''}</b></div>
+  return `<div class="tp15-sub-header"><button class="back" style="margin:0" onclick="catBackToMain()">${ic('chev',18)}</button><b style="font-size:16px">${main?main.name_ar:''}</b></div>
   ${catItemsGrid(subs)}`}
 function catSubSubGrid(subId){const sub=(S.cats||[]).find(c=>c.id===subId),items=subCats(subId);
-  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="catBackToSub()">${ic('chev',18)}</button><b style="font-size:16px">${sub?sub.name_ar:''}</b></div>
+  return `<div class="tp15-sub-header"><button class="back" style="margin:0" onclick="catBackToSub()">${ic('chev',18)}</button><b style="font-size:16px">${sub?sub.name_ar:''}</b></div>
   ${catItemsGrid(items)}`}
 function catBody(){return S.catNav.subId?catSubSubGrid(S.catNav.subId):S.catNav.mainId?catSubGrid(S.catNav.mainId):catMainGrid()}
 let catModalEl=null;
 function moreCats(){S.catNav={mainId:null,subId:null,q:''};
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-categories';md.onclick=e=>{if(e.target===md)md.remove()};
   catModalEl=md;
   md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(catModalEl){catModalEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><button class="catHdBell" onclick="if(catModalEl){catModalEl.remove()};openNotes()" aria-label="الإشعارات">${ic('bell',18)}${notifBadge(unread())}</button></div>
@@ -2194,15 +2613,16 @@ function catMerchPick(id){if(catModalEl)catModalEl.remove();openStore(id)}
 // ===== زر "المزيد": اختيار تصفّح حسب الفئة أو حسب المنطقة =====
 let moreChoiceEl=null;
 function moreChoice(){
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-choice';md.onclick=e=>{if(e.target===md)md.remove()};
   moreChoiceEl=md;
-  md.innerHTML=`<div class="sheet catSheet" style="height:auto;max-height:70vh">
+  md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(moreChoiceEl){moreChoiceEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><div style="width:30px"></div></div></div>
-  <div class="catTitles"><h2>كيف بدك تدوّر على المحلات؟</h2><p>اختر طريقة البحث يلي بتناسبك</p></div>
-  <div style="display:flex;flex-direction:column;gap:12px;padding:4px 2px 10px">
-   <button class="btn" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreCats()">${ic('store',20)} تصفّح حسب الفئة التجارية</button>
-   <button class="btn ghost" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreAreas()">${ic('pin',20)} تصفّح حسب المنطقة</button>
-  </div></div>`;
+  <div class="tp14-content"><div class="tp14-intro"><span class="tp14-eyebrow">اكتشف طرابلس</span><h2>على كيفك بتلاقي محلاتك</h2><p>اختار الطريقة اللي بتناسبك، وخلي طرابلس أقرب إلك</p></div>
+  <div class="tp14-choice-grid">
+    <button class="tp14-choice-card" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreCats()"><span class="tp14-choice-icon tp14-gold">${ic('store',28)}</span><b>حسب الفئة التجارية</b><small>مطاعم، تسوّق وخدمات</small><span class="tp14-choice-arrow">${ic('chev',18)}</span></button>
+    <button class="tp14-choice-card" onclick="if(moreChoiceEl){moreChoiceEl.remove()};moreAreas()"><span class="tp14-choice-icon tp14-sky">${ic('pin',28)}</span><b>حسب المنطقة</b><small>اكتشف محلات كل حي</small><span class="tp14-choice-arrow">${ic('chev',18)}</span></button>
+  </div><div class="tp14-choice-tip">${ic('pin',16)} كل المحلات الموجودة على الخريطة بمتناولك</div></div>
+  </div>`;
   document.body.appendChild(md)}
 let moreSortsEl=null;
 const OFF_SORT_OPTS=[
@@ -2227,12 +2647,12 @@ const areaDir=()=>[...TAREAS.map(a=>[a[0],a[2],a[3]]),...SUBAREAS];
 const areaDirSorted=()=>[...areaDir()].sort((a,b)=>a[0].localeCompare(b[0],'ar'));// نفس اللائحة مرتّبة أبجدياً عربياً، تُستخدم في شريط اختيار منطقة المحل عند التسجيل
 let areaModalEl=null;
 function moreAreas(){
-  const md=document.createElement('div');md.className='modal catFull';md.onclick=e=>{if(e.target===md)md.remove()};
+  const md=document.createElement('div');md.className='modal catFull tp14-areas';md.onclick=e=>{if(e.target===md)md.remove()};
   areaModalEl=md;
   md.innerHTML=`<div class="sheet catSheet">
   <div class="catHd"><img class="catHdDeco" src="${CATHD_IMG}" alt=""><div class="catHdRow"><button class="catHdBell" onclick="if(areaModalEl){areaModalEl.remove()}" aria-label="رجوع">${ic('back',20)}</button><div class="catHdLogo">${LOGO}</div><div class="catHdTxt"><b>Tripoli Points</b><small>كل نقطة.. بتدعم مدينتك</small></div><div style="width:30px"></div></div></div>
   <div class="catTitles"><h2>تصفّح حسب المنطقة</h2><p>اختر منطقة لعرض محلاتها على الخريطة</p></div>
-  <div class="areaGrid">${(()=>{const counts={};areaDir().forEach(([nm])=>counts[nm]=0);S.merchants.forEach(m=>{if(m.status!=='active')return;const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});return areaDir().map(([name,lat,lng])=>`<button class="areaBox" onclick='pickDirArea(${lat},${lng},${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="background:${AREA_COLORS[name]||'var(--navy)'}22;color:${AREA_COLORS[name]||'var(--navy)'}">${ic('pin',16)}</span><span class="areaBoxName">${name}</span></button>`).join('')})()}</div>
+  <div class="areaGrid">${(()=>{const counts={};areaDir().forEach(([nm])=>counts[nm]=0);S.merchants.forEach(m=>{if(m.status!=='active')return;const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});return areaDir().map(([name,lat,lng])=>`<button class="areaBox" onclick='pickDirArea(${lat},${lng},${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="--tp15-area-color:${AREA_COLORS[name]||'#1459a4'}">${ic('pin',24)}</span><span class="areaBoxName">${name}</span><span class="tp14-card-caption">${counts[name]?`${counts[name]} محل`:'استكشف المنطقة'}</span></button>`).join('')})()}</div>
   </div>`;
   document.body.appendChild(md)}
 function pickDirArea(lat,lng,name){if(areaModalEl){areaModalEl.remove();areaModalEl=null}if(S.tab==='offers'&&S.offView!=='map'){S.offView='map';S.sel=null;S.route=null;S.mv=null;render()}areaTap(lat,lng,name)}
@@ -2376,7 +2796,7 @@ let GM=null,gLoad=null;
 function gLoadApi(){if(window.google&&google.maps)return Promise.resolve();if(gLoad)return gLoad;
   gLoad=new Promise((ok,no)=>{window.__gmReady=ok;window.gm_authFailure=()=>{no(new Error('auth'))};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GKEY)+'&language=ar&region=LB&callback=__gmReady';sc.async=true;sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)});
   gLoad.catch(()=>{});return gLoad}
-const gIcon=(c,e)=>({url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50"><path d="M20 49C20 49 4 31 4 19a16 16 0 0 1 32 0c0 12-16 30-16 30z" fill="${c}" stroke="#fff" stroke-width="3"/><text x="20" y="25" font-size="16" text-anchor="middle" fill="#fff" style="filter:brightness(0) invert(1)">${e}</text></svg>`),scaledSize:new google.maps.Size(34,42),anchor:new google.maps.Point(17,42)});
+const gIcon=(c,e)=>({url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="34" height="42" viewBox="0 0 34 42"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#0a1e46" flood-opacity=".32"/></filter></defs><g filter="url(#sh)"><path d="M17 41 L11.5 25 L22.5 25 Z" fill="${c}"/><circle cx="17" cy="16" r="13.5" fill="#fff" stroke="${c}" stroke-width="3"/></g><text x="17" y="21" font-size="14" text-anchor="middle" fill="${c}" font-weight="700">${e}</text></svg>`),scaledSize:new google.maps.Size(34,42),anchor:new google.maps.Point(17,42)});
 function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.classList.add('g');const ea=el.querySelector('.attr');if(ea)ea.style.display='none';const rk=$('#rmk');if(rk)rk.style.pointerEvents='none';
   const mine={pick:!!el.dataset.pick};GM=mine;
   gLoadApi().then(()=>{if(GM!==mine)return;const v=mine.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16}:(S.mv||{lat:34.4425,lng:35.834,z:14});if(mine.pick)pickSet(v.lat,v.lng);
@@ -2387,7 +2807,7 @@ function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.cla
     mine.ok=true;gBuild(!S.mv&&!mine.pick,(!S.mv&&!mine.pick)?TRIPOLI_ZOOM_BOOST:0)}).catch(()=>{if(GM!==mine)return;GM=null;toast('تعذّر تحميل خرائط Google — نعرض الخريطة البديلة');gFail=true;render()})}
 let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
-  const list=visibleMerchants();
+  const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
   list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(c[3],c[2]),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
   if(m.me)m.me.setMap(null);m.me=new google.maps.Marker({map:m.map,position:S.userLL,zIndex:2,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#1d63e0',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});m.marks.push(m.me);
   if(fit)gFit(zBoost)}
@@ -2497,6 +2917,7 @@ function drawPinClusters(t,X,Y){
   t.pinLayer.innerHTML='';
   // التجميع الآن حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
   const byArea={};
+  if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
   t.pins.forEach(p=>{if(forcedOpen.has(p.id)||splitIds.has(p.id))return;const a=p.area||'';(byArea[a]=byArea[a]||[]).push(p)});
   Object.keys(byArea).forEach(areaName=>{
     const group=byArea[areaName],coord=areaLL(areaName);
@@ -2552,7 +2973,7 @@ function shSetFull(full){S.sheetFull=!!full;const el=$('#storeSheet');if(el)el.c
 function shToggle(){shSetFull(!S.sheetFull)}
 const ROUTE_MIN_Z=14.5; // أدنى تكبير مقبول عند عرض مسار على الخريطة، يضمن بقاء موقع المحل واضحاً ومُتعرَّفاً عليه للزبون حتى لو كان المسار طويلاً جداً (بدل أن يبتلعه التأطير العام للمسار الكامل)
 async function showRoute(id,mode){const m=M(id);if(!m)return;const a=S.userLL,b=llOf(m);
-  S.sel=null;S.sheetFull=false; // إغلاق صفحة المحل تلقائياً فور اختيار مسار؛ تبقى شارة المسار العائمة ومسار الخريطة ظاهرين، والضغطة الثانية على الدبّوس تفتح المرحلة الثانية (تفاصيل المتجر)
+  S.sel=document.getElementById('rmap')?.classList.contains('tp23-fullscreen')?id:null;S.sheetFull=false; // إغلاق صفحة المحل تلقائياً فور اختيار مسار؛ تبقى شارة المسار العائمة ومسار الخريطة ظاهرين، والضغطة الثانية على الدبّوس تفتح المرحلة الثانية (تفاصيل المتجر)
   S.rmode=mode;
   if(!S.userReal&&!S.hintLoc){S.hintLoc=1;toast('لمسار أدق اضغط «موقعي الحالي» أولاً')}
   const tk=S.route={id,mode,loading:1};routeUi();
@@ -2565,7 +2986,29 @@ async function showRoute(id,mode){const m=M(id);if(!m)return;const a=S.userLL,b=
     // إن كان المسار طويلاً بحيث لا يتّسع ضمن تكبير يبقي موقع المحل واضحاً (أقل من ROUTE_MIN_Z)، نتمركز مباشرة على المحل بذلك التكبير الأدنى بدل منتصف المسار الكامل البعيد عن الوضوح؛ المسار نفسه يبقى مرسوماً حتى لو امتد خارج حدود الشاشة
     if(v.z<ROUTE_MIN_Z)flyTo(b.lat,b.lng,ROUTE_MIN_Z,700);else flyTo(v.lat,v.lng,Math.min(17,v.z),700)}}
 function clearRoute(){S.route=null;routeUi()}
-function routeUi(){refreshCardUi();const R=S.route,c=$('#rtchip');
+// Directions always appear ON this map (Google navigation needs a separate app/window).
+function routeFromMapButton(){
+  const id=S.sel||(S.route&&S.route.id)||S.mapFocus;
+  if(!id||!M(id)){toast('اختر دبوس المحل أولاً لعرض مسار المشي');return}
+  showRoute(id,'foot');
+}
+const directionBtn=pos=>`<button class="mchip mstyle tp29-direction" style="${pos};left:12px" onclick="routeFromMapButton()" aria-label="مسار المشي إلى المحل">🧭 اتجه للمحل</button>`;
+// Google Maps provides turn-by-turn navigation; our own map remains the route preview.
+function googleWalkNavUrl(m){
+  const destination=llOf(m);
+  const origin=S.userReal&&S.userLL?`&origin=${S.userLL.lat.toFixed(6)},${S.userLL.lng.toFixed(6)}`:'';
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination.lat.toFixed(6)},${destination.lng.toFixed(6)}&travelmode=walking&dir_action=navigate${origin}`;
+}
+const tp30GoogleNavButton=()=>`<a id="tp30GoogleNav" class="mchip mstyle tp30-google-nav" style="display:none" href="#" target="_blank" rel="noopener noreferrer" aria-label="ابدأ الملاحة عبر Google Maps">📍 ابدأ الملاحة عبر Google Maps</a>`;
+function refreshGoogleNavButton(){
+  const link=document.getElementById('tp30GoogleNav');if(!link)return;
+  const R=S.route,merchant=R&&R.id?M(R.id):null;
+  const visible=!!(merchant&&R.coords&&!R.loading);
+  link.style.display=visible?'inline-flex':'none';
+  if(visible)link.href=googleWalkNavUrl(merchant);
+  else link.removeAttribute('href');
+}
+function routeUi(){refreshCardUi();refreshGoogleNavButton();const R=S.route,c=$('#rtchip');
   if(c){if(R&&R.coords){c.style.display='flex';c.innerHTML=`<span>${R.mode==='foot'?'🚶':'🚗'} ${fmtDur(R.dur)} · ${fdist(Math.round(R.dist))}</span><button onclick="clearRoute()" aria-label="إلغاء">✕</button>`}else c.style.display='none'}
   if(TM)drawRoute();if(GM&&GM.ok)gRoute(false)}
 function drawRoute(){const t=TM,sv=t&&$('#rsv');if(!sv)return;const R=S.route;if(!R||!R.coords){sv.innerHTML='';return}
@@ -2578,11 +3021,29 @@ function gRoute(fit){const g=GM;if(!g||!g.ok)return;if(g.line){g.line.setMap(nul
   if(fit){const bd=new google.maps.LatLngBounds();R.coords.forEach(c=>bd.extend({lat:c[0],lng:c[1]}));g.map.fitBounds(bd,50);
     // نفس منطق مسار الخريطة الداخلية: إن أدى احتواء المسار الكامل لتكبير أقل من الحد المريح لرؤية موقع المحل، نعيد التمركز عليه مباشرة بذلك الحد الأدنى
     google.maps.event.addListenerOnce(g.map,'idle',()=>{if(g.map.getZoom()<ROUTE_MIN_Z){const dst=R.coords[R.coords.length-1];g.map.panTo({lat:dst[0],lng:dst[1]});g.map.setZoom(ROUTE_MIN_Z)}})}}
-function pinTap(id){if(TM&&TM.moved)return;if(S.route&&S.route.id!==id){S.route=null;routeUi()}
+function pinTap(id){if(TM&&TM.moved)return;
+  const m=M(id);if(!m)return;
+  const full=!!document.getElementById('rmap')?.classList.contains('tp23-fullscreen');
+  const alreadySelected=S.sel===id;
+  const routeForThis=!!(S.route&&S.route.id===id);
+  // Fullscreen map: first tap zooms; second tap draws walking route;
+  // third tap navigates straight to the shop. No overlay cards.
+  if(full&&routeForThis){toggleMapFullscreen(false);openStore(id);return}
+  if(full&&alreadySelected&&!routeForThis){showRoute(id,'foot');return}
+  if(S.route&&!routeForThis){S.route=null;routeUi()}
   if(S.mapOfferFocus){const of=S.offers.find(x=>x.id===S.mapOfferFocus);if(!of||of.mid!==id)S.mapOfferFocus=null}
-  S.sel=id;S.sheetFull=!!(S.route&&S.route.id===id);S.mapBig=true;updateMap(true);
-  if($('#promoSlot'))setTimeout(ensureMapCardVisible,230);else{const e=$('#mapcard');if(e&&e.scrollIntoView)e.scrollIntoView({block:'nearest',behavior:'smooth'})}
-  syncStoreGallery(id)}
+  S.sel=id;S.sheetFull=routeForThis;S.mapBig=true;
+  // Keep the existing map center/zoom on repeat taps. A global fit here used to
+  // jump back out to the city and hide the selected shop after the second tap.
+  updateMap(false);
+  // The first tap focuses this shop only. Subsequent taps and the route/detail
+  // card transition never reset the zoom, route line, or selected merchant.
+  if(!alreadySelected&&!routeForThis){
+    const ll=llOf(m);
+    if(GM&&GM.ok){GM.map.panTo(ll);if(GM.map.getZoom()<16)GM.map.setZoom(16)}
+    else if(TM)flyTo(ll.lat,ll.lng,Math.max(TM.z,16),550);
+  }
+  setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapForcedOpen=new Set();S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
 const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(18,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
@@ -2626,9 +3087,9 @@ function shopPickMode(mode){S.shopMode=mode;S.shopNav={mainId:null};S.shopCat='a
 function shopBackMode(){S.shopMode=null;S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopArea=null;render()}
 function shopChooserV(){
  const banner=`<div class="shopBanner"><span class="ico">🛍️</span><div><b>تسوّق في طرابلس</b><span>كيف بدك تدوّر على محلات المدينة؟</span></div></div>`;
- return banner+`<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-  <button class="btn" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="shopPickMode('cat')">${ic('store',20)} تصفّح حسب الفئة التجارية</button>
-  <button class="btn ghost" style="padding:16px;display:flex;align-items:center;gap:10px;justify-content:center" onclick="shopPickMode('area')">${ic('pin',20)} تصفّح حسب المنطقة</button>
+ return banner+`<div class="catgMain tp15-shop-chooser" style="margin-top:6px">
+  <button class="catCardMain" onclick="shopPickMode('cat')"><i class="tp14-gold">${ic('store',28)}</i><span>تصفّح حسب الفئة التجارية</span></button>
+  <button class="catCardMain" onclick="shopPickMode('area')"><i class="tp14-sky">${ic('pin',28)}</i><span>تصفّح حسب المنطقة</span></button>
  </div>`}
 function shopHomeV(){
  const q=(S.shopQ||'').trim().toLowerCase();
@@ -2637,7 +3098,7 @@ function shopHomeV(){
  if(q){const merch=allActiveMerchants().filter(m=>m.name.toLowerCase().includes(q)||CAT(effCat(m))[1].toLowerCase().includes(q));
   return banner+search+`<h3 style="margin:4px 0 8px">نتائج البحث</h3>`+shopStoreCards(merch)}
  const mains=mainCats();
- const catsGrid=`<h3 style="margin:4px 0 8px">تصفّح حسب الفئة</h3><div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="shopOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',22)}</i><span>${c.name_ar}</span></button>`}).join('')}</div>`;
+ const catsGrid=`<h3 style="margin:4px 0 8px">تصفّح حسب الفئة</h3><div class="catgMain">${mains.map(c=>{const n=catMerchantCount(c.slug);return `<button class="catCardMain" onclick="shopOpenMain('${c.id}')">${n?`<span class="nbadge">${n}</span>`:''}<i>${ic(MAINICON[c.slug]||'igrid',28)}</i><span>${c.name_ar}</span><span class="tp14-card-caption">استكشف المحلات</span></button>`}).join('')}</div>`;
  const feat=shopFeaturedMerchants();
  const featSec=feat.length?`<h3 style="margin:16px 0 8px">محلات مميزة</h3>${shopStoreCards(feat)}`:'';
  return banner+search+catsGrid+featSec}
@@ -2659,7 +3120,7 @@ function shopAreaPickV(){
  const counts={};areaDir().forEach(([nm])=>counts[nm]=0);
  allActiveMerchants().forEach(m=>{const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});
  const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="shopBackMode()">${ic('back',22)}</button><b style="font-size:17px">تصفّح حسب المنطقة</b></div>`;
- const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='shopPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="background:${AREA_COLORS[name]||'var(--navy)'}22;color:${AREA_COLORS[name]||'var(--navy)'}">${ic('pin',16)}</span><span class="areaBoxName">${name}</span></button>`).join('')}</div>`;
+ const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='shopPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="--tp15-area-color:${AREA_COLORS[name]||'#1459a4'}">${ic('pin',24)}</span><span class="areaBoxName">${name}</span><span class="tp14-card-caption">${counts[name]?`${counts[name]} محل`:'استكشف المنطقة'}</span></button>`).join('')}</div>`;
  return head+grid}
 function shopAreaResultsV(){
  const list0=allActiveMerchants().filter(m=>(m.area||nearestArea(m.lat,m.lng))===S.shopArea);
@@ -2839,7 +3300,7 @@ function myPageV(){const m=M(S.mypageMid);
   ${(!items.length&&!offs.length&&!m.pageBlurb&&!galleryLoading)?'<p class="muted" style="text-align:center;margin-top:12px">لم يُضِف هذا المحل محتوى إضافياً بعد.</p>':''}`}
 function customerView(){
   const c=S.customers[S.phone];let body;
-  if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=shopV();else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
+  if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=`<div class="tp15-shoptab">${shopV()}</div>`;else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
   const hm=!S.sub&&S.tab==='home';
   return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${S.sub==='offer'||hm?'':pendingBanner()}${body}</div>${pendOverlay()}${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']])}`}
 function newPicModal(){const p=S.newPicUnlock,done=collectedCount(S.phone)>=S.collectPics.length;
@@ -4098,6 +4559,13 @@ async function topup(id,a){const res=await sbRpc('admin_topup_merchant',{p_merch
   if(S.walletCache[id])await syncMerchantData(id);else render()}
 
 function render(){
+  // الخريطة بملء الشاشة تُنقَل فعلياً إلى body (خارج #app) ليعمل position:fixed بشكل صحيح على آيفون؛
+  // أي render() يعيد بناء #app بالكامل (مزامنة بيانات بالخلفية، فاصل الجلسة الدوري...) بينما هي بهذه الحالة
+  // كان يُنشئ نسخة ثانية من #rmap داخل #app (التي لا يراها المستخدم) فتتعارض معرّفاتها مع النسخة الحقيقية
+  // المعروضة فعلياً، فتصبح استعلامات getElementById/$('#rmap') اللاحقة غامضة (أيّ النسختين تُطابق أولاً).
+  // لا شيء من محتوى #app مرئي أثناء ملء الشاشة أصلاً، فنؤخّر إعادة البناء هذه حتى إغلاق ملء الشاشة فقط.
+  const __rmFs=document.getElementById('rmap');
+  if(__rmFs&&__rmFs.classList.contains('tp23-fullscreen')){__pendingBgRender=true;return}
   if(S.screen==='app'&&S.mode==='admin'){if(!S.adminOk||Date.now()>S.adminUntil){const was=S.adminOk;S.adminOk=false;S.mode=null;S.screen='splash';if(was)toast('انتهت جلسة الإدارة. سجّل الدخول من جديد')}else S.adminUntil=Date.now()+ADMIN_SESSION}
   sweep();const a=$('#app');
   if(S.screen==='app')a.innerHTML=S.mode==='customer'?customerView():S.mode==='merchant'?merchantView():adminView();
