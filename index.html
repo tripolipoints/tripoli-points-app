@@ -244,18 +244,20 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap #rtl,.rmap #rmk{position:absolute;inset:0}.rmap #rtl{z-index:0}.rmap #rmk{z-index:2}
 .rmap #rtl img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;transition:opacity .25s}
 .rmap .mk{position:absolute;left:0;top:0;will-change:transform}
-.rmap .pn{position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;background:#fff;border:2.5px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 2px 6px rgba(10,30,70,.25);cursor:pointer;transform-origin:50% 50%;transition:transform .15s ease,box-shadow .15s ease}
+.rmap .pn{position:absolute;left:-14px;top:-33.8px;width:28px;height:28px;cursor:pointer;transform-origin:50% 100%;transition:transform .15s ease}
 .phbox{display:flex;align-items:flex-end;justify-content:center;aspect-ratio:3/2;max-height:230px;width:100%;border:2px dashed #9db3dd;border-radius:16px;background:#eef3fc center/cover no-repeat;margin-bottom:12px;cursor:pointer;overflow:hidden}.phbox:not(.has){align-items:center}.phbox .phl{font-weight:700;color:var(--navy);font-size:14px}.phbox.has{border-style:solid;border-color:#fff;box-shadow:0 1px 6px #0003}.phbox.has .phl{background:#0c2a6bcc;color:#fff;width:100%;text-align:center;padding:7px}.phbox.sq{aspect-ratio:1/1;max-height:260px;max-width:260px;margin:0 auto 12px}
 .cfr{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;border-radius:14px;background:#000;touch-action:none;cursor:grab;border:2px solid var(--yellow)}.cfr img{position:absolute;left:0;top:0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}.cfr.sq{aspect-ratio:1/1}
 .mph{display:block;width:100%;aspect-ratio:3/2;max-height:230px;object-fit:cover;border-radius:12px;margin-bottom:10px}
-.rmap .pn b{color:var(--c);font-weight:700;line-height:1}
-.rmap .pn.sel{transform:scale(1.18);box-shadow:0 0 0 4px rgba(255,194,14,.55),0 3px 9px rgba(10,30,70,.3)}
-.rmap .pn.ref{width:22px;height:22px;left:-11px;top:-11px;opacity:.9}
-.rmap .pn.cluster{width:32px;height:32px;left:-16px;top:-16px;font-size:13px;border-width:2.5px;border-color:var(--blue);background:#fff}
-.rmap .pn.cluster b{font-weight:800;color:var(--blue)}
-.rmap .pn.cluster.big{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 4px rgba(255,194,14,.55),0 3px 9px rgba(10,30,70,.3)}
+.rmap .pn .pnbody{position:absolute;inset:0;border-radius:50% 50% 50% 0;background:var(--c);transform:rotate(-45deg);filter:drop-shadow(0 2px 3px rgba(10,30,70,.35))}
+.rmap .pn b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;line-height:1;pointer-events:none}
+.rmap .pn.sel{transform:scale(1.12)}
+.rmap .pn.sel::before{content:"";position:absolute;left:-5px;top:-5px;width:38px;height:38px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,194,14,.9),0 0 0 7px rgba(255,194,14,.25)}
+.rmap .pn.ref{width:24px;height:24px;left:-12px;top:-29px;opacity:.9}
+.rmap .pn.cluster{width:32px;height:32px;left:-16px;top:-16px;border-radius:50%;background:#fff;border:2.5px solid var(--blue);font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(10,30,70,.25)}
+.rmap .pn.cluster b{position:static;display:block;font-weight:800;color:var(--blue);pointer-events:none}
+.rmap .pn.cluster.big{background:var(--blue);box-shadow:0 0 0 4px rgba(255,194,14,.55),0 3px 9px rgba(10,30,70,.3)}
 .rmap .pn.cluster.big b{color:#fff}
-.rmap .pnlbl{position:absolute;top:17px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
+.rmap .pnlbl{position:absolute;top:5px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
 .rmap .lb{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 2px #000,0 0 6px #000;pointer-events:none;direction:rtl}
 .rmap .me{position:absolute;left:-7.5px;top:-7.5px;width:15px;height:15px;border-radius:50%;background:#1d63e0;border:2.5px solid #fff;box-shadow:0 0 0 6px #1d63e044;pointer-events:none}
 .rmap .mchip{position:absolute;z-index:6;background:#fff;color:var(--navy);border:0;border-radius:999px;height:33px;padding:0 12px;display:flex;align-items:center;gap:6px;font:inherit;font-size:11.5px;font-weight:700;box-shadow:0 2px 8px #0005;direction:rtl;cursor:pointer}
@@ -2797,7 +2799,9 @@ let GM=null,gLoad=null;
 function gLoadApi(){if(window.google&&google.maps)return Promise.resolve();if(gLoad)return gLoad;
   gLoad=new Promise((ok,no)=>{window.__gmReady=ok;window.gm_authFailure=()=>{no(new Error('auth'))};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GKEY)+'&language=ar&region=LB&callback=__gmReady';sc.async=true;sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)});
   gLoad.catch(()=>{});return gLoad}
-const gIcon=(c,e,sel)=>{const s=sel?40:32,o=s/2,r=13;return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#0a1e46" flood-opacity=".3"/></filter></defs><g filter="url(#sh)">${sel?`<circle cx="${o}" cy="${o}" r="${r+4}" fill="none" stroke="#ffc20e" stroke-width="3" opacity=".85"/>`:''}<circle cx="${o}" cy="${o}" r="${r}" fill="#fff" stroke="${c}" stroke-width="3"/></g><text x="${o}" y="${o+5}" font-size="13" text-anchor="middle" fill="${c}" font-weight="700">${e}</text></svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(o,o)}};
+const gIcon=(c,e,sel)=>{const s=sel?48:40,vb=36,off=-6; // دبّوس بشكل teardrop كلاسيكي (رأس دائري مدبب للأسفل)؛ اللون حسب المنطقة، والأيقونة البيضاء في مركز الرأس؛ عند التحديد: نفس الشكل + هالة صفراء ناعمة حول الرأس فقط
+  const ring=sel?`<circle cx="12" cy="9" r="10" fill="none" stroke="#ffc20e" stroke-width="2.5" opacity=".9"/>`:'';
+  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="${off} ${off} ${vb} ${vb}"><defs><filter id="sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.4" flood-color="#0a1e46" flood-opacity=".35"/></filter></defs>${ring}<path filter="url(#sh)" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="${c}"/><text x="12" y="12" font-size="9" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-weight="700">${e}</text></svg>`),scaledSize:new google.maps.Size(s,s),anchor:new google.maps.Point(s*0.5,s*(28/36))}};
 function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.classList.add('g');const ea=el.querySelector('.attr');if(ea)ea.style.display='none';const rk=$('#rmk');if(rk)rk.style.pointerEvents='none';
   const mine={pick:!!el.dataset.pick};GM=mine;
   gLoadApi().then(()=>{if(GM!==mine)return;const v=mine.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16}:(S.mv||{lat:34.4425,lng:35.834,z:14});if(mine.pick)pickSet(v.lat,v.lng);
@@ -2809,7 +2813,7 @@ function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.cla
 let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
-  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(c[3],c[2],on),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
+  list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b',mk=new google.maps.Marker({map:m.map,position:l,icon:gIcon(clr,c[2],on),title:x.name,zIndex:on?9:3,optimized:false});if(on)mk.setAnimation(google.maps.Animation.BOUNCE),setTimeout(()=>mk.setAnimation(null),1400);mk.addListener('click',()=>pinTap(x.id));m.marks.push(mk)});
   if(m.me)m.me.setMap(null);m.me=new google.maps.Marker({map:m.map,position:S.userLL,zIndex:2,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:'#1d63e0',fillOpacity:1,strokeColor:'#fff',strokeWeight:3}});m.marks.push(m.me);
   if(fit)gFit(zBoost)}
 function gFit(zBoost){const m=GM;if(!m||!m.ok)return;const p=visibleMerchants().map(llOf);if(!p.length)return;const b=new google.maps.LatLngBounds();p.forEach(x=>b.extend(x));m.map.fitBounds(b,44);const zb=zBoost||0;if(p.length===1)setTimeout(()=>m.map.setZoom(15+zb),50);else setTimeout(()=>m.map.setZoom(Math.max(10,m.map.getZoom()-1+zb)),50)}
@@ -2869,8 +2873,8 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick){
     // دبابيس المحلات تُرسم ديناميكياً في طبقة منفصلة (pinLayer) لتُجمَّع أو تنفصل تلقائياً حسب مستوى التكبير
     t.pinLayer=document.createElement('div');t.pinLayer.className='pinLayer';t.mk.appendChild(t.pinLayer);
-    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m);return{id:m.id,lat:l.lat,lng:l.lng,c:c[3],ic:c[2],area:m.area||nearestArea(l.lat,l.lng)}}); // منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
-  } else if(t.pick&&S.editAreaSel)S.merchants.filter(m=>m.id!==S.mapFocus&&m.lat!=null&&nearestTArea(m.lat,m.lng)===S.editAreaSel).forEach(m=>{const c=CAT(effCat(m)),l=llOf(m);add(`<div class="pn ref" style="--c:${c[3]}" data-id="${m.id}" onclick="editPinTap('${m.id}')"><b>${c[2]}</b></div><div class="pnlbl">${esc(m.name)}</div>`,l.lat,l.lng,4,m.id)});
+    t.pins=visibleMerchants().map(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);return{id:m.id,lat:l.lat,lng:l.lng,c:AREA_COLORS[area]||'var(--navy)',ic:c[2],area}}); // لون الدبّوس حسب المنطقة (AREA_COLORS)، أما الأيقونة في مركزه فتبقى حسب فئة المحل (CAT) — منطقة التاجر المختارة يدوياً أدق من الحساب الهندسي عند حدود المناطق المتقاربة، فتُفضَّل متى وُجدت
+  } else if(t.pick&&S.editAreaSel)S.merchants.filter(m=>m.id!==S.mapFocus&&m.lat!=null&&nearestTArea(m.lat,m.lng)===S.editAreaSel).forEach(m=>{const c=CAT(effCat(m)),l=llOf(m),area=m.area||nearestArea(l.lat,l.lng);add(`<div class="pn ref" style="--c:${AREA_COLORS[area]||'var(--navy)'}" data-id="${m.id}" onclick="editPinTap('${m.id}')"><i class="pnbody"></i><b>${c[2]}</b></div><div class="pnlbl">${esc(m.name)}</div>`,l.lat,l.lng,4,m.id)});
   // نُعيد تصفير حالة "الفتح/التقسيم" فقط إذا تغيّرت مجموعة المحلات الظاهرة فعلياً (فلتر/بحث جديد)؛ مجرد اختيار محل (pinTap) أو تحديث عادي -أو حتى إعادة بناء الخريطة بالكامل بسبب render() دوري- لا يُفقد ما فتحه الزبون سابقاً من تجمّعات، لأن هذه الحالة محفوظة على S (لا على كائن TM المؤقت الذي يُعاد إنشاؤه مع كل render())
   const sig=t.pins.map(p=>p.id).sort().join(',');
   if(sig!==prevSig){S._mapForcedOpen=new Set();S._mapSplitGroups=[]}
@@ -2913,7 +2917,7 @@ function drawPinClusters(t,X,Y){
   const splitIds=new Set(splitGroups.flatMap(g=>g.ids));
   const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
-    d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c}" data-id="${p.id}"><b>${p.ic}</b></div>`;
+    d.innerHTML=`<div class="pn ${on?'sel':''}" style="--c:${p.c}" data-id="${p.id}"><i class="pnbody"></i><b>${p.ic}</b></div>`;
     d.firstChild.onclick=()=>pinTap(p.id);d.style.zIndex=on?9:3;t.pinLayer.appendChild(d)};
   t.pinLayer.innerHTML='';
   // التجميع الآن حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
