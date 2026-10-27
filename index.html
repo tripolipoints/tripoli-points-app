@@ -2844,8 +2844,8 @@ let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
   const curZ=m.map.getZoom()||14,zsBase=pinZoomScale(curZ),maxz=isMaxPinZoom(curZ),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase,labelZoomOk=isNearMaxPinZoom(curZ);
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
-  // اسم المحل يظهر فقط عند أعلى تكبير أو أثناء عرض خط السير (محل الوجهة فقط، والقائمة list نفسها محصورة به أصلاً في هذه الحالة)؛ عند تعارض بصري بين تسميتين، نُبقي وجهة خط السير ثم المحل المحدَّد أولاً
-  const labelCands=list.filter(x=>(S.route&&S.route.id===x.id)||labelZoomOk).map(x=>{const l=llOf(x);return{id:x.id,lat:l.lat,lng:l.lng,pri:(S.route&&S.route.id===x.id)?2:(S.sel===x.id?1:0)}});
+  // اسم المحل يظهر عند أعلى تكبير، أو أثناء عرض خط السير (محل الوجهة فقط، والقائمة list نفسها محصورة به أصلاً في هذه الحالة)، أو فوراً عند تحديد المحل (نفس لحظة تذهّب الدبّوس) بغضّ النظر عن التكبير؛ عند تعارض بصري بين تسميتين، نُبقي وجهة خط السير ثم المحل المحدَّد أولاً
+  const labelCands=list.filter(x=>(S.route&&S.route.id===x.id)||labelZoomOk||S.sel===x.id).map(x=>{const l=llOf(x);return{id:x.id,lat:l.lat,lng:l.lng,pri:(S.route&&S.route.id===x.id)?2:(S.sel===x.id?1:0)}});
   const labelOk=labelCands.length?gPlanLabels(labelCands,curZ):new Set();
   list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,isRoute=!!(S.route&&S.route.id===x.id),area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b';
     const logoUrl=safeLogoUrl(x.logo),wantLogo=(on||isRoute||maxz)&&!!logoUrl;
@@ -2992,9 +2992,9 @@ function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups|
 function drawPinClusters(t,X,Y){
   const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zsBase=pinZoomScale(t.z),maxz=isMaxPinZoom(t.z),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase,labelZoomOk=isNearMaxPinZoom(t.z);
   // ترميز دبّوس فردي واحد: الشعار المحفوظ يستبدل أيقونة الفئة داخل الحلقة البيضاء فقط عند التحديد، أو أثناء عرض خط السير لهذا المحل، أو عند أعلى مستوى تكبير — وإلا تبقى الأيقونة؛ onerror يُخفي صورة الشعار فتظهر الأيقونة خلفها دون أي قفزة بالتخطيط (نفس أبعاد الحلقة)
-  // اسم المحل يظهر أسفل الدبّوس فقط عند أعلى تكبير أو أثناء عرض خط السير لمحل الوجهة (وإلا تبقى الخريطة نظيفة بلا نصوص)؛ التحديد أو الوجهة يضيف إطاراً ذهبياً خفيفاً للتسمية نفسها
+  // اسم المحل يظهر أسفل الدبّوس عند أعلى تكبير، أو أثناء عرض خط السير لمحل الوجهة، أو فوراً عند تحديد المحل (نفس لحظة تذهّب الدبّوس) بغضّ النظر عن مستوى التكبير — وإلا تبقى الخريطة نظيفة بلا نصوص؛ التحديد أو الوجهة يضيف إطاراً ذهبياً خفيفاً للتسمية نفسها
   const pinHtml=(p,on,isRoute)=>{const showLogo=(on||isRoute||maxz)&&p.logo,cls=isRoute?'route':(on?'sel':''),img=showLogo?`<img class="pnimg" src="${esc(p.logo)}" alt="" onerror="this.style.display='none'">`:'';
-    const showLabel=(isRoute||labelZoomOk)&&p.name,lbl=showLabel?`<div class="pnname ${(on||isRoute)?'hi':''}" data-sel="${on?1:0}" data-route="${isRoute?1:0}">${esc(p.name)}</div>`:'';
+    const showLabel=(isRoute||on||labelZoomOk)&&p.name,lbl=showLabel?`<div class="pnname ${(on||isRoute)?'hi':''}" data-sel="${on?1:0}" data-route="${isRoute?1:0}">${esc(p.name)}</div>`:'';
     return `<div class="pn ${cls}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b>${img}</div>${lbl}`};
   const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id,isRoute=!!(S.route&&S.route.id===p.id);
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
@@ -3035,7 +3035,7 @@ function drawPinClusters(t,X,Y){
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
     if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})
-  if(labelZoomOk||(S.route&&S.route.id))resolveLabelCollisions(t)}
+  if(labelZoomOk||S.sel||(S.route&&S.route.id))resolveLabelCollisions(t)}
 // عند تطابق تسميتين أو أكثر بصرياً (أسماء متجاورة تتراكب على الشاشة)، تُبقى تسمية المحل المحدَّد (أو وجهة خط السير) ظاهرة دوماً كأولوية أولى، وتُخفى التسميات الأخرى المتعارضة معها فقط — دون أي تغيير بموضع الدبّوس نفسه أو قابليته للمس
 function resolveLabelCollisions(t){
   const els=[...t.pinLayer.querySelectorAll('.pnname')];if(els.length<2)return;
