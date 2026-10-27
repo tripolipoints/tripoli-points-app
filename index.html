@@ -254,10 +254,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .rmap .pn.sel{transform:scale(1.12)}
 .rmap .pn.sel .pnbody{box-shadow:0 0 0 2px rgba(255,194,14,.9),0 0 6px 2px rgba(255,194,14,.55)}
 .rmap .pn.ref{width:24px;height:24px;left:-12px;top:-29px;opacity:.9}
-.rmap .pn.cluster{width:32px;height:32px;left:-16px;top:-16px;border-radius:50%;background:#fff;border:2.5px solid var(--blue);font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(10,30,70,.25)}
-.rmap .pn.cluster b{position:static;display:block;font-weight:800;color:var(--blue);pointer-events:none}
-.rmap .pn.cluster.big{background:var(--blue);box-shadow:0 0 0 4px rgba(255,194,14,.55),0 3px 9px rgba(10,30,70,.3)}
-.rmap .pn.cluster.big b{color:#fff}
+.rmap .pn.cluster{width:34px;height:34px;left:-17px;top:-41px}
+.rmap .pn.cluster b{font-size:11px}
 .rmap .pnlbl{position:absolute;top:5px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;box-shadow:0 1px 3px #0003;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;direction:rtl}
 .rmap .lb{position:absolute;transform:translate(-50%,-50%);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 2px #000,0 0 6px #000;pointer-events:none;direction:rtl}
 .rmap .me{position:absolute;left:-7.5px;top:-7.5px;width:15px;height:15px;border-radius:50%;background:#1d63e0;border:2.5px solid #fff;box-shadow:0 0 0 6px #1d63e044;pointer-events:none}
@@ -2900,8 +2898,8 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;const pts=ids.map(id=>
     S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>!g.ids.some(id=>ids.includes(id))); // إزالة أي تقسيم سابق متداخل مع هذا التجمّع نفسه
     const sorted=[...ids].sort((a,b)=>String(a).localeCompare(String(b)));
     const mid=Math.ceil(sorted.length/2);
-    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(0,mid),clat:lat,clng:lng,off:-1});
-    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(mid),clat:lat,clng:lng,off:1});
+    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(0,mid),clat:lat,clng:lng,off:-1,area:areaName});
+    S._mapSplitGroups.push({gid:++splitGid,ids:sorted.slice(mid),clat:lat,clng:lng,off:1,area:areaName});
   } else {
     // تجمّع صغير (6 محلات أو أقل): يُفتح فوراً فتظهر كل محلاته منفردة (التجميع بالمنطقة لا يختفي بمجرد التكبير وحده، بخلاف التجميع القديم حسب تقارب البكسل)
     if(!skipZoom&&ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM); // أقل من 6: تكبير إضافي درجتين بعد الدرجة الأساسية (إلا إذا كان الزوم منجزاً أصلاً من صفحة المنطقة)
@@ -2931,8 +2929,8 @@ function drawPinClusters(t,X,Y){
     // دبّوس المنطقة يظهر تماماً عند إحداثياتها المسجّلة بالإدارة، بلون المنطقة، وبعدد محلاتها الظاهرة حالياً (نفس العدد المعروض بشاشة «مناطق طرابلس»)
     const x=t.w/2+wx(coord.lng,t.z)-X,y=t.h/2+wy(coord.lat,t.z)-Y;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
-    const ids=group.map(p=>p.id),big=group.length>CLUSTER_SPLIT_THRESHOLD;
-    d.innerHTML=`<div class="pn cluster${big?' big':''}"><b>${group.length}</b></div>`;
+    const ids=group.map(p=>p.id),clr=AREA_COLORS[areaName]||'var(--navy)';
+    d.innerHTML=`<div class="pn cluster" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
     d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=5;
     t.pinLayer.appendChild(d)});
   t.pins.filter(p=>forcedOpen.has(p.id)).forEach(drawSingle);
@@ -2941,7 +2939,7 @@ function drawPinClusters(t,X,Y){
     const cx=t.w/2+wx(gr.clng,t.z)-X+gr.off*(CLUSTER_SPLIT_GAP/2),cy=t.h/2+wy(gr.clat,t.z)-Y;
     const d=document.createElement('div');d.className='mk';
     d.style.transform=`translate(${Math.round(cx)}px,${Math.round(cy)}px)`;
-    d.innerHTML=`<div class="pn cluster split big"><b>${gr.ids.length}</b></div>`;
+    d.innerHTML=`<div class="pn cluster split" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=6;
     t.pinLayer.appendChild(d)})}
 function drawMarks(){const t=TM;if(!t)return;const X=wx(t.lng,t.z),Y=wy(t.lat,t.z);
