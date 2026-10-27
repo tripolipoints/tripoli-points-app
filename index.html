@@ -2842,10 +2842,10 @@ function initGMap(){const el=$('#rmap'),box=$('#rtl');if(!el||!box)return;el.cla
     mine.ok=true;gBuild(!S.mv&&!mine.pick,(!S.mv&&!mine.pick)?TRIPOLI_ZOOM_BOOST:0)}).catch(()=>{if(GM!==mine)return;GM=null;toast('تعذّر تحميل خرائط Google — نعرض الخريطة البديلة');gFail=true;render()})}
 let gFail=false;
 function gBuild(fit,zBoost){const m=GM;if(!m||!m.ok||m.pick)return;(m.marks||[]).forEach(x=>x.setMap(null));m.marks=[];
-  const curZ=m.map.getZoom()||14,zsBase=pinZoomScale(curZ),maxz=isMaxPinZoom(curZ),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
+  const curZ=m.map.getZoom()||14,zsBase=pinZoomScale(curZ),maxz=isMaxPinZoom(curZ),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase,labelZoomOk=isNearMaxPinZoom(curZ);
   const list=S.route&&S.route.id?visibleMerchants().filter(x=>x.id===S.route.id):visibleMerchants();
   // اسم المحل يظهر فقط عند أعلى تكبير أو أثناء عرض خط السير (محل الوجهة فقط، والقائمة list نفسها محصورة به أصلاً في هذه الحالة)؛ عند تعارض بصري بين تسميتين، نُبقي وجهة خط السير ثم المحل المحدَّد أولاً
-  const labelCands=list.filter(x=>(S.route&&S.route.id===x.id)||maxz).map(x=>{const l=llOf(x);return{id:x.id,lat:l.lat,lng:l.lng,pri:(S.route&&S.route.id===x.id)?2:(S.sel===x.id?1:0)}});
+  const labelCands=list.filter(x=>(S.route&&S.route.id===x.id)||labelZoomOk).map(x=>{const l=llOf(x);return{id:x.id,lat:l.lat,lng:l.lng,pri:(S.route&&S.route.id===x.id)?2:(S.sel===x.id?1:0)}});
   const labelOk=labelCands.length?gPlanLabels(labelCands,curZ):new Set();
   list.forEach(x=>{const c=CAT(effCat(x)),l=llOf(x),on=S.sel===x.id,isRoute=!!(S.route&&S.route.id===x.id),area=x.area||nearestArea(l.lat,l.lng),clr=AREA_COLORS[area]||'#0c2a6b';
     const logoUrl=safeLogoUrl(x.logo),wantLogo=(on||isRoute||maxz)&&!!logoUrl;
@@ -2883,7 +2883,7 @@ function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!
   if(window.ResizeObserver){const ro=new ResizeObserver(()=>drawMap());ro.observe(el);t.off.push(()=>ro.disconnect())}
   buildMarks();drawMap();
   if(firstPick)locateMe();}
-function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(10,Math.min(18,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
+function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(10,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
   t.lng=wlng(wx(lng,nz)-(px-t.w/2),nz);t.lat=wlat(wy(lat,nz)-(py-t.h/2),nz);t.z=nz;drawMap();saveView()}
 function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;cancelAnimationFrame(t.anim);const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
   const st=n=>{if(TM!==t)return;const k=Math.min(1,(n-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;t.lat=a.lat+(lat-a.lat)*e;t.lng=a.lng+(lng-a.lng)*e;t.z=a.z+(z-a.z)*e;drawMap();if(k<1)t.anim=requestAnimationFrame(st);else saveView()};
@@ -2928,11 +2928,13 @@ const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التج
 const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
 const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
-const PIN_ZOOM_LO=12,PIN_ZOOM_HI=18,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65;
+const PIN_ZOOM_LO=12,PIN_ZOOM_HI=20,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65; // مدى التكبير اليدوي الأقصى مُدَّد بدرجتين إضافيتين (كان PIN_ZOOM_HI=18) حيثما يدعم ذلك الجهاز/مزوّد الخريطة تقنياً؛ isMaxPinZoom وisNearMaxPinZoom يُعاد حسابهما تلقائياً من PIN_ZOOM_HI فلا يحتاجان أي تعديل منفصل، وكذلك حدّا التكبير اليدوي في zoomAt وzoomMap أدناه (يُشيران إلى PIN_ZOOM_HI لا رقم ثابت)
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
 // عند الوصول لأعلى مستوى تكبير مدعوم (PIN_ZOOM_HI)، تُكبَّر الدبابيس الفردية (لا فقاعات التجمّعات) درجة إضافية فوق سقف pinZoomScale العادي، لإظهار الشعار/الأيقونة بوضوح أكبر
 const PIN_MAXZ_BOOST=1.22;
 function isMaxPinZoom(z){return z>=PIN_ZOOM_HI-.05}
+// عرض أسماء المحلات يبدأ من مستوى تكبير أدنى بدرجة واحدة فقط عن الحد الأقصى (PIN_ZOOM_HI-1)، لا من الحد الأقصى نفسه؛ هذا مستقل تماماً عن isMaxPinZoom التي تبقى محصورة بحساب تكبير الدبابيس (PIN_MAXZ_BOOST) فقط
+function isNearMaxPinZoom(z){return z>=PIN_ZOOM_HI-1-.05}
 // عامل تكبير دبّوس الوجهة أثناء عرض خط السير، أكبر من دبّوس التحديد العادي ليتميّز شعار المحل أو أيقونته بوضوح
 const PIN_ROUTE_SCALE=1.4;
 // شعار المحل يُعرض داخل الدبّوس فقط إذا كان رابطاً فعلياً http(s) (أو بروتوكول نسبي //) — يحجب أي قيمة مثل javascript: أو data: أو نص عشوائي قد يحاول حقن HTML/SVG
@@ -2955,7 +2957,8 @@ function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),
 let splitGid=0;
 function clusterTap(ids,areaName){const t=TM;if(!t)return;
   cancelAnimationFrame(t.anim); // إيقاف فوري لأي حركة تكبير/تحريك سابقة لا تزال قيد التنفيذ، كي لا يستمر الزوم بالتغيّر بعد هذه الضغطة دون قصد
-  if(S._mapOpenGroup&&S._mapOpenGroup.type==='area'&&S._mapOpenGroup.area===areaName&&!S._mapOpenGroup.split){S._mapOpenGroup=null;drawMarks();return} // نفس التجمّع المفتوح: إغلاقه، دون أي تغيير بالزوم
+  // نفس التجمّع المفتوح: الضغط على فقاعته الأصلية (التي تبقى ظاهرة، معتّمة ومصغّرة قليلاً، كمقبض تحكّم مقصود لا كعلّة) يُعيد الخريطة بالكامل إلى نظرة طرابلس العامة -نفس زر «طرابلس» تماماً- بدل مجرد طيّ المحلات فرديًا؛ هذا يقطع حلقة إعادة الفتح/الطيّ/إعادة الفتح على نفس التجمّع، التي كانت تُراكم درجات الزوم في كل دورة لأن صيغة أول فتح تحسب الزوم نسبةً إلى الزوم الحالي لا نقطة انطلاق ثابتة (راجع جذر العلة في وصف هذا الإصدار)
+  if(S._mapOpenGroup&&S._mapOpenGroup.type==='area'&&S._mapOpenGroup.area===areaName&&!S._mapOpenGroup.split){resetMapFilter();return}
   const wasOpen=!!S._mapOpenGroup; // هل كان هناك تجمّع آخر مفتوحاً مسبقاً؟ (فتح أول من حالة مطوية بالكامل يختلف عن مجرد التبديل بين تجمّعين)
   const pts=ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
   const lat=pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng=pts.reduce((s,p)=>s+p.lng,0)/pts.length;
@@ -2987,11 +2990,11 @@ function openSplitGroup(gid){const t=TM;if(!t)return;const g=(S._mapSplitGroups|
   S._mapOpenGroup={type:'split',gid,area:g.area};
   drawMarks()}
 function drawPinClusters(t,X,Y){
-  const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zsBase=pinZoomScale(t.z),maxz=isMaxPinZoom(t.z),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase;
+  const og=S._mapOpenGroup,splitGroups=S._mapSplitGroups||[],zsBase=pinZoomScale(t.z),maxz=isMaxPinZoom(t.z),zs=maxz?+(zsBase*PIN_MAXZ_BOOST).toFixed(3):zsBase,labelZoomOk=isNearMaxPinZoom(t.z);
   // ترميز دبّوس فردي واحد: الشعار المحفوظ يستبدل أيقونة الفئة داخل الحلقة البيضاء فقط عند التحديد، أو أثناء عرض خط السير لهذا المحل، أو عند أعلى مستوى تكبير — وإلا تبقى الأيقونة؛ onerror يُخفي صورة الشعار فتظهر الأيقونة خلفها دون أي قفزة بالتخطيط (نفس أبعاد الحلقة)
   // اسم المحل يظهر أسفل الدبّوس فقط عند أعلى تكبير أو أثناء عرض خط السير لمحل الوجهة (وإلا تبقى الخريطة نظيفة بلا نصوص)؛ التحديد أو الوجهة يضيف إطاراً ذهبياً خفيفاً للتسمية نفسها
   const pinHtml=(p,on,isRoute)=>{const showLogo=(on||isRoute||maxz)&&p.logo,cls=isRoute?'route':(on?'sel':''),img=showLogo?`<img class="pnimg" src="${esc(p.logo)}" alt="" onerror="this.style.display='none'">`:'';
-    const showLabel=(isRoute||maxz)&&p.name,lbl=showLabel?`<div class="pnname ${(on||isRoute)?'hi':''}" data-sel="${on?1:0}" data-route="${isRoute?1:0}">${esc(p.name)}</div>`:'';
+    const showLabel=(isRoute||labelZoomOk)&&p.name,lbl=showLabel?`<div class="pnname ${(on||isRoute)?'hi':''}" data-sel="${on?1:0}" data-route="${isRoute?1:0}">${esc(p.name)}</div>`:'';
     return `<div class="pn ${cls}" style="--c:${p.c};--zs:${zs}" data-id="${p.id}"><i class="pnbody"></i><i class="pnring"></i><b>${p.ic}</b>${img}</div>${lbl}`};
   const drawSingle=p=>{const x=t.w/2+wx(p.lng,t.z)-X,y=t.h/2+wy(p.lat,t.z)-Y,on=S.sel===p.id,isRoute=!!(S.route&&S.route.id===p.id);
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
@@ -3032,7 +3035,7 @@ function drawPinClusters(t,X,Y){
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
     if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})
-  if(maxz||(S.route&&S.route.id))resolveLabelCollisions(t)}
+  if(labelZoomOk||(S.route&&S.route.id))resolveLabelCollisions(t)}
 // عند تطابق تسميتين أو أكثر بصرياً (أسماء متجاورة تتراكب على الشاشة)، تُبقى تسمية المحل المحدَّد (أو وجهة خط السير) ظاهرة دوماً كأولوية أولى، وتُخفى التسميات الأخرى المتعارضة معها فقط — دون أي تغيير بموضع الدبّوس نفسه أو قابليته للمس
 function resolveLabelCollisions(t){
   const els=[...t.pinLayer.querySelectorAll('.pnname')];if(els.length<2)return;
@@ -3149,7 +3152,7 @@ function pinTap(id){if(TM&&TM.moved)return;
   }
   setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
-const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(18,TM.z+d)),300)};
+const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
 const fitAll=()=>{if(GM)return gFit();if(!TM)return;const v=fitPts(visibleMerchants().map(llOf),44);flyTo(v.lat,v.lng,v.z,700)};
 function locateMe(silent){const done=(lat,lng,msg,real,failed)=>{S.userLL={lat,lng};S.userReal=!!real;const rr=S.route&&S.route.id&&!S.pickMode&&!(TM&&TM.pick)?S.route:null;if(GM&&GM.ok){gBuild();if(!rr){GM.map.panTo({lat,lng});GM.map.setZoom(16)}}if(TM){buildMarks();if(!rr)flyTo(lat,lng,16,800)}if(rr)showRoute(rr.id,rr.mode);else if(S.sel)refreshCardUi();if(msg)toast(msg);
