@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102821-assets">
+<meta name="tp-build" content="v31.1 build 2026102822-routecard">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1069,7 +1069,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
   .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
     height:226px !important;min-height:226px !important;flex-basis:226px !important;
   }
-  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections),
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantRoute){
     height:176px !important;min-height:176px !important;flex-basis:176px !important;
   }
   .scr:has(> .hero2) .promoFace.storeFace.premiumMerchant .shPhoto{
@@ -1089,7 +1090,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
     box-shadow:0 0 0 3px rgba(188,211,236,.45),0 8px 22px rgba(14,43,96,.10) !important;
     margin:6px 0 10px !important;
   }
-  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections),
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantRoute){
     height:162px !important;min-height:162px !important;flex-basis:162px !important;
   }
   .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
@@ -1155,7 +1157,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
   }
 }
 @media(max-width:360px){
-  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections){
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDirections),
+  .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantRoute){
     height:168px !important;min-height:168px !important;flex-basis:168px !important;
   }
   .scr:has(> .hero2) > .promoSlot:has(.storeFace.premiumMerchant.merchantDetails){
@@ -1172,7 +1175,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
    scaled to available height, so the homepage keeps fitting without excess
    scroll. Card colors/border/layout are untouched — this only resizes the map. */
 @media (max-width:560px){
-  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDirections){
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDirections),
+  .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantRoute){
     height:clamp(210px,30dvh,300px) !important;max-height:300px;
   }
   .scr:has(> .hero2) .rmap.big:has(~ .promoSlot .premiumMerchant.merchantDetails){
@@ -1285,6 +1289,31 @@ body > .rmap.tp23-fullscreen .mchip.mround{bottom:calc(28px + env(safe-area-inse
 body.tp23-map-open > #promoSlot{display:none!important}
 body.tp23-map-open #mapcard,body.tp23-map-open #storeSheet{display:none!important}
 body.tp23-map-open #rtchip{display:none!important}
+</style><style id="tp32-route-card">
+/* Embedded home map only: route info and actions live in the merchant card, no floating route controls over the map.
+   Fullscreen keeps its approved controls (#tpRouteActions: Google Maps + تسوّق هنا). */
+.rmap.tp23-home-map #rtchip{display:none!important}
+.rmap.tp23-home-map:not(.tp23-fullscreen) #tpRouteActions{display:none!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant.merchantRoute{gap:7px!important;padding:11px 12px 12px!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant.merchantRoute .merchantTop{gap:10px!important;flex:0 0 auto!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant.merchantRoute .shPhoto{width:54px!important;height:54px!important;min-width:54px!important;flex:0 0 54px!important;border-radius:12px!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant.merchantRoute .shInfo{gap:5px!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.storeFace.premiumMerchant.merchantRoute .shName{font-size:clamp(15px,4.2vw,18px)!important;line-height:1.2!important}
+.promoFace.merchantRoute .rtMeta{display:flex;align-items:center;gap:7px;direction:rtl;max-width:100%;min-width:0;font-size:12.5px;line-height:1.2;color:#0c2a6b;white-space:nowrap}
+.promoFace.merchantRoute .rtSeg{display:inline-flex;flex:none;border:1.5px solid #aabfe2;border-radius:999px;overflow:hidden;background:#fff}
+.promoFace.merchantRoute .rtSeg button{all:unset;box-sizing:border-box;width:28px;height:22px;display:flex;align-items:center;justify-content:center;color:#0c2a6b;cursor:pointer}
+.promoFace.merchantRoute .rtSeg button.on{background:#0c2a6b;color:#fff;cursor:default}
+.promoFace.merchantRoute .rtSeg button:focus-visible{outline:2px solid #ffc20e;outline-offset:-2px}
+.promoFace.merchantRoute .rtTxt{flex:none}
+@media (max-width:360px){.promoFace.merchantRoute .rtCl{display:none}.promoFace.merchantRoute .rtMeta{gap:6px}}
+.promoFace.merchantRoute .rtTxt b{font-weight:800}
+.promoFace.merchantRoute .rtCancel{all:unset;flex:none;color:#c0392b;font-size:11.5px;font-weight:700;cursor:pointer;padding:3px 0}
+.promoFace.merchantRoute .rtCancel:focus-visible{outline:2px solid #ffc20e}
+.promoFace.merchantRoute .rtCta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;direction:rtl;width:100%}
+.scr:has(> .hero2) > .promoSlot > .promoFace.merchantRoute .rtCta > *{box-sizing:border-box;width:100%!important;min-width:0;margin:0!important;height:33px!important;min-height:33px!important;padding:2px 6px!important;border-radius:11px!important;display:flex!important;align-items:center;justify-content:center;gap:4px;font-size:clamp(10.5px,3vw,12.5px)!important;font-weight:800!important;line-height:1.12!important;text-align:center;text-decoration:none;white-space:nowrap;overflow:hidden;background:#fff!important;color:#0c2a6b!important;border:1.5px solid #aabfe2!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.merchantRoute .rtCta > .rtMain{grid-column:1/-1;height:36px!important;min-height:36px!important;font-size:clamp(12.5px,3.5vw,14.5px)!important;background:linear-gradient(115deg,#0a378b,#1465d7)!important;color:#fff!important;border:1px solid #1465d7!important}
+.scr:has(> .hero2) > .promoSlot > .promoFace.merchantRoute .rtCta > .rtWait{opacity:.5}
+.promoFace.merchantRoute .rtCta .ic{width:14px;height:14px;flex:none}
 </style>
 <style id="tp31-categories-areas">
 /* Tripoli Points V14 — approved premium More / categories / neighborhoods mobile design.
@@ -3316,7 +3345,8 @@ function refreshGoogleNavButton(){
   box.style.display=visible?'flex':'none';
   if(link){if(visible)link.href=googleNavUrl(merchant,R.mode);else link.removeAttribute('href')}
 }
-function routeUi(){refreshCardUi();refreshGoogleNavButton();const R=S.route,c=$('#rtchip');
+function routeUi(){const R0=S.route;if(!R0)S.rcard=null;else if(R0.coords)S.rcard=R0.id; // البطاقة تبقى بوضع «المسار» أثناء إعادة الحساب عند تبديل الوسيلة (لا ارتداد مؤقت لأزرار اختيار المسار)
+  refreshCardUi();refreshGoogleNavButton();const R=S.route,c=$('#rtchip');
   if(c){if(R&&R.coords){c.style.display='flex';c.innerHTML=`<span>${R.mode==='foot'?'🚶':'🚗'} ${fmtDur(R.dur)} · ${fdist(Math.round(R.dist))}</span><button onclick="clearRoute()" aria-label="إلغاء">✕</button>`}else c.style.display='none'}
   if(TM)drawRoute();if(GM&&GM.ok)gRoute(false)}
 function drawRoute(){const t=TM,sv=t&&$('#rsv');if(!sv)return;const R=S.route;if(!R||!R.coords){sv.innerHTML='';return}
@@ -3645,6 +3675,26 @@ function promoSlotHtml(){
   const focusedOffer=S.mapOfferFocus&&S.offers.find(x=>x.id===S.mapOfferFocus&&x.mid===sel.id);
   const faceImg=(focusedOffer&&focusedOffer.img)||sel.photo;
   const discount=rdPct(sel,S.phone);
+  // بعد ظهور مسار فعلي على الخريطة المدمجة: تتحوّل البطاقة نفسها (بنفس ارتفاعها) إلى بطاقة «ما بعد المسار» — مدة ومسافة الوسيلة المختارة مع مبدّل مشي/سيارة صغير وزر «إلغاء المسار»،
+  // ثم «استخدم نقاطك هنا» (نفس حاسبة استخدام النقاط openCalc) و«عرض تفاصيل المتجر» (openStore) و«توجّه عبر Google Maps» (نفس رابط الوجهة الدقيقة ووسيلة المسار). لا أزرار عائمة فوق الخريطة المدمجة
+  const RR=S.route&&S.route.id===sel.id?S.route:null;
+  if(RR&&(RR.coords||(RR.loading&&S.rcard===sel.id))){const md=RR.mode,id=sel.id;
+    const seg=(m,icn,lab)=>`<button type="button" class="${md===m?'on':''}" aria-pressed="${md===m}" aria-label="${lab}" title="${lab}" onclick="${md===m?'':`showRoute('${id}','${m}')`}">${ic(icn,13)}</button>`;
+    return `<div class="promoFace storeFace premiumMerchant merchantRoute">
+    <button class="shClose" onclick="clearMapSel()" aria-label="إغلاق بطاقة المتجر">✕</button>
+    <div class="merchantTop">
+      <div class="shPhoto" style="background:${faceImg?`url(${faceImg}) center/cover`:c[3]+'22'}">${faceImg?'':c[2]}</div>
+      <div class="shInfo">
+        <b class="shName" dir="auto" style="cursor:pointer;unicode-bidi:plaintext" onclick="openStore('${id}')">${sel.name}</b>
+        <div class="rtMeta"><span class="rtSeg" role="group" aria-label="وسيلة التنقّل">${seg('foot','walk','مشياً')}${seg('driving','car','بالسيارة')}</span><span class="rtTxt" role="status">${RR.coords&&!RR.loading?`<b>${fmtDur(RR.dur)}</b> · ${fdist(Math.round(RR.dist))}`:'جارٍ الحساب…'}</span><button type="button" class="rtCancel" onclick="clearRoute()" aria-label="إلغاء المسار">إلغاء<span class="rtCl"> المسار</span></button></div>
+      </div>
+    </div>
+    <div class="merchantActions"><div class="rtCta">
+      <button type="button" class="btn blue rtMain" onclick="openCalc('${id}')">استخدم نقاطك هنا</button>
+      <button type="button" class="btn ghost" onclick="openStore('${id}')">عرض تفاصيل المتجر</button>
+      ${RR.coords&&!RR.loading?`<a class="btn ghost" target="_blank" rel="noopener noreferrer" href="${googleNavUrl(sel,md)}"><span>توجّه عبر Google Maps</span></a>`:`<span class="btn ghost rtWait" aria-disabled="true"><span>توجّه عبر Google Maps</span></span>`}
+    </div></div>
+  </div>`}
   return `<div class="promoFace storeFace premiumMerchant ${hasRoute?'merchantDetails':'merchantDirections'}">
     <button class="shClose" onclick="clearMapSel()" aria-label="إغلاق بطاقة المتجر">✕</button>
     <div class="merchantTop">
@@ -3683,6 +3733,7 @@ function flipPromoSlot(){
   if(el.innerHTML===newHtml)return; // لا داعٍ لأي حركة إن لم يتغيّر المحتوى فعلياً
   const inner=el.firstElementChild;
   if(!inner){el.innerHTML=newHtml;return}
+  if(inner.classList.contains('merchantRoute')&&newHtml.indexOf('merchantRoute')>=0){el.innerHTML=newHtml;return} // تبديل مشي/سيارة داخل بطاقة المسار: تحديث في مكانه بلا دوران ولا تمرير
   inner.style.transition='transform .17s ease-in';
   inner.style.transform='rotateY(85deg)';
   setTimeout(()=>{
@@ -4960,7 +5011,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102821-assets';
+  b.textContent='Tripoli Points v31.1 · build 2026102822-routecard';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
