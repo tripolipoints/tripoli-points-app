@@ -1239,6 +1239,12 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .nav.navPremium button.on span:not(.nbadge){font-weight:800}
 .nav.navPremium button .ic.tpIcCastle{margin:calc((19px - clamp(19px,5vw,23px)) / 2) 0} /* يشغل 19px رأسياً تماماً كأيقونة 🏛️ السابقة، فيبقى ارتفاع الشريط كما هو */
 .nav.navPremium .nbadge{z-index:2;box-shadow:0 0 0 1.5px #0c2a6b}
+
+/* شاشات أضيق من 340px فقط (iPhone SE الأول / 5s): إصلاح اقتطاع النصوص بفارق 2–3px دون أي تغيير على الشاشات الأكبر */
+@media (max-width:339.98px){
+  .scr:has(> .hero2) > .cats2 .cat2 .cat2name{margin-left:-2px;margin-right:-2px;max-width:calc(100% + 4px)}
+  .tpTreasureTitle{font-size:12.6px}
+}
 </style>
 <style id="tp23-big-map-preview">
 /* V23 map-size preview: keep all route, pin and data behavior unchanged. */
@@ -2556,7 +2562,9 @@ function cardHtml(){
 const SVG_NAV='<svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:#0c2a6b"><path d="M12 2l6 16-6-4-6 4z"/></svg>';
 const SVG_TGT='<svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:none;stroke:#0c2a6b;stroke-width:2"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="#0c2a6b"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>';
 // حالة دليل التجار فوق الخريطة: أثناء التحميل أو عند تعذّره تظهر رسالة واضحة (مع إعادة المحاولة) بدل خريطة فارغة صامتة — ولا تُعرض أي محلات تجريبية مكانها إطلاقاً
-function mapDirStateHtml(){if(S.dirState==='ok'||allActiveMerchants().length)return'';
+function mapDirStateHtml(){if(allActiveMerchants().length)return'';
+  // تحميل ناجح فعلاً لكن بلا أي محل فعّال: رسالة ودّية مستقلة عن «جارٍ التحميل» وعن رسالة الخطأ (ولا تظهر أبداً أثناء التحميل)
+  if(S.dirState==='ok')return`<div class="mapDirState empty" role="status">لا توجد محلات متاحة حالياً. ترقّبوا انضمام محلات جديدة قريباً!</div>`;
   return S.dirState==='error'?`<div class="mapDirState err" role="alert">تعذّر تحميل المحلات. تحقّق من الاتصال<button type="button" onclick="S.dirState='loading';render();syncDirectory()">إعادة المحاولة</button></div>`:`<div class="mapDirState" role="status">جارٍ تحميل المحلات…</div>`}
 function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>${mapDirStateHtml()}
  ${tp30GoogleNavButton()}${tall?'':`<button class="mchip" style="top:12px;left:12px" onclick="resetMapFilter()"><span>🗺️</span>طرابلس</button>`}
@@ -4924,7 +4932,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102812-perf1';
+  b.textContent='Tripoli Points v31.1 · build 2026102813-final';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
