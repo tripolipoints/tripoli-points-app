@@ -2116,7 +2116,14 @@ function hydrateCustomer(cd){
 async function syncSettings(){const r=await sbRpc('get_app_text_settings',{});if(r&&typeof r==='object')Object.assign(S.settings,r)}
 async function syncCategories(){const r=await sbRpc('get_categories',{p_include_inactive:S.mode==='admin'});if(Array.isArray(r)){S.cats=r;if(S.mode!=='admin'){try{localStorage.setItem('tp_cats_cache',JSON.stringify(r))}catch(e){}}}}
 function promoActive(){const s=S.settings,st=s.promo_start,en=s.promo_end;if(!st&&!en)return true;const now=new Date().toISOString().slice(0,10);if(st&&now<st)return false;if(en&&now>en)return false;return true}
-async function syncDirectory(){const list=await sbRpc('list_merchants',{});if(list){list.forEach(hydrateMerchant);S.dirState='ok'}else if(S.dirState!=='ok')S.dirState='error';render()}
+// دليل التجار: طلب واحد مشترك (أي استدعاء أثناء طلب جارٍ ينتظر نفس الطلب)، ويُعاد استخدامه 5 دقائق بدل تنزيل القائمة الكاملة من جديد عند كل فتح لصفحة متجر أو حاسبة النقاط.
+// حالة الخطأ أو التحميل تعيد الطلب دائماً (زر «إعادة المحاولة» يعمل كما هو)، وتحديث الواجهة بعده تحديث خلفي يُبقي الخريطة الحيّة كما هي
+const DIR_TTL=5*60*1000;let _dirInflight=null,_dirLoadedAt=0;
+function syncDirectory(){
+  if(_dirInflight)return _dirInflight;
+  if(S.dirState==='ok'&&Date.now()-_dirLoadedAt<DIR_TTL)return Promise.resolve();
+  _dirInflight=(async()=>{const list=await sbRpc('list_merchants',{});if(list){list.forEach(hydrateMerchant);S.dirState='ok';_dirLoadedAt=Date.now()}else if(S.dirState!=='ok')S.dirState='error';render({bg:true})})().finally(()=>{_dirInflight=null});
+  return _dirInflight}
 async function syncAdminMerchants(){const list=await sbRpc('admin_list_merchants',{});if(list){list.forEach(hydrateMerchant);render()}}
 async function syncAdminCustomers(){const list=await sbRpc('admin_list_customers',{});if(list){list.forEach(c=>{const existing=S.customers[c.phone]||{};S.customers[c.phone]=Object.assign({},existing,{name:c.name,last:c.last_name||'',photo:c.photo_url||existing.photo||'',points:c.points,status:c.status,src:c.src})});render()}}
 async function setCustomerStatus(phone,status){const res=await sbRpc('admin_set_customer_status',{p_phone:phone,p_status:status});
@@ -2152,7 +2159,7 @@ async function syncCustomerData(p){
   if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
   if(offs){S.offers=S.offers.filter(o=>!o.db);offs.forEach(o=>S.offers.push(mapOfferRow(o)))}
   if(prof&&prof.ok)hydrateCustomer(prof.customer);
-  render();
+  render({bg:true});
 }
 function mapOfferRow(o){return{id:o.id,mid:o.mid,title:o.title,badge:o.badge,at:o.at,days:o.days,active:o.active,type:o.type,val:o.val,gift:o.gift_text,pts:o.pts,per:o.per,oldPrice:o.old_price,newPrice:o.new_price,img:o.img_url,specs:o.specs,min:o.min,first:o.first,db:true}}
 function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
@@ -2575,7 +2582,7 @@ function toggleMapFullscreen(force){
  }
  rm.classList.toggle('tp23-fullscreen',on);
  // أي render() خلفي تأجّل أثناء ملء الشاشة (انظر التعليق داخل render) يُنفَّذ الآن فور إعادة الخريطة لمكانها
- if(!on&&typeof __pendingBgRender!=='undefined'&&__pendingBgRender){__pendingBgRender=false;render()}
+ if(!on&&typeof __pendingBgRender!=='undefined'&&__pendingBgRender){__pendingBgRender=false;render({bg:true})}
  document.body.classList.toggle('tp23-map-open',on);
  const btn=rm.querySelector('.tp23-fullscreen-btn');
  if(btn){btn.textContent=on?'✕':'⛶';btn.setAttribute('aria-label',on?'إغلاق ملء الشاشة':'عرض الخريطة بملء الشاشة');btn.title=on?'إغلاق':'ملء الشاشة'}
@@ -3216,15 +3223,20 @@ function shToggle(){shSetFull(!S.sheetFull)}
 const ROUTE_MIN_Z=14.5; // أدنى تكبير مقبول عند عرض مسار على الخريطة، يضمن بقاء موقع المحل واضحاً ومُتعرَّفاً عليه للزبون حتى لو كان المسار طويلاً جداً (بدل أن يبتلعه التأطير العام للمسار الكامل)
 // نقطة انطلاق المسار = موقع الزبون الفعلي (بإذنه). إن لم يكن معروفاً بعد نطلبه الآن بنفس منطق «موقعي» (GPS ثم الشبكة، ونفس قاعدة 30 كم حول طرابلس)،
 // وعند الرفض/التعذّر أو كون الجهاز خارج طرابلس نبدأ من الموقع التقريبي وسط المدينة كما في السابق، لكن مع تنبيه صريح بدل الصمت
+// موقع الجهاز عبر نقطة دخول واحدة: دقيق (GPS) أولاً ثم أقل دقة عبر الشبكة، بنفس المهل السابقة تماماً. عند تغليف التطبيق لاحقاً (iOS/Android) يُستبدل داخل هذه الدالة وحدها
+// بإضافة الموقع الأصلية وأذوناتها، دون لمس منطق «موقعي» أو نقطة انطلاق المسار. onFail('unavailable') إن لم تتوفر خدمة الموقع، وonFail('denied') عند الرفض/التعذّر
+function getDevicePosition(onOk,onFail){
+  if(!navigator.geolocation)return onFail('unavailable');
+  const ok=p=>onOk({lat:p.coords.latitude,lng:p.coords.longitude});
+  navigator.geolocation.getCurrentPosition(ok,()=>navigator.geolocation.getCurrentPosition(ok,()=>onFail('denied'),{enableHighAccuracy:false,timeout:10000,maximumAge:120000}),{enableHighAccuracy:true,timeout:7000,maximumAge:60000})}
 function routeOrigin(){
   if(S.userReal)return Promise.resolve({ll:S.userLL,approx:false});
   return new Promise(res=>{
     const fb=msg=>{if(msg)toast(msg);res({ll:S.userLL||DEF_LL,approx:true})};
-    if(!navigator.geolocation)return fb('الموقع غير متاح على جهازك — يبدأ المسار من وسط طرابلس (تقريبي)');
-    const ok=p=>{const ll={lat:p.coords.latitude,lng:p.coords.longitude};
+    getDevicePosition(ll=>{
       if(hav(ll,DEF_LL)>30000)return fb('يبدو أنك خارج طرابلس — يبدأ المسار من وسط المدينة (تقريبي)');
-      S.userLL=ll;S.userReal=true;if(TM)buildMarks();res({ll,approx:false})};
-    navigator.geolocation.getCurrentPosition(ok,()=>navigator.geolocation.getCurrentPosition(ok,()=>fb('لم نتمكن من تحديد موقعك — فعّل إذن الموقع لمسار دقيق. يبدأ المسار حالياً من وسط طرابلس (تقريبي)'),{enableHighAccuracy:false,timeout:10000,maximumAge:120000}),{enableHighAccuracy:true,timeout:7000,maximumAge:60000})})}
+      S.userLL=ll;S.userReal=true;if(TM)buildMarks();res({ll,approx:false})},
+      why=>fb(why==='unavailable'?'الموقع غير متاح على جهازك — يبدأ المسار من وسط طرابلس (تقريبي)':'لم نتمكن من تحديد موقعك — فعّل إذن الموقع لمسار دقيق. يبدأ المسار حالياً من وسط طرابلس (تقريبي)'))})}
 async function showRoute(id,mode){const m=M(id);if(!m)return;const b=llOf(m);
   // يبقى المحل مختاراً في الوضعين (البطاقة العادية تبقى بزرّي المسار وتُبرز الزر النشط، فيمكن التبديل بين المشي والسيارة)؛ الضغطة التالية على الدبّوس تفتح تفاصيل المتجر كما كانت
   S.sel=id;S.sheetFull=false;S.rmode=mode;
@@ -3318,13 +3330,8 @@ const fitAll=()=>{if(GM)return gFit();if(!TM)return;const v=fitPts(visibleMercha
 function locateMe(silent){const done=(lat,lng,msg,real,failed)=>{S.userLL={lat,lng};S.userReal=!!real;const rr=S.route&&S.route.id&&!S.pickMode&&!(TM&&TM.pick)?S.route:null;if(GM&&GM.ok){gBuild();if(!rr){GM.map.panTo({lat,lng});GM.map.setZoom(16)}}if(TM){buildMarks();if(!rr)flyTo(lat,lng,16,800)}if(rr)showRoute(rr.id,rr.mode);else if(S.sel)refreshCardUi();if(msg)toast(msg);
     if(TM&&TM.pick){S.reg.locFailed=!!failed;const e=$('#locerr');if(e)e.style.display=failed?'block':'none'}};
   const fb=(m,failed)=>done(DEF_LL.lat,DEF_LL.lng,silent?null:m,0,failed);
-  if(!navigator.geolocation)return fb('الموقع غير متاح على جهازك — نعرض موقعاً تقريبياً وسط طرابلس',1);
-  const ok=p=>{const ll={lat:p.coords.latitude,lng:p.coords.longitude};
-    if(hav(ll,DEF_LL)>30000)fb('يبدو أنك خارج طرابلس — نعرض موقعاً تقريبياً في وسط المدينة');else done(ll.lat,ll.lng,'تم تحديد موقعك',1)};
-  // أولاً نحاول تحديداً دقيقاً (GPS)، وإن تأخر أو فشل (شائع داخل المباني أو عند بطء خدمة الموقع) نعيد المحاولة فوراً بتحديد أقل دقة واعتماداً على الشبكة، وهو أسرع بكثير عادةً، قبل أن نستسلم للموقع الافتراضي
-  navigator.geolocation.getCurrentPosition(ok,
-    ()=>navigator.geolocation.getCurrentPosition(ok,()=>fb('تعذّر تحديد موقعك. فعّل خدمة الموقع ثم أعد المحاولة — نعرض موقعاً تقريبياً',1),{enableHighAccuracy:false,timeout:10000,maximumAge:120000}),
-    {enableHighAccuracy:true,timeout:7000,maximumAge:60000})}
+  getDevicePosition(ll=>{if(hav(ll,DEF_LL)>30000)fb('يبدو أنك خارج طرابلس — نعرض موقعاً تقريبياً في وسط المدينة');else done(ll.lat,ll.lng,'تم تحديد موقعك',1)},
+    why=>why==='unavailable'?fb('الموقع غير متاح على جهازك — نعرض موقعاً تقريبياً وسط طرابلس',1):fb('تعذّر تحديد موقعك. فعّل خدمة الموقع ثم أعد المحاولة — نعرض موقعاً تقريبياً',1))}
 
 const fdist=d=>d<1000?`${d} م`:`${(d/1000).toFixed(1)} كم`;
 const userDot=()=>`<circle cx="${USER_POS.x}" cy="${USER_POS.y}" r="5" fill="#1d63e033"/><circle cx="${USER_POS.x}" cy="${USER_POS.y}" r="2.2" fill="#1d63e0" stroke="#fff" stroke-width="1"/>`;
@@ -4833,7 +4840,7 @@ async function topup(id,a){const res=await sbRpc('admin_topup_merchant',{p_merch
   addMNote(id,'wallet',`تمت إضافة $${a} إلى محفظتك التشغيلية`,'من الإدارة');toast(`تمت إضافة $${a} لمحفظة ${M(id).name}`);
   if(S.walletCache[id])await syncMerchantData(id);else render()}
 
-function render(){
+function render(opts){
   // الخريطة بملء الشاشة تُنقَل فعلياً إلى body (خارج #app) ليعمل position:fixed بشكل صحيح على آيفون؛
   // أي render() يعيد بناء #app بالكامل (مزامنة بيانات بالخلفية، فاصل الجلسة الدوري...) بينما هي بهذه الحالة
   // كان يُنشئ نسخة ثانية من #rmap داخل #app (التي لا يراها المستخدم) فتتعارض معرّفاتها مع النسخة الحقيقية
@@ -4843,23 +4850,40 @@ function render(){
   if(__rmFs&&__rmFs.classList.contains('tp23-fullscreen')){__pendingBgRender=true;return}
   if(S.screen==='app'&&S.mode==='admin'){if(!S.adminOk||Date.now()>S.adminUntil){const was=S.adminOk;S.adminOk=false;S.mode=null;S.screen='splash';if(was)toast('انتهت جلسة الإدارة. سجّل الدخول من جديد')}else S.adminUntil=Date.now()+ADMIN_SESSION}
   sweep();const a=$('#app');
+  // تحديث خلفي (وصول بيانات من الخادم) على نفس الشاشة: تُعاد بناء بقية الصفحة كالمعتاد، لكن عنصر خريطة الرئيسية الحيّ نفسه يُعاد إلى مكانه بدل هدمه وإنشاء خريطة جديدة
+  // (فتبقى البلاطات والدبابيس والمسار وأي حركة جارية كما هي)، ويبقى موضع التمرير كما هو. أي تنقّل من المستخدم يمرّ بالمسار الكامل المعتاد دون تغيير
+  const bg=!!(opts&&opts.bg),sig=[S.screen,S.mode,S.tab,S.sub,S.offView].join('|'),sameScreen=sig===_renderSig;_renderSig=sig;
+  const liveMap=document.getElementById('rmap'),keepMap=bg&&sameScreen&&TM&&!GM&&!TM.pick&&TM.el===liveMap&&liveMap.classList.contains('tp23-home-map'),keepY=bg&&sameScreen?window.scrollY:null;
   if(S.screen==='app')a.innerHTML=S.mode==='customer'?customerView():S.mode==='merchant'?merchantView():adminView();
   else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView,mforgotpin:mForgotPinView}[S.screen]();
   // نقل الشريط السفلي الثابت (.nav) إلى خارج #app (الذي له overflow-x:hidden) ليبقى ثابتاً فعلياً فوق الشاشة أثناء التمرير على بعض متصفحات الجوال، بدل أن يختفي أو يُقصّ بسبب تعشيشه داخل عنصر له overflow
   const navSlot=$('#navSlot');if(navSlot){const navEl=a.querySelector(':scope > .nav');navSlot.innerHTML='';if(navEl)navSlot.appendChild(navEl)}
   if(S.screen==='app'&&S.mode==='customer'&&S.sub==='calc')calcUpd();
-  if((S.screen==='app'&&S.mode==='customer'&&!S.sub&&(S.tab==='home'||(S.tab==='offers'&&S.offView==='map')))||(S.screen==='mreg'&&(S.reg.step||1)===2)||(S.screen==='app'&&S.mode==='admin'&&S.sub==='map'))initRealMap();else destroyMap();
-  fitSplash();window.scrollTo(0,0);
+  if((S.screen==='app'&&S.mode==='customer'&&!S.sub&&(S.tab==='home'||(S.tab==='offers'&&S.offView==='map')))||(S.screen==='mreg'&&(S.reg.step||1)===2)||(S.screen==='app'&&S.mode==='admin'&&S.sub==='map')){
+    const fresh=document.getElementById('rmap');
+    if(keepMap&&fresh&&fresh!==liveMap&&fresh.classList.contains('tp23-home-map'))reuseLiveMap(liveMap,fresh);else initRealMap()}
+  else destroyMap();
+  fitSplash();window.scrollTo(0,keepY!=null?keepY:0);
 }
+let _renderSig='';
+// يعيد عنصر الخريطة الحيّ مكان النسخة الجديدة المولَّدة، مع نقل ما يتغيّر فعلاً من الترميز الجديد (حالة دليل التجار، حجم الخريطة)، ثم يحدّث الدبابيس فقط
+function reuseLiveMap(live,fresh){
+  live.querySelectorAll(':scope > .mapDirState').forEach(e=>e.remove());const st=fresh.querySelector(':scope > .mapDirState');if(st)live.appendChild(st);
+  live.classList.toggle('big',fresh.classList.contains('big'));
+  fresh.replaceWith(live);
+  const t=TM;
+  // نفس منطق initRealMap عند عدم وجود عرض محفوظ (أول وصول للتجار): تأطير طرابلس على كل المحلات الفعّالة
+  if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=f.z+TRIPOLI_ZOOM_BOOST}
+  buildMarks();drawMap();routeUi()}
 setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))renderDeferredIfTouching()},10000);
 // render() على تبويب الخريطة يستبدل كامل محتوى الصفحة ويعيد بناء الخريطة (مستمعات لمس جديدة) ويصفّر التمرير — إن حصل هذا أثناء لمس/سحب فعلي
 // من المستخدم (كما يحصل فعلياً حين تصل بيانات المزامنة من الخادم بعد تحميل الصفحة بلحظات، وهي نفس اللحظة التي يبدأ المستخدم باستكشاف الصفحة بلمسه)
 // فإن ذلك يُحدث قفزة/اهتزاز مفاجئ تحت إصبعه. الحل: تأجيل أي render() "خلفي" (غير ناتج عن ضغطة مباشرة من المستخدم) لحين انتهاء اللمسة الحالية.
 let __touchActive=false;
 document.addEventListener('pointerdown',()=>{__touchActive=true},{capture:true,passive:true});
-['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{__touchActive=false;if(__pendingBgRender){__pendingBgRender=false;render()}},{capture:true,passive:true}));
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{__touchActive=false;if(__pendingBgRender){__pendingBgRender=false;render({bg:true})}},{capture:true,passive:true}));
 let __pendingBgRender=false;
-function renderDeferredIfTouching(){if(__touchActive){__pendingBgRender=true;return}render()}
+function renderDeferredIfTouching(){if(__touchActive){__pendingBgRender=true;return}render({bg:true})}
 (function(){
  // يكتشف اصطلاح scrollLeft في RTL للمتصفح الحالي (يختلف بين Chrome وSafari وغيرهما) حتى يعمل السحب بشكل صحيح وضمن الحدود الصالحة دائماً، بدل افتراض اصطلاح متصفح واحد.
  const RTLTYPE=(()=>{try{
@@ -4900,7 +4924,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102811-routes';
+  b.textContent='Tripoli Points v31.1 · build 2026102812-perf1';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
