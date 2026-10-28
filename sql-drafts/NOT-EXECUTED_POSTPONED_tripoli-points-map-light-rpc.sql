@@ -1,7 +1,15 @@
+-- #####################################################################
+-- ##  NOT EXECUTED — POSTPONED (decision 2026-10-28)                  ##
+-- ##  Kept for future review only. Do NOT run against any database.   ##
+-- ##  Image management will be redesigned as part of a dedicated      ##
+-- ##  admin-controlled media approval system; database permissions,  ##
+-- ##  merchant IDs, column types and security will be reviewed        ##
+-- ##  separately before production launch.                           ##
+-- #####################################################################
 -- =====================================================================
 -- Tripoli Points — Stage 2 (A): lightweight map directory + on-demand media
--- STATUS: DRAFT FOR REVIEW — NOT EXECUTED. Do not run until explicitly approved.
--- Rollback: tripoli-points-map-light-rpc-rollback.sql
+-- STATUS: POSTPONED DRAFT — NOT EXECUTED. Do not run.
+-- Rollback: NOT-EXECUTED_POSTPONED_tripoli-points-map-light-rpc-rollback.sql
 --
 -- Both functions are READ-ONLY (STABLE, SELECT only) and return a strict
 -- subset of what public.list_merchants() already returns publicly today.
