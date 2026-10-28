@@ -2953,6 +2953,7 @@ function areaLL(name){const a=areaDir().find(x=>x[0]===name);return a?{lat:a[1],
 const CLUSTER_MAXZ=21; // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
 const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التجمّع هذا الرقم، يُقسَّم إلى دبّوسين متقاربين بدل تكبير الخريطة لفصل الجميع دفعة واحدة
 const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
+const CLUSTER_FIRST_TAP_EXTRA_ZOOM=1; // درجة تكبير إضافية واحدة عند أول فتح لتجمّع (فوق الصيغة المعتمدة)، تُخفَّض تلقائياً بالقدر اللازم فقط إن كانت ستقصّ أي محل من المجموعة؛ لا تُطبَّق عند التبديل بين تجمّعين مفتوحين
 const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=20,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65; // مدى التكبير اليدوي الأقصى مُدَّد بدرجتين إضافيتين (كان PIN_ZOOM_HI=18) حيثما يدعم ذلك الجهاز/مزوّد الخريطة تقنياً؛ isMaxPinZoom وisNearMaxPinZoom يُعاد حسابهما تلقائياً من PIN_ZOOM_HI فلا يحتاجان أي تعديل منفصل، وكذلك حدّا التكبير اليدوي في zoomAt وzoomMap أدناه (يُشيران إلى PIN_ZOOM_HI لا رقم ثابت)
@@ -3013,7 +3014,7 @@ function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),
 // وبالشريط السفلي الثابت (.nav) الذي يغطّي أسفل الخريطة في الوضع العادي. سبب العلّة المُقاس: عند أول ضغطة على تجمّع تكون الخريطة بحجمها
 // العادي وأسفلها (~110px على iPhone SE) مخفي تحت الشريط السفلي/خارج الشاشة، بينما usableMapRectY تعتبر كامل ارتفاعها مرئياً، فتتمركز المجموعة
 // حول نقطة أدنى من منتصف الجزء الظاهر وتظهر أسفل الشاشة. اختيار محل منفرد لا يتأثر لأنه يكبّر الخريطة (mapBig) ويمرّر الصفحة لإظهارها كاملة.
-function clusterVisibleRectY(el,h){const r=usableMapRectY(el,h);if(!el||!h)return r;
+function clusterVisibleRectY(el,h,raw){const r=raw?{top:0,bottom:h||0}:usableMapRectY(el,h);if(!el||!h)return r;
   const mr=el.getBoundingClientRect(),vv=window.visualViewport,vh=vv?vv.height:window.innerHeight;
   let top=Math.max(r.top,-mr.top),bottom=Math.min(r.bottom,vh-mr.top);
   if(!el.classList.contains('tp23-fullscreen')){const nav=document.querySelector('.nav');
@@ -3038,7 +3039,11 @@ function clusterCenterView(pts,prefZ,ms){const t=TM;if(!t)return;
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),dx=wx(Math.max(...ln),0)-wx(Math.min(...ln),0),dy=wy(Math.min(...la),0)-wy(Math.max(...la),0);
   const aw=t.w-2*PAD_X,ah=r.bottom-r.top-pinVisualH(prefZ)-2*PAD_Y;
   const z=(pts.length<2||(dx<=0&&dy<=0)||aw<=0||ah<=0)?prefZ:Math.max(10,Math.min(prefZ,Math.log2(Math.min(dx>0?aw/dx:1e9,dy>0?ah/dy:1e9))));
-  const bc=clusterBBoxCenter(pts),desiredX=t.w/2,desiredY=(r.top+r.bottom)/2+pinVisualH(z)/2; // منتصف الطرفين يُزاح نصف ارتفاع الدبّوس للأسفل كي يقع منتصف الدبابيس المرسومة (لا أطرافها فقط) في المنتصف
+  // الموضع الرأسي: منتصف الدبابيس المرسومة يُوضع أقرب ما يمكن إلى منتصف الخريطة كما تظهر فعلاً على الشاشة (لا منتصف الشريط الخالي من الأزرار، الذي يقع أدنى منه لأن أزرار الأعلى أطول من أزرار الأسفل)،
+  // مع بقاء المجموعة كاملة داخل المنطقة الخالية من الأزرار بالهامش نفسه — فلا قصّ ولا تراكب مع أي زر
+  const pv=pinVisualH(z),groupH=(wy(Math.min(...la),z)-wy(Math.max(...la),z))+pv,screen=clusterVisibleRectY(t.el,t.h,true);
+  const lo=r.top+PAD_Y+groupH/2,hi=r.bottom-PAD_Y-groupH/2,drawnC=lo<=hi?Math.max(lo,Math.min(hi,(screen.top+screen.bottom)/2)):(r.top+r.bottom)/2;
+  const bc=clusterBBoxCenter(pts),desiredX=t.w/2,desiredY=drawnC+pv/2; // طرف الدبّوس (الإحداثية الحقيقية) يقع أسفل منتصفه المرسوم بنصف ارتفاعه
   const lng=wlng(wx(bc.lng,z)-(desiredX-t.w/2),z),lat=wlat(wy(bc.lat,z)-(desiredY-t.h/2),z);
   flyTo(lat,lng,z,ms)}
 let splitGid=0;
@@ -3066,6 +3071,7 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;
     const skipZoom=!!(areaName&&S.areaSel===areaName); // قادم من صفحة "تصفّح حسب المنطقة" والزوم لهذه المنطقة منجز مسبقاً: لا حاجة لأي زوم إضافي
     let z=Math.min(CLUSTER_MAXZ,t.z+2);
     if(ids.length<CLUSTER_SPLIT_THRESHOLD)z=Math.min(CLUSTER_MAXZ,z+CLUSTER_SMALL_EXTRA_ZOOM);
+    z=Math.min(CLUSTER_MAXZ,z+CLUSTER_FIRST_TAP_EXTRA_ZOOM);
     if(skipZoom)drawMarks();else{
       clusterCenterView(pts,z,650);
     }
@@ -4830,7 +4836,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102802';
+  b.textContent='Tripoli Points v31.1 · build 2026102803';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
