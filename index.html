@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102822-routecard">
+<meta name="tp-build" content="v31.1 build 2026102823-mapfixes">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1289,6 +1289,12 @@ body > .rmap.tp23-fullscreen .mchip.mround{bottom:calc(28px + env(safe-area-inse
 body.tp23-map-open > #promoSlot{display:none!important}
 body.tp23-map-open #mapcard,body.tp23-map-open #storeSheet{display:none!important}
 body.tp23-map-open #rtchip{display:none!important}
+</style><style id="tp33-map-fixes">
+/* Embedded home map: own stacking context so no map control can paint above the fixed bottom navigation (z-index 5). */
+.rmap.tp23-home-map:not(.tp23-fullscreen){isolation:isolate;z-index:0}
+/* Fullscreen «توجّه للمحل» (first tap), same visual family as the existing route buttons */
+.rmap .tpRouteActions .tpGoShop{background:linear-gradient(115deg,#0a378b,#1465d7);color:#fff;border:0;cursor:pointer;font-family:inherit}
+.rmap .tpRouteActions .tpGoShop.busy{opacity:.75;cursor:default}
 </style><style id="tp32-route-card">
 /* Embedded home map only: route info and actions live in the merchant card, no floating route controls over the map.
    Fullscreen keeps its approved controls (#tpRouteActions: Google Maps + تسوّق هنا). */
@@ -2071,7 +2077,7 @@ const flag=`<svg width="26" height="18" viewBox="0 0 26 18"><rect width="26" hei
 function custNavActive(){return (S.sub==='collect'||(S.sub==='info'&&S.treasureRedirect))?'treasure':S.tab}
 function nav(tabs,variant){if(variant==='premium'){const act=custNavActive();return `<div class="nav navPremium" role="navigation" aria-label="التنقل الرئيسي">${tabs.map(([k,l,i,b])=>{const on=act===k;return `<button class="${on?'on':''}"${on?' aria-current="page"':''} onclick="navClick('${k}')">${k==='treasure'?ic('icastle').replace('class="ic"','class="ic tpIcCastle"'):ic(i)}${b?`<span class="nbadge">${b}</span>`:''}<span>${l}</span></button>`}).join('')}</div>`}
   return `<div class="nav">${tabs.map(([k,l,i,b])=>{const sp=k==='treasure';return `<button class="${S.tab===k?'on':''}" ${sp?'style="color:var(--yellow)"':''} onclick="navClick('${k}')">${sp?'<span style="font-size:19px;line-height:1">🏛️</span>':ic(i)}${b?`<span class="nbadge">${b}</span>`:''}<span>${l}</span></button>`}).join('')}</div>`}
-function navClick(k){S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
+function navClick(k){S._homeY=null;S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
 const custInfoReady=c=>!!(c&&c.name&&c.name.trim()&&c.name!=='زبون جديد'&&c.last&&c.last.trim()&&c.photo);
 function openTreasure(){const c=S.customers[S.phone];if(custInfoReady(c))S.sub='collect';else{S.treasureRedirect=true;S.sub='info'}render()}
 function checkTreasureReady(){const c=S.customers[S.phone];if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
@@ -2249,7 +2255,7 @@ async function syncStoreGallery(mid){
   // إعادة البناء الكاملة (التي تعيد إنشاء الخريطة وتعيد التمرير للأعلى) فقط إن كانت صفحة هذا المتجر مفتوحة فعلاً؛ اختيار محل على الخريطة كان يسبّب قفزة الصفحة على آيفون بعد وصول المعرض من الخادم
   if(S.sub==='mypage'&&S.mypageMid===mid)render();
 }
-async function syncStoreOffers(mid){const offs=await sbRpc('active_offers',{p_merchant_id:mid});if(offs){S.offers=S.offers.filter(o=>!(o.db&&o.mid===mid));offs.forEach(o=>S.offers.push(mapOfferRow(o)));render()}}
+async function syncStoreOffers(mid){const offs=await sbRpc('active_offers',{p_merchant_id:mid});if(offs){S.offers=S.offers.filter(o=>!(o.db&&o.mid===mid));offs.forEach(o=>S.offers.push(mapOfferRow(o)));render({bg:true})}} // تحديث خلفي: وصول العروض بعد العودة للخريطة كان يعيد بناء الصفحة كاملة ويرجع التمرير لأعلى الصفحة
 // حقل رقم الهاتف بصفحة تسجيل الدخول بخط أصغر من 16px (كبقية التطبيق)، فيكبّر iOS Safari تلقائياً الشاشة عند التركيز عليه للكتابة؛ هذا التكبير لا يزول تلقائياً عند الانتقال لصفحة رمز الحماية مباشرة بعده لأنه تبديل محتوى داخلي (SPA) لا تنقّل صفحة حقيقي. هذه الدالة تصفّر التكبير فقط عند دخول صفحة رمز الحماية تحديداً، دون أي تغيير على بقية نظام التكبير بالتطبيق.
 function resetZoomForPinScreen(){const vp=document.querySelector('meta[name="viewport"]');if(!vp)return;const orig=vp.getAttribute('content');vp.setAttribute('content',orig+',maximum-scale=1');requestAnimationFrame(()=>vp.setAttribute('content',orig))}
 function pinView(){
@@ -2654,6 +2660,7 @@ function toggleMapFullscreen(force){
    if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize')}
  };
  requestAnimationFrame(()=>{sync();requestAnimationFrame(sync)});
+ refreshGoogleNavButton();placeLocateBtn();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('rmap')?.classList.contains('tp23-fullscreen'))toggleMapFullscreen(false)});
 function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
@@ -3014,7 +3021,7 @@ function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!
   on(el,'wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();const r=el.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,t.z-e.deltaY*.01)},{passive:false});
   on(el,'dblclick',e=>{if(e.target.closest('.mchip,.zb'))return;const r=el.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,t.z+1)});
   on(el,'click',e=>{if(t.moved||e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions'))return;if(S.sel)clearMapSel()}); // زر ✕ في شارة المسار يلغي المسار فقط ويُبقي المحل مختاراً
-  if(window.ResizeObserver){const ro=new ResizeObserver(()=>drawMap());ro.observe(el);t.off.push(()=>ro.disconnect())}
+  if(window.ResizeObserver){const ro=new ResizeObserver(()=>{drawMap();_plbQ()});ro.observe(el);t.off.push(()=>ro.disconnect())}
   TPP.mark('map-init');buildMarks();drawMap();
   if(firstPick)locateMe();}
 function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(10,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
@@ -3134,7 +3141,8 @@ function clusterVisibleRectY(el,h,raw){const r=raw?{top:0,bottom:h||0}:usableMap
 function clusterTargetRect(el,h){const v=clusterVisibleRectY(el,h);if(!el||!h)return v;
   const mr=el.getBoundingClientRect();let top=v.top,bottom=v.bottom;
   el.querySelectorAll('.zb,.mchip,.tp23-fullscreen-btn').forEach(c=>{if(c.offsetParent===null)return;const r=c.getBoundingClientRect();if(!r.width||!r.height)return;
-    const ct=r.top-mr.top,cb=r.bottom-mr.top;if(cb<=v.top||ct>=v.bottom)return; // زر خارج الجزء الظاهر لا يُحتسب
+    // زر «موقعي» قد يُرفع فوق الشريط السفلي؛ يُقاس دائماً من موضعه الأصلي (أسفل الخريطة بـ10px) كي لا يتغيّر تمركز التجمّعات والمسارات المعتمد
+    const isLoc=c.classList.contains('mround')&&el.classList.contains('tp23-home-map')&&!el.classList.contains('tp23-fullscreen'),ct=isLoc?mr.height-10-r.height:r.top-mr.top,cb=isLoc?mr.height-10:r.bottom-mr.top;if(cb<=v.top||ct>=v.bottom)return; // زر خارج الجزء الظاهر لا يُحتسب
     if((ct+cb)/2<h/2)top=Math.max(top,cb);else bottom=Math.min(bottom,ct)});
   return bottom-top<80?v:{top,bottom}}
 // ارتفاع الدبّوس المرسوم فوق طرفه الجغرافي عند مستوى تكبير z (نفس قياس CSS للدبّوس .pn ونفس --zs المستخدم فعلياً في drawPinClusters)
@@ -3322,9 +3330,11 @@ function routeFitView(R,dest){const t=TM;if(!t)return;
   t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
   const r=clusterTargetRect(t.el,t.h),PAD_X=40,PAD_Y=Math.max(20,Math.round((r.bottom-r.top)*0.08)),pts=R.coords.map(c=>({lat:c[0],lng:c[1]}));
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),dx=wx(Math.max(...ln),0)-wx(Math.min(...ln),0),dy=wy(Math.min(...la),0)-wy(Math.max(...la),0);
-  const pv=pinVisualH(17)*PIN_ROUTE_SCALE,aw=t.w-2*PAD_X,ah=r.bottom-r.top-2*PAD_Y-pv;
+  // ملء الشاشة فقط: اسم المحل الظاهر أسفل دبّوس الوجهة (~30px) يُحجز له مكان فوق صف أزرار «Google Maps / تسوّق هنا» كي لا يلامسها؛ الخريطة المدمجة دون تغيير
+  const LB=t.el.classList.contains('tp23-fullscreen')?30:0;
+  const pv=pinVisualH(17)*PIN_ROUTE_SCALE,aw=t.w-2*PAD_X,ah=r.bottom-r.top-2*PAD_Y-pv-LB;
   let z=(aw>0&&ah>0&&(dx>0||dy>0))?Math.log2(Math.min(dx>0?aw/dx:1e9,dy>0?ah/dy:1e9)):17;z=Math.min(17,z);
-  const midY=(r.top+r.bottom)/2+pv/2;
+  const midY=(r.top+r.bottom)/2+pv/2-LB/2;
   if(z<ROUTE_FIT_MIN_Z){z=ROUTE_MIN_Z;flyTo(wlat(wy(dest.lat,z)-(midY-t.h/2),z),dest.lng,z,700);return}
   const c={lat:(Math.min(...la)+Math.max(...la))/2,lng:(Math.min(...ln)+Math.max(...ln))/2};
   flyTo(wlat(wy(c.lat,z)-(midY-t.h/2),z),c.lng,z,700)}
@@ -3336,14 +3346,20 @@ function clearRoute(){S.route=null;routeUi()}
 function googleNavUrl(m,mode){const d=llOf(m);
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(d.lat+','+d.lng)}&travelmode=${mode==='driving'?'driving':'walking'}&dir_action=navigate`}
 // أزرار ما بعد ظهور المسار داخل الخريطة: «توجّه عبر Google Maps» دائماً، و«تسوّق هنا» في وضع ملء الشاشة فقط (نفس الضغطة الثالثة على الدبّوس). لا تظهر قبل اكتمال رسم مسار فعلي
-const tp30GoogleNavButton=()=>`<div id="tpRouteActions" class="tpRouteActions" style="display:none"><a id="tp30GoogleNav" class="mchip tpRouteBtn tpGoogleNav" target="_blank" rel="noopener noreferrer" aria-label="توجّه عبر Google Maps">${ic('nav',16)}<span>توجّه عبر Google Maps</span></a><button type="button" id="tpShopHere" class="mchip tpRouteBtn tpShopHere" onclick="tpShopHere()" aria-label="تسوّق هنا">${ic('bag',16)}<span>تسوّق هنا</span></button></div>`;
+const tp30GoogleNavButton=()=>`<div id="tpRouteActions" class="tpRouteActions" style="display:none"><button type="button" id="tpGoShop" class="mchip tpRouteBtn tpGoShop" style="display:none" onclick="tpGoShop()" aria-label="توجّه للمحل">${ic('walk',16)}<span>توجّه للمحل</span></button><a id="tp30GoogleNav" class="mchip tpRouteBtn tpGoogleNav" target="_blank" rel="noopener noreferrer" aria-label="توجّه عبر Google Maps">${ic('nav',16)}<span>توجّه عبر Google Maps</span></a><button type="button" id="tpShopHere" class="mchip tpRouteBtn tpShopHere" onclick="tpShopHere()" aria-label="تسوّق هنا">${ic('bag',16)}<span>تسوّق هنا</span></button></div>`;
+// ملء الشاشة فقط: بعد أول ضغطة على دبّوس محل يظهر «توجّه للمحل» — يحسب مسار المشي نفسه تماماً كالضغطة الثانية على الدبّوس
+function tpGoShop(){if(S.sel&&M(S.sel)&&!(S.route&&S.route.id===S.sel))showRoute(S.sel,'foot')}
 function tpShopHere(){const id=S.route&&S.route.id;if(!id||!M(id))return;toggleMapFullscreen(false);openStore(id)} // مطابق تماماً للضغطة الثالثة على الدبّوس في ملء الشاشة
 function refreshGoogleNavButton(){
   const box=document.getElementById('tpRouteActions');if(!box)return;
   const R=S.route,merchant=R&&R.id?M(R.id):null,link=document.getElementById('tp30GoogleNav');
   const visible=!!(merchant&&R.coords&&!R.loading);
-  box.style.display=visible?'flex':'none';
-  if(link){if(visible)link.href=googleNavUrl(merchant,R.mode);else link.removeAttribute('href')}
+  const rm=document.getElementById('rmap'),fs=!!(rm&&rm.classList.contains('tp23-fullscreen')),sel=S.sel&&M(S.sel);
+  const showGo=!!(fs&&sel&&!visible),go=document.getElementById('tpGoShop'),shop=document.getElementById('tpShopHere');
+  box.style.display=(visible||showGo)?'flex':'none';
+  if(link){link.style.display=visible?'':'none';if(visible)link.href=googleNavUrl(merchant,R.mode);else link.removeAttribute('href')}
+  if(shop)shop.style.display=visible?'':'none';
+  if(go){go.style.display=showGo?'':'none';const busy=!!(showGo&&R&&R.loading&&R.id===sel.id);go.disabled=busy;go.classList.toggle('busy',busy);const sp=go.querySelector('span');if(sp)sp.textContent=busy?'جارٍ حساب المسار…':'توجّه للمحل'}
 }
 function routeUi(){const R0=S.route;if(!R0)S.rcard=null;else if(R0.coords)S.rcard=R0.id; // البطاقة تبقى بوضع «المسار» أثناء إعادة الحساب عند تبديل الوسيلة (لا ارتداد مؤقت لأزرار اختيار المسار)
   refreshCardUi();refreshGoogleNavButton();const R=S.route,c=$('#rtchip');
@@ -3387,7 +3403,7 @@ function pinTap(id){if(TM&&TM.moved)return;
     }
     else if(TM){TM.w=TM.el.clientWidth||TM.w;TM.h=TM.el.clientHeight||TM.h;flyTo(adjustLatForUsableCenter(ll.lat,ll.lng,TM.z,TM.el,TM.h),ll.lng,TM.z,550)}
   }
-  setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
+  refreshGoogleNavButton();setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
 const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
@@ -4939,7 +4955,14 @@ function render(opts){
   sweep();const a=$('#app');
   // تحديث خلفي (وصول بيانات من الخادم) على نفس الشاشة: تُعاد بناء بقية الصفحة كالمعتاد، لكن عنصر خريطة الرئيسية الحيّ نفسه يُعاد إلى مكانه بدل هدمه وإنشاء خريطة جديدة
   // (فتبقى البلاطات والدبابيس والمسار وأي حركة جارية كما هي)، ويبقى موضع التمرير كما هو. أي تنقّل من المستخدم يمرّ بالمسار الكامل المعتاد دون تغيير
-  const bg=!!(opts&&opts.bg),sig=[S.screen,S.mode,S.tab,S.sub,S.offView].join('|'),sameScreen=sig===_renderSig;_renderSig=sig;
+  const bg=!!(opts&&opts.bg),sig=[S.screen,S.mode,S.tab,S.sub,S.offView].join('|'),sameScreen=sig===_renderSig;
+  // العودة من صفحة المتجر أو حاسبة النقاط (أو أي صفحة فرعية فُتحت من خريطة الرئيسية) تعيد الصفحة لموضع التمرير نفسه الذي تركها عليه الزبون، بدل أعلى الصفحة؛
+  // الخريطة تُبنى بنفس العرض المحفوظ (S.mv) والمحل المختار والمسار المحسوب نفسه (S.route) دون أي إعادة حساب أو تأخير
+  const homeRootSig=['app','customer','home','',S.offView].join('|'),isHomeRoot=sig===homeRootSig,wasHomeRoot=_renderSig===homeRootSig;
+  if(wasHomeRoot&&!isHomeRoot&&S.screen==='app'&&S.mode==='customer'&&S.tab==='home'&&S.sub)S._homeY=window.scrollY;
+  else if(S.screen!=='app'||S.mode!=='customer'||S.tab!=='home')S._homeY=null;
+  const restoreY=isHomeRoot&&!wasHomeRoot&&S._homeY!=null?S._homeY:null;if(isHomeRoot)S._homeY=null;
+  _renderSig=sig;
   const liveMap=document.getElementById('rmap'),keepMap=bg&&sameScreen&&TM&&!GM&&!TM.pick&&TM.el===liveMap&&liveMap.classList.contains('tp23-home-map'),keepY=bg&&sameScreen?window.scrollY:null;
   if(S.screen==='app')a.innerHTML=S.mode==='customer'?customerView():S.mode==='merchant'?merchantView():adminView();
   else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView,mforgotpin:mForgotPinView}[S.screen]();
@@ -4950,9 +4973,22 @@ function render(opts){
     const fresh=document.getElementById('rmap');
     if(keepMap&&fresh&&fresh!==liveMap&&fresh.classList.contains('tp23-home-map'))reuseLiveMap(liveMap,fresh);else initRealMap()}
   else destroyMap();
-  fitSplash();window.scrollTo(0,keepY!=null?keepY:0);
+  fitSplash();window.scrollTo(0,keepY!=null?keepY:restoreY!=null?restoreY:0);placeLocateBtn();
 }
 let _renderSig='';
+// زر «موقعي» على خريطة الرئيسية المدمجة: يبقى دائماً داخل الجزء الظاهر فعلياً من الخريطة (فوق الشريط السفلي الثابت وحافة الشاشة الآمنة)،
+// السبب الجذري: الخريطة تمتد (88vh) تحت الشريط السفلي، والزر مثبّت على أسفل حاويتها (bottom:10px) وبطبقة z-index أعلى من الشريط، فيظهر فوقه.
+// الحل: عزل طبقات الخريطة المدمجة تحت الشريط (CSS isolation) + رفع الزر بمقدار الجزء المحجوب من أسفل الخريطة لحظة التمرير/تغيير الحجم (بلا مؤقتات)
+function placeLocateBtn(){const m=document.getElementById('rmap');if(!m)return;const b=m.querySelector('.mchip.mround');if(!b)return;
+  if(m.classList.contains('tp23-fullscreen')||!m.classList.contains('tp23-home-map')){b.dataset.lift=0;if(b.style.bottom!=='10px')b.style.bottom='10px';return}
+  const mr=m.getBoundingClientRect(),vv=window.visualViewport;let lim=vv?vv.offsetTop+vv.height:window.innerHeight;
+  const nav=document.querySelector('#navSlot .nav');if(nav){const nr=nav.getBoundingClientRect();if(nr.height>0&&getComputedStyle(nav).visibility!=='hidden')lim=Math.min(lim,nr.top)}
+  const hidden=Math.max(0,mr.bottom-lim),maxOff=Math.max(0,mr.height-b.offsetHeight-170),lift=Math.round(Math.min(hidden,maxOff)),v=(10+lift)+'px';
+  b.dataset.lift=lift;if(b.style.bottom!==v)b.style.bottom=v}
+let _plbRaf=0;const _plbQ=()=>{if(_plbRaf)return;_plbRaf=requestAnimationFrame(()=>{_plbRaf=0;placeLocateBtn()})};
+window.addEventListener('scroll',_plbQ,{passive:true});window.addEventListener('resize',_plbQ);
+if(window.visualViewport){visualViewport.addEventListener('resize',_plbQ);visualViewport.addEventListener('scroll',_plbQ)}
+if(window.ResizeObserver)new ResizeObserver(_plbQ).observe(document.getElementById('app')); // محتوى أعلى الخريطة يغيّر ارتفاعه (صورة الواجهة، البطاقة) فيتحرّك موضع الخريطة دون تمرير
 // يعيد عنصر الخريطة الحيّ مكان النسخة الجديدة المولَّدة، مع نقل ما يتغيّر فعلاً من الترميز الجديد (حالة دليل التجار، حجم الخريطة)، ثم يحدّث الدبابيس فقط
 function reuseLiveMap(live,fresh){
   live.querySelectorAll(':scope > .mapDirState').forEach(e=>e.remove());const st=fresh.querySelector(':scope > .mapDirState');if(st)live.appendChild(st);
@@ -5009,9 +5045,9 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
   window.addEventListener('pointerup',e=>{update(`UP id=${e.pointerId}`)},true);
   function update(extra){box.textContent=downInfo+(extra?(String.fromCharCode(10)+extra):'')+String.fromCharCode(10)+'TM.ptr.size='+(TM?TM.ptr.size:'-')+' TM.moved='+(TM?TM.moved:'-')+String.fromCharCode(10)+'scrollX='+window.scrollX+' scrollY='+window.scrollY+' docW='+document.documentElement.scrollWidth+' winW='+innerWidth}
 })();
-(function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
+(function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102822-routecard';
+  b.textContent='Tripoli Points v31.1 · build 2026102823-mapfixes';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
