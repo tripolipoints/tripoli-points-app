@@ -1236,12 +1236,12 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .tpTreasure:active .tpTreasureCta{filter:brightness(.95)}
 /* ===== الشريط السفلي للزبون (كحلي وذهبي) — ألوان وزخرفة فقط؛ الأبعاد والهوامش من القواعد الحالية تماماً ===== */
 .nav.navPremium{background:linear-gradient(180deg,#113683 0%,#0c2a6b 45%,#08204f 100%);border-top-color:rgba(255,194,14,.5);box-shadow:0 -6px 20px rgba(6,22,62,.28)}
-.nav.navPremium button{color:rgba(226,234,252,.7);border-top-color:transparent;-webkit-tap-highlight-color:transparent;transition:color .2s}
+.nav.navPremium button{color:#c9a95e;border-top-color:transparent;-webkit-tap-highlight-color:transparent;transition:color .2s}
 .nav.navPremium button .ic{position:relative;z-index:1;stroke:currentColor}
 .nav.navPremium button::before{content:"";position:absolute;top:-3px;left:50%;width:26px;height:3px;margin-left:-13px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#f2b000,#ffd862);opacity:0;transition:opacity .2s;pointer-events:none}
-.nav.navPremium button.on{color:#ffc83a}
+.nav.navPremium button.on{color:#ffcc33}
 .nav.navPremium button.on::before{opacity:1}
-.nav.navPremium button.on .ic{filter:drop-shadow(0 0 5px rgba(255,194,14,.55))}
+.nav.navPremium button.on .ic{filter:drop-shadow(0 0 5px rgba(255,204,51,.6))}
 .nav.navPremium button.on span:not(.nbadge){font-weight:800}
 .nav.navPremium button .ic.tpIcCastle{margin:calc((19px - clamp(19px,5vw,23px)) / 2) 0} /* يشغل 19px رأسياً تماماً كأيقونة 🏛️ السابقة، فيبقى ارتفاع الشريط كما هو */
 .nav.navPremium .nbadge{z-index:2;box-shadow:0 0 0 1.5px #0c2a6b}
@@ -3239,7 +3239,10 @@ function routeFromMapButton(){
   if(!id||!M(id)){toast('اختر دبوس المحل أولاً لعرض مسار المشي');return}
   showRoute(id,'foot');
 }
-const directionBtn=pos=>`<button class="mchip mstyle tp29-direction" style="${pos};left:12px" onclick="routeFromMapButton()" aria-label="مسار المشي إلى المحل">🧭 اتجه للمحل</button>`;
+// زر «اتجه للمحل» يظهر فقط حين يوجد محل يمكن رسم مسار إليه (محل مختار، أو مسار قائم، أو محل مُركّز عليه من عرض) — نفس شرط routeFromMapButton تماماً؛ قبل ذلك يُخفى كي لا يبدو فعّالاً دون هدف
+const directionTarget=()=>{const id=S.sel||(S.route&&S.route.id)||S.mapFocus;return id&&M(id)?id:null};
+const directionBtn=pos=>`<button class="mchip mstyle tp29-direction" style="${pos};left:12px${directionTarget()?'':';display:none'}" onclick="routeFromMapButton()" aria-label="مسار المشي إلى المحل">🧭 اتجه للمحل</button>`;
+function refreshDirectionButton(){const has=!!directionTarget();document.querySelectorAll('.rmap .tp29-direction').forEach(b=>{b.style.display=has?'':'none'})}
 // Google Maps provides turn-by-turn navigation; our own map remains the route preview.
 function googleWalkNavUrl(m){
   const destination=llOf(m);
@@ -3605,6 +3608,7 @@ function promoSlotHtml(){
   </div>`}
 // تحديث بطاقة أسفل خريطة الرئيسية (إن وُجدت) بحركة دوران، أو بطاقة المحل العائمة فوق الخريطة في صفحات أخرى (كتصفّح العروض) كما كانت
 function refreshCardUi(skipFlip){
+  refreshDirectionButton();
   const p=$('#promoSlot');
   if(p){if(!skipFlip)flipPromoSlot();return}
   const e=$('#mapcard');if(e)e.innerHTML=cardHtml()}
@@ -4884,7 +4888,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102809-navygold';
+  b.textContent='Tripoli Points v31.1 · build 2026102810-navygold';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
