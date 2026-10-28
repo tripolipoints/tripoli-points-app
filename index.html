@@ -1720,6 +1720,9 @@ S.merchants.forEach(m=>{m.posterPrinted=true});
 // كل التجار المُعرَّفين أعلاه (m1–m8) بيانات تجريبية مضمّنة في الكود، لا سجلات حقيقية من Supabase: نُعلّمهم demo كي يُستبعدوا من كل واجهات الزبون (الخريطة والتجميع والبحث والتسوّق والعروض)،
 // دون حذفهم من الكود أو تعديل أي حقل آخر فيهم (تبقى متاحة لواجهات الإدارة/التاجر التجريبية). أي صف حقيقي يصل من Supabase يُزيل هذه العلامة عن كائنه (hydrateMerchant)
 S.merchants.forEach(m=>{m.demo=true});
+// نفس المبدأ للإشعارات المضمّنة بالكود (S.notes الأولية): تُعلَّم demo دون حذفها أو تعديل نصّها؛ myNotes تستبعد منها فقط الإشعارات العامة (phone:null) التي كانت تصل لكل زبون حقيقي.
+// الإشعارات الخاصة بحسابات تجريبية بعينها تبقى كما هي لتلك الحسابات فقط، وكل إشعار حقيقي (Supabase أو حدث فعلي داخل التطبيق) لا يحمل هذه العلامة إطلاقاً
+S.notes.forEach(n=>{n.demo=true});
 S.dirState='loading'; // حالة تحميل دليل التجار الحقيقي من Supabase: loading | ok | error
 // ===== منطق الأعمال =====
 const $=s=>document.querySelector(s), fmt=n=>Number(n).toLocaleString('en-US'), usd=n=>'\u200E$'+Number(n).toFixed(2);
@@ -2697,7 +2700,7 @@ const ago=ts=>{const x=(Date.now()-ts)/1000;if(x<90)return'الآن';if(x<3600)r
 const tmf=ts=>new Date(ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 const dtm=ts=>dt(ts)+' - '+tmf(ts);
 function addNote(phone,type,title,body){S.notes.unshift({id:S.nextN++,phone,type,title,body,at:Date.now()})}
-const myNotes=()=>S.notes.filter(n=>!n.phone||n.phone===S.phone);
+const myNotes=()=>S.notes.filter(n=>!(n.demo&&!n.phone)&&(!n.phone||n.phone===S.phone)); // القائمة وعدّاد غير المقروء (unread) كلاهما يمرّان من هنا
 const unread=()=>S.notifOn?myNotes().filter(n=>n.at>(S.read[S.phone]||0)).length:0;
 const notifBadge=n=>n?`<span class="dotn">${n>9?'9+':n}</span>`:'';
 const liveOffers=()=>S.offers.filter(o=>{const m=M(o.mid);return o.active&&m&&m.status==='active'&&isLiveMerchant(m)&&Date.now()-o.at<o.days*D});
@@ -4845,7 +4848,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102804-live-only';
+  b.textContent='Tripoli Points v31.1 · build 2026102805-live-only';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
