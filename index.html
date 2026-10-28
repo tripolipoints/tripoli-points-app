@@ -2913,33 +2913,6 @@ const addrLine=m=>{const raw=((m&&m.addr)||'').trim();if(!raw)return'طرابل�
 function pickSet(la,ln){S.reg.lat=la;S.reg.lng=ln;const e=$('#regloc');if(e)e.textContent=locTxt(la,ln)}
 let TM=null;
 
-// ===== وضع تشخيص التمركز المؤقت (?mapdebug=1) =====
-// يُفعَّل فقط عبر إضافة ?mapdebug=1 لرابط الصفحة؛ بلا أي أثر إطلاقاً في الوضع العادي. الهدف قياس الفرق الفعلي -مباشرة على أي جهاز حقيقي- بين المستطيل المرئي للخريطة، "المساحة القابلة للاستخدام"، والصندوق المحيط الفعلي بالدبابيس المعروضة بعد انتهاء كل حركة/رسم، كي يمكن تشخيص أي تفاوت دون الحاجة لتخمين سببه. يُزال هذا القسم بالكامل بعد انتهاء التشخيص.
-const MAP_DEBUG=/[?&]mapdebug=1(?:&|$)/.test(location.search);
-let _mapDebugEl=null;
-function renderMapDebug(t){
-  if(!MAP_DEBUG||!t||!t.el||TM!==t)return;
-  // render() يعيد إنشاء #rmap بالكامل (مثلاً بعد اختيار محل)، فيبقى عنصر التشخيص القديم معلّقاً بالعنصر المحذوف ويختفي؛ نعيد إلحاقه بالخريطة الحالية كلما انفصل عنها
-  if(!_mapDebugEl||_mapDebugEl.parentNode!==t.el){_mapDebugEl=_mapDebugEl||document.createElement('div');_mapDebugEl.id='mapDebugOverlay';_mapDebugEl.style.cssText='position:absolute;inset:0;z-index:9999;pointer-events:none;font-family:monospace';t.el.appendChild(_mapDebugEl)}
-  const mapRect=t.el.getBoundingClientRect(),usable=usableMapRectY(t.el,t.h),vis=clusterTargetRect(t.el,t.h);
-  // الصندوق الأحمر = دبابيس المجموعة المفتوحة فقط (لا كل دبابيس الخريطة، ولا فقاعات التجمّع) بمواضعها المرسومة فعلاً الآن
-  const og=S._mapOpenGroup,grp=og&&og.type==='area'&&!og.split?(og.ids||(t.pins||[]).filter(p=>p.area===og.area).map(p=>String(p.id))):null;
-  const pins=[...t.el.querySelectorAll('.pn:not(.cluster)[data-id]')].filter(el=>!grp||grp.includes(el.dataset.id)).map(el=>{const r=el.getBoundingClientRect();return{left:r.left-mapRect.left,right:r.right-mapRect.left,top:r.top-mapRect.top,bottom:r.bottom-mapRect.top}});
-  const req=t.req;let lines=[`${t.flying?'ANIMATING':'SETTLED'} fs=${t.el.classList.contains('tp23-fullscreen')} mapW=${Math.round(t.w)} mapH=${Math.round(t.h)} z=${(+t.z).toFixed(2)}`,
-    `usable(old)=[${Math.round(usable.top)},${Math.round(usable.bottom)}] target=[${Math.round(vis.top)},${Math.round(vis.bottom)}] visCenter=(${Math.round(t.w/2)},${Math.round((vis.top+vis.bottom)/2)})`];
-  if(req)lines.push(`reqCam z=${req.z.toFixed(2)} actual-req=(${Math.round(wx(t.lng,t.z)-wx(req.lng,t.z))},${Math.round(wy(t.lat,t.z)-wy(req.lat,t.z))})px`);
-  let bboxHtml='';
-  if(pins.length){
-    const L=Math.min(...pins.map(p=>p.left)),R=Math.max(...pins.map(p=>p.right)),T=Math.min(...pins.map(p=>p.top)),B=Math.max(...pins.map(p=>p.bottom));
-    const bcx=(L+R)/2,bcy=(T+B)/2,vcy=(vis.top+vis.bottom)/2;
-    bboxHtml=`<div style="position:absolute;left:${L}px;top:${T}px;width:${R-L}px;height:${B-T}px;border:3px solid #ff3b30;box-sizing:border-box"></div><div style="position:absolute;left:${bcx-4}px;top:${bcy-4}px;width:8px;height:8px;border-radius:50%;background:#ff3b30"></div>`;
-    lines.push(`${grp?'group':'allPins'} n=${pins.length} bbox L${Math.round(L)} R${Math.round(R)} T${Math.round(T)} B${Math.round(B)} center=(${Math.round(bcx)},${Math.round(bcy)})`,
-      `delta(group-visCenter)=(${Math.round(bcx-t.w/2)},${Math.round(bcy-vcy)})px clipped=${L<0||R>t.w||T<vis.top||B>vis.bottom}`);
-  }
-  _mapDebugEl.innerHTML=`<div style="position:absolute;left:0;top:${vis.top}px;width:100%;height:${vis.bottom-vis.top}px;border:3px dashed #ffd60a;box-sizing:border-box"></div><div style="position:absolute;left:${t.w/2-6}px;top:${(vis.top+vis.bottom)/2}px;width:12px;height:2px;background:#ffd60a"></div>${bboxHtml}
-  <div style="position:absolute;left:4px;bottom:${Math.round(t.h-vis.top+2)}px;max-width:80%;overflow:hidden;background:#000b;color:#0f0;padding:3px 5px;border-radius:6px;font-size:8.5px;line-height:1.3;white-space:pre">${lines.join('\n')}</div>`;
-}
-
 // ===== Google Maps (يُفعَّل عند وضع مفتاح API) =====
 const GKEY='';  // ← ضع هنا مفتاح Google Maps JavaScript API (انظر الشرح)
 let GM=null,gLoad=null;
@@ -3269,7 +3242,7 @@ function drawMarks(){const t=TM;if(!t)return;if(TPP.on&&!TPP.has('first-pins'))r
       cluster.forEach((c,i)=>{c.x=cx+(i-(cluster.length-1)/2)*GAP;c.y=cy})}});
   raw.forEach(r=>{r.m.d.style.transform=`translate(${Math.round(r.x)}px,${Math.round(r.y)}px)`});
   if(t.pinLayer)drawPinClusters(t,X,Y);
-  if(MAP_DEBUG)requestAnimationFrame(()=>renderMapDebug(t))} // يُقرأ بعد الإطار التالي كي تُقاس المواضع الفعلية المرسومة فعلاً على الشاشة، لا القيم المحسوبة قبل الرسم
+}
 function setMapStyle(){S.mapStyle=S.mapStyle==='sat'?'street':'sat';document.querySelectorAll('.mstyle').forEach(b=>b.textContent=S.mapStyle==='sat'?'🗺️ خريطة الطرق':'🛰️ قمر صناعي');
   if(GM&&GM.ok)GM.map.setMapTypeId(S.mapStyle==='sat'?'hybrid':'roadmap');
   if(TM){TM.tl.innerHTML='';TM.tiles={};TM.okc=0;TM.fail=0;TM.zcap=0;TM.okz={};TM.fz={};const e=$('#merr');if(e)e.style.display='none';drawMap()}}
@@ -3669,10 +3642,10 @@ function newPicModal(){const p=S.newPicUnlock,done=collectedCount(S.phone)>=S.co
 function subView(c){return {notes:notesV,txlog:txlogV,topup:topupV,transfer:transferV,redeem:redeemV,help:helpV,info:infoV,favs:favsV,offer:offerV,success:successV,calc:calcV,welcome:welcomeV,collect:collectV,tripoliOffers:tripoliOffersV,mypage:myPageV}[S.sub](c)}
 
 // بطاقة البانر أسفل الخريطة بقالب «كحلي وذهبي»: المحتوى يبقى من إعدادات البانر في لوحة الإدارة (promo_title / promo_subtitle / promo_image) والظهور من تاريخَي البدء والانتهاء (promoActive) كما كان تماماً.
-// القيم الافتراضية أدناه تُستخدم فقط إن كان الحقل المقابل فارغاً في الإعدادات. الصورة الافتراضية صورة قلعة طرابلس (سان جيل) الموجودة أصلاً في قسم كنوز طرابلس — أصل اختباري مؤقت إلى حين تأكيد حقوق استخدامها.
+// القيم الافتراضية أدناه تُستخدم فقط إن كان الحقل المقابل فارغاً في الإعدادات. الصورة الافتراضية صورة قلعة طرابلس (سان جيل) الموجودة أصلاً في قسم كنوز طرابلس — معتمدة من مالك المشروع.
 // زر «اكتشف كنوز طرابلس» (والبطاقة كلها) يفتح معرض كنوز طرابلس (collectV: كل الصور المكشوفة والمخفية) بنفس مسار زر الشريط السفلي navClick('treasure')، دون أي تغيير في منطق كشف الصور
 const PROMO_DEFAULT_TITLE='كنوز طرابلس بانتظارك',PROMO_DEFAULT_SUB='تمتّع واكتشف تاريخ المدينة، معالمها، وأجمل الأماكن التي تستحق الزيارة.';
-const TREASURE_BANNER_IMG='assets/img/banner-citadel-TEST-ASSET.8f3103eb8b.jpg';
+const TREASURE_BANNER_IMG='assets/img/banner-citadel.8f3103eb8b.jpg';
 function promoCard(){return promoActive()?`<div class="tpTreasure" role="button" tabindex="0" aria-label="اكتشف كنوز طرابلس" onclick="navClick('treasure')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();navClick('treasure')}">
   <div class="tpTreasureImg" style="background-image:url(${S.settings.promo_image||TREASURE_BANNER_IMG})" role="img" aria-label="${esc(S.settings.promo_title||PROMO_DEFAULT_TITLE)}"></div>
   <div class="tpTreasureTxt"><b class="tpTreasureTitle">${esc(S.settings.promo_title||PROMO_DEFAULT_TITLE)}</b><span class="tpTreasureSub">${esc(S.settings.promo_subtitle||PROMO_DEFAULT_SUB)}</span>
