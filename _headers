@@ -1,0 +1,13 @@
+# Netlify headers (test package). The app does not depend on these for correctness:
+# without them images simply revalidate more often. Capacitor builds ignore this file.
+
+# HTML always revalidates (cheap 304 when unchanged) so a new build is picked up immediately.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+
+# Image file names contain a content hash (name.<sha256-10>.ext): a changed image gets a new name,
+# so unchanged images can be cached for a year and reused on every launch without any request.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
