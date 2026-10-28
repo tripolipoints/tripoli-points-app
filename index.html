@@ -2807,12 +2807,12 @@ function renderMapDebug(t){
   if(!MAP_DEBUG||!t||!t.el||TM!==t)return;
   // render() يعيد إنشاء #rmap بالكامل (مثلاً بعد اختيار محل)، فيبقى عنصر التشخيص القديم معلّقاً بالعنصر المحذوف ويختفي؛ نعيد إلحاقه بالخريطة الحالية كلما انفصل عنها
   if(!_mapDebugEl||_mapDebugEl.parentNode!==t.el){_mapDebugEl=_mapDebugEl||document.createElement('div');_mapDebugEl.id='mapDebugOverlay';_mapDebugEl.style.cssText='position:absolute;inset:0;z-index:9999;pointer-events:none;font-family:monospace';t.el.appendChild(_mapDebugEl)}
-  const mapRect=t.el.getBoundingClientRect(),usable=usableMapRectY(t.el,t.h),vis=clusterVisibleRectY(t.el,t.h);
+  const mapRect=t.el.getBoundingClientRect(),usable=usableMapRectY(t.el,t.h),vis=clusterTargetRect(t.el,t.h);
   // الصندوق الأحمر = دبابيس المجموعة المفتوحة فقط (لا كل دبابيس الخريطة، ولا فقاعات التجمّع) بمواضعها المرسومة فعلاً الآن
-  const og=S._mapOpenGroup,grp=og&&og.type==='area'&&!og.split?(t.pins||[]).filter(p=>p.area===og.area).map(p=>String(p.id)):null;
+  const og=S._mapOpenGroup,grp=og&&og.type==='area'&&!og.split?(og.ids||(t.pins||[]).filter(p=>p.area===og.area).map(p=>String(p.id))):null;
   const pins=[...t.el.querySelectorAll('.pn:not(.cluster)[data-id]')].filter(el=>!grp||grp.includes(el.dataset.id)).map(el=>{const r=el.getBoundingClientRect();return{left:r.left-mapRect.left,right:r.right-mapRect.left,top:r.top-mapRect.top,bottom:r.bottom-mapRect.top}});
   const req=t.req;let lines=[`${t.flying?'ANIMATING':'SETTLED'} fs=${t.el.classList.contains('tp23-fullscreen')} mapW=${Math.round(t.w)} mapH=${Math.round(t.h)} z=${(+t.z).toFixed(2)}`,
-    `usable(old)=[${Math.round(usable.top)},${Math.round(usable.bottom)}] visible=[${Math.round(vis.top)},${Math.round(vis.bottom)}] visCenter=(${Math.round(t.w/2)},${Math.round((vis.top+vis.bottom)/2)})`];
+    `usable(old)=[${Math.round(usable.top)},${Math.round(usable.bottom)}] target=[${Math.round(vis.top)},${Math.round(vis.bottom)}] visCenter=(${Math.round(t.w/2)},${Math.round((vis.top+vis.bottom)/2)})`];
   if(req)lines.push(`reqCam z=${req.z.toFixed(2)} actual-req=(${Math.round(wx(t.lng,t.z)-wx(req.lng,t.z))},${Math.round(wy(t.lat,t.z)-wy(req.lat,t.z))})px`);
   let bboxHtml='';
   if(pins.length){
@@ -2823,7 +2823,7 @@ function renderMapDebug(t){
       `delta(group-visCenter)=(${Math.round(bcx-t.w/2)},${Math.round(bcy-vcy)})px clipped=${L<0||R>t.w||T<vis.top||B>vis.bottom}`);
   }
   _mapDebugEl.innerHTML=`<div style="position:absolute;left:0;top:${vis.top}px;width:100%;height:${vis.bottom-vis.top}px;border:3px dashed #ffd60a;box-sizing:border-box"></div><div style="position:absolute;left:${t.w/2-6}px;top:${(vis.top+vis.bottom)/2}px;width:12px;height:2px;background:#ffd60a"></div>${bboxHtml}
-  <div style="position:absolute;left:4px;bottom:${Math.max(4,t.h-vis.bottom+4)}px;max-width:94%;background:#000b;color:#0f0;padding:4px 6px;border-radius:6px;font-size:9.5px;line-height:1.4;white-space:pre">${lines.join('\n')}</div>`;
+  <div style="position:absolute;left:4px;bottom:${Math.round(t.h-vis.top+2)}px;max-width:80%;overflow:hidden;background:#000b;color:#0f0;padding:3px 5px;border-radius:6px;font-size:8.5px;line-height:1.3;white-space:pre">${lines.join('\n')}</div>`;
 }
 
 // ===== Google Maps (يُفعَّل عند وضع مفتاح API) =====
@@ -3019,13 +3019,22 @@ function clusterVisibleRectY(el,h){const r=usableMapRectY(el,h);if(!el||!h)retur
   if(!el.classList.contains('tp23-fullscreen')){const nav=document.querySelector('.nav');
     if(nav&&getComputedStyle(nav).display!=='none'){const nr=nav.getBoundingClientRect();if(nr.height>0&&nr.top<mr.bottom&&nr.bottom>mr.top)bottom=Math.min(bottom,nr.top-mr.top)}}
   return bottom-top<80?r:{top,bottom}}
+// المنطقة المستهدفة لعرض مجموعة التجمّع: الجزء الظاهر (أعلاه) مطروحاً منه الشريطان اللذان تشغلهما أزرار الخريطة العائمة فعلياً
+// (أعلى: «طرابلس»، +/−، زر ملء الشاشة/الإغلاق؛ أسفل: «اتجه للمحل»، زر موقعي، زر Google Maps) — تُقاس من DOM الحي في الوضعين العادي وملء الشاشة.
+// سبب العلّة المُقاس: الحد السفلي كان أسفل الخريطة نفسه وزر ⛶ لم يكن محسوباً من الأعلى، فكانت المجموعة تمتد حتى صف الأزرار السفلي أو تحت زر ⛶.
+function clusterTargetRect(el,h){const v=clusterVisibleRectY(el,h);if(!el||!h)return v;
+  const mr=el.getBoundingClientRect();let top=v.top,bottom=v.bottom;
+  el.querySelectorAll('.zb,.mchip,.tp23-fullscreen-btn').forEach(c=>{if(c.offsetParent===null)return;const r=c.getBoundingClientRect();if(!r.width||!r.height)return;
+    const ct=r.top-mr.top,cb=r.bottom-mr.top;if(cb<=v.top||ct>=v.bottom)return; // زر خارج الجزء الظاهر لا يُحتسب
+    if((ct+cb)/2<h/2)top=Math.max(top,cb);else bottom=Math.min(bottom,ct)});
+  return bottom-top<80?v:{top,bottom}}
 // ارتفاع الدبّوس المرسوم فوق طرفه الجغرافي عند مستوى تكبير z (نفس قياس CSS للدبّوس .pn ونفس --zs المستخدم فعلياً في drawPinClusters)
 function pinVisualH(z){const b=pinZoomScale(z);return 33.8*(isMaxPinZoom(z)?b*PIN_MAXZ_BOOST:b)}
 // يحرّك الكاميرا (بلا أي زوم إضافي فوق prefZ) بحيث يقع منتصف الدبابيس المرسومة فعلاً لمحلات التجمّع في منتصف الجزء الظاهر من الخريطة أفقياً ورأسياً.
 // الإحداثيات المخزَّنة لا تُمَسّ؛ فقط مركز العرض. الزوم يُخفَّض فقط إن لم تتّسع المجموعة فعلاً ضمن الجزء الظاهر.
 function clusterCenterView(pts,prefZ,ms){const t=TM;if(!t)return;
   t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
-  const r=clusterVisibleRectY(t.el,t.h),PAD_X=46,PAD_Y=16;
+  const r=clusterTargetRect(t.el,t.h),PAD_X=46,PAD_Y=Math.max(24,Math.round((r.bottom-r.top)*0.1)); // هامش رأسي مريح من كل جهة داخل المنطقة الخالية من الأزرار، كي تبقى المجموعة في الوسط لا ملاصقة لأي حافة
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),dx=wx(Math.max(...ln),0)-wx(Math.min(...ln),0),dy=wy(Math.min(...la),0)-wy(Math.max(...la),0);
   const aw=t.w-2*PAD_X,ah=r.bottom-r.top-pinVisualH(prefZ)-2*PAD_Y;
   const z=(pts.length<2||(dx<=0&&dy<=0)||aw<=0||ah<=0)?prefZ:Math.max(10,Math.min(prefZ,Math.log2(Math.min(dx>0?aw/dx:1e9,dy>0?ah/dy:1e9))));
@@ -3048,7 +3057,7 @@ function clusterTap(ids,areaName){const t=TM;if(!t)return;
     S._mapOpenGroup={type:'area',area:areaName,split:true};
   } else {
     S._mapSplitGroups=(S._mapSplitGroups||[]).filter(g=>g.area!==areaName);
-    S._mapOpenGroup={type:'area',area:areaName,split:false};
+    S._mapOpenGroup={type:'area',area:areaName,split:false,ids:ids.map(String)};
   }
   // قياس أبعاد الخريطة الحيّة الآن مباشرة قبل أي حساب تمركز (وليس الاعتماد فقط على آخر قيمة مخزَّنة)، احتياطاً من أي تغيير حجم حديث جداً (كالدخول لوضع ملء الشاشة للتو) لم يُحدَّث له t.w/t.h بعد عبر drawMap/ResizeObserver
   t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
@@ -4821,7 +4830,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){ // علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102801';
+  b.textContent='Tripoli Points v31.1 · build 2026102802';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
