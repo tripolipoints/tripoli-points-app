@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102914-stage2c">
+<meta name="tp-build" content="v31.1 build 2026102915-stage2d">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1330,16 +1330,21 @@ body.tp23-map-open #rtchip{display:none!important}
 .tpSubBar.tpCollapse.show{transform:none;opacity:1;pointer-events:auto}
 .tpSubBar.noanim{transition:none!important}
 html.tpBarOn{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
-html.tpBarOn.tpBarTall{scroll-padding-top:calc(84px + env(safe-area-inset-top,0px))}
-.tpSubBar.tpTall{height:calc(76px + env(safe-area-inset-top,0px));flex-wrap:wrap;align-content:center;row-gap:3px}
+html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0px))}
+.tpSubBar.tpTall{height:calc(84px + env(safe-area-inset-top,0px));flex-wrap:wrap;align-content:center;row-gap:6px}
 .tpSubBar .tpSubLine3{flex:0 0 100%;order:9;display:flex;justify-content:center;align-items:center;gap:6px;min-width:0;direction:rtl}
-.tpSubBar .tpBen{flex:none;font-size:10.5px;font-weight:800;line-height:16px;border-radius:999px;padding:0 6px;white-space:nowrap}
-.tpSubBar .tpBenPay{color:#0c2a6b;background:#ffc20e}
-.tpSubBar .tpBenPts{color:#ffe08a;border:1px solid rgba(255,194,14,.7);line-height:14px}
-.tpSubBar .tpSubText{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
-.tpSubBar .tpSubText .tpSubTitle{flex:none;font-size:15px;line-height:1.2}
-.tpSubBar .tpSubLine2{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;line-height:1.3;direction:rtl}
-.tpSubBar .tpSubAddr{min-width:0;flex:0 1 auto;color:#c9d6f2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext}
+/* Benefit pills: both pills share the same height and border, and their content is centred with flexbox.
+   Tajawal draws Arabic letter bodies above the centre of the line box. Measured on an iPhone, the text sat
+   about 2px high and about 1px towards the start side, so the padding is 4px on top / 0 underneath and
+   slightly uneven at the sides. This corrects only the visual position; the pill size stays the same. */
+.tpSubBar .tpBen{flex:none;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:22px;padding:4px 9.5px 0 10.5px;border:1px solid #ffc20e;border-radius:999px;font-size:11.5px;font-weight:800;line-height:1;white-space:nowrap;direction:rtl;unicode-bidi:isolate}
+.tpSubBar .tpBenPay{color:#0a2459;background:#ffc20e}
+.tpSubBar .tpBenPts{color:#ffd54d;background:rgba(255,194,14,.13)}
+@media (max-width:340px){.tpSubBar .tpBen{font-size:11px;padding-inline:9px}}
+.tpSubBar .tpSubText{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.tpSubBar .tpSubText .tpSubTitle{flex:none;font-size:16.5px;font-weight:800;line-height:1.2;color:#fff}
+.tpSubBar .tpSubLine2{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px;line-height:1.3;direction:rtl}
+.tpSubBar .tpSubAddr{min-width:0;flex:0 1 auto;color:#e4ecfb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext}
 .tpSubBar .tpSubThumb{flex:none;width:34px;height:34px;border-radius:10px;background:#1d3f86 center/cover no-repeat;border:1.5px solid rgba(255,194,14,.65);display:grid;place-items:center;font-size:17px;box-sizing:border-box}
 .tpSubBar .tpSubFav{flex:none;width:38px;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
 .tpSubBar .tpSubFav .ic{width:20px;height:20px;fill:none;stroke:currentColor}
@@ -5219,7 +5224,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102914-stage2c';
+  b.textContent='Tripoli Points v31.1 · build 2026102915-stage2d';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
