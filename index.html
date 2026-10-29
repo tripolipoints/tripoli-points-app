@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102917-offers-v2">
+<meta name="tp-build" content="v31.1 build 2026102918-offers-v2b">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1349,7 +1349,8 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvPanel{background:#fff;border:1px solid #dbe4f3;border-radius:18px;margin:0 0 12px;box-shadow:0 8px 22px rgba(8,38,90,.08)}
 .ofvPHd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 4px}
 .ofvPHd b{font-size:15px;color:#0c2a6b}
-.ofvPX{width:34px;height:34px;border-radius:50%;border:0;background:#eef3fc;color:#0c2a6b;display:grid;place-items:center;font-size:14px;font-weight:900;padding:0}
+.ofvPX{height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 13px;border-radius:999px;border:1.5px solid #0c2a6b;background:#fff;color:#0c2a6b;font:inherit;font-size:13.5px;font-weight:800}
+.ofvPX span{font-size:12px;font-weight:900}
 .ofvPBody{padding:4px 14px 6px}
 .ofvGrp{margin:8px 0 12px}
 .ofvGrp>b{display:block;font-size:13px;color:#13234a;margin:0 2px 7px}
@@ -1386,11 +1387,12 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvSortMenu button{display:flex;align-items:center;justify-content:space-between;width:100%;height:42px;padding:0 12px;border:0;border-radius:10px;background:none;font:inherit;font-size:14px;font-weight:700;color:#13234a;text-align:right}
 .ofvSortMenu button[aria-checked="true"]{background:#eef3fc;color:#0c2a6b}
 .ofvSortMenu button[aria-checked="true"]::after{content:"✓";font-weight:900}
-.ofvNote{margin:-4px 2px 10px;font-size:12px;color:#5a6886;line-height:1.45}
 .ofvGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .o2c{min-width:0;display:flex;flex-direction:column;background:#fff;border:1px solid #dbe4f3;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(8,38,90,.07);cursor:pointer;text-align:right}
 .o2c:active{transform:scale(.99)}
-.o2cImg{position:relative;aspect-ratio:16/10;max-width:100%;background:#e8eef8 center/cover no-repeat}
+.o2cImg{position:relative;aspect-ratio:16/10;max-width:100%;background:#e8eef8;overflow:hidden}
+.o2cPic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.o2cPic:not([src]){visibility:hidden}
 .o2cTag{position:absolute;top:8px;right:8px;max-width:calc(100% - 16px);box-sizing:border-box;display:inline-flex;align-items:center;height:24px;padding:3px 9px 0 10px;border-radius:999px;background:#ffc20e;color:#0c2a6b;font-size:12px;font-weight:800;line-height:1;white-space:nowrap;box-shadow:0 2px 6px rgba(8,38,90,.2)}
 .o2cTag>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .o2cBadge{position:absolute;bottom:8px;left:8px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:#0c2a6b;color:#ffc20e}
@@ -2386,7 +2388,7 @@ async function syncCustomerData(p){
   const[tx,notes,offs,prof]=await Promise.all([sbRpc('customer_transactions',{p_phone:p}),sbRpc('customer_notes_list',{p_phone:p}),sbRpc('list_active_offers_all',{}),sbRpc('customer_profile',{p_phone:p})]);
   if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.phone===p));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid:r.mid,phone:p})))}
   if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
-  if(offs){S.offers=S.offers.filter(o=>!o.db);offs.forEach(o=>S.offers.push(mapOfferRow(o)));TPP.mark('offers-data')}
+  if(offs){S.offers=S.offers.filter(o=>!o.db);offs.forEach(o=>S.offers.push(mapOfferRow(o)));TPP.mark('offers-data');ofvWarm()}
   if(prof&&prof.ok)hydrateCustomer(prof.customer);
   render({bg:true});
 }
@@ -3964,7 +3966,14 @@ function offBackMode(){S.offMode=null;S.offAreaSel=null;S.q='';S.filter=null;S.o
 const OFV_DEF=()=>({q:'',area:'',cat:'',type:'',sort:'new',open:false});
 const ofvS=()=>S.ofv||(S.ofv=OFV_DEF());
 const OFV_TYPES=[['discount','خصومات','%'],['gift','هدايا','gift'],['product','أسعار خاصة','ibag'],['bonus','نقاط إضافية','star']];
-const ofvNorm=s=>String(s==null?'':s).toLowerCase().replace(/[أإآٱ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[ً-ْـ]/g,'').replace(/\s+/g,' ').trim();
+// Search normalisation: case-insensitive; Arabic-Indic and Persian digits (typed by the Arabic iPhone keyboard) become 0-9;
+// invisible direction/zero-width marks are removed; Arabic letter variants are unified; any run of spaces becomes one space
+const ofvNorm=s=>{s=String(s==null?'':s);try{s=s.normalize('NFKC')}catch(e){}
+  return s.toLowerCase().replace(/[\u0660-\u0669]/g,d=>String(d.charCodeAt(0)-0x660)).replace(/[\u06F0-\u06F9]/g,d=>String(d.charCodeAt(0)-0x6F0))
+   .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF\u061C\u00AD]/g,'').replace(/[\u0623\u0625\u0622\u0671]/g,'\u0627').replace(/\u0629/g,'\u0647').replace(/\u0649/g,'\u064A').replace(/[\u064B-\u0652\u0640]/g,'').replace(/\s+/g,' ').trim()};
+// A query matches when every word appears in the offer's text (merchant, offer, category), or when it matches with spaces ignored («top20» = «top 20»)
+function ofvTextMatch(fields,query){const q=ofvNorm(query);if(!q)return true;const hay=fields.map(ofvNorm).filter(Boolean).join(' | '),flat=hay.replace(/ /g,'');
+  return flat.includes(q.replace(/ /g,''))||q.split(' ').every(t=>hay.includes(t))}
 const ofvArea=m=>(m&&(m.area||nearestArea(m.lat,m.lng)))||'';
 function ofvCatNames(m){const out=[],cats=S.cats||[];[m.cat,...(m.extraCats||[])].filter(Boolean).forEach(k=>{const c=cats.find(x=>x.slug===k);out.push(c?c.name_ar:CAT(k)[1]);const pr=c&&c.parent_id&&cats.find(x=>x.id===c.parent_id);if(pr)out.push(pr.name_ar)});return out}
 function ofvTitle(o){const p=offerParts(o),own=_ofNorm(o.title),gen=_ofNorm(offerTitle(o));return own&&own!==gen?own:p.head}
@@ -3972,28 +3981,47 @@ function ofvMatch(o,skip){const f=ofvS(),m=M(o.mid);if(!m)return false;
   if(skip!=='area'&&f.area&&ofvArea(m)!==f.area)return false;
   if(skip!=='cat'&&f.cat&&!mHasMainCat(m,f.cat))return false;
   if(skip!=='type'&&f.type&&o.type!==f.type)return false;
-  const q=ofvNorm(f.q);if(q&&![m.name,o.title,offerTitle(o),offerParts(o).head,o.gift,o.specs,...ofvCatNames(m)].some(t=>ofvNorm(t).includes(q)))return false;
+  if(!ofvTextMatch([m.name,o.title,offerTitle(o),offerParts(o).head,o.gift,o.specs,...ofvCatNames(m)],f.q))return false;
   return true}
 const ofvEnd=o=>o.at+o.days*D;
 const ofvNearOk=()=>!!(S.userReal&&S.userLL);
 const ofvSorts=()=>[['new','الأحدث'],['cash','أكبر حسم'],['ending','ينتهي قريباً'],...(ofvNearOk()?[['near','الأقرب إليك']]:[])];
-// «أكبر حسم» ranks only real discount offers by their own percentage; gifts, special prices and bonus points come after (newest first)
-const ofvCash=o=>o.type==='discount'&&isFinite(+o.val)&&+o.val>0?+o.val:-1;
+// «أكبر حسم»: offers are ranked by the same structured percentage their badge shows, highest first:
+//  - discount offers use their own value (val);
+//  - special-price offers count only when both prices exist and the new price is lower (offerDiscScore, from old_price/new_price).
+// Gifts, bonus points and special prices without a previous price have no percentage and follow (newest first). Display text is never parsed.
+const ofvCash=o=>{if(o.type==='discount'){const v=+o.val;return isFinite(v)&&v>0?v:-1}
+  if(o.type==='product'){const a=+o.oldPrice,b=+o.newPrice;return o.oldPrice!=null&&o.oldPrice!==''&&o.newPrice!=null&&o.newPrice!==''&&isFinite(a)&&isFinite(b)&&a>0&&b>=0&&b<a?offerDiscScore(o):-1}
+  return -1};
 const ofvDist=o=>{const m=M(o.mid);return m&&m.lat!=null&&m.lng!=null?dist(m):Infinity};
 function ofvList(){const f=ofvS(),s=f.sort==='near'&&!ofvNearOk()?'new':f.sort;
-  const by={new:(a,b)=>b.at-a.at,cash:(a,b)=>ofvCash(b)-ofvCash(a)||b.at-a.at,ending:(a,b)=>ofvEnd(a)-ofvEnd(b)||b.at-a.at,near:(a,b)=>ofvDist(a)-ofvDist(b)||b.at-a.at};
+  const tie=(a,b)=>(b.at-a.at)||String(a.id).localeCompare(String(b.id)); // stable order for equal keys
+  const by={new:tie,cash:(a,b)=>ofvCash(b)-ofvCash(a)||tie(a,b),ending:(a,b)=>ofvEnd(a)-ofvEnd(b)||tie(a,b),near:(a,b)=>ofvDist(a)-ofvDist(b)||tie(a,b)};
   return liveOffers().filter(o=>ofvMatch(o)).sort(by[s]||by.new)}
 // Natural Arabic expiry wording from calendar days. Display only: the expiry rule (at + days) is unchanged.
 function ofvEndsLabel(end,now){now=now||Date.now();if(end<=now)return 'انتهى العرض';const t=new Date(now),e=new Date(end);
   const d=Math.round((new Date(e.getFullYear(),e.getMonth(),e.getDate())-new Date(t.getFullYear(),t.getMonth(),t.getDate()))/D);
   if(d<=0)return 'ينتهي اليوم';if(d===1)return 'ينتهي غداً';if(d===2)return 'ينتهي بعد يومين';if(d<=10)return `ينتهي بعد ${d} أيام`;return `ينتهي بعد ${d} يوماً`}
 function ofvCountTxt(n){return n===0?'لا توجد عروض فعّالة حالياً':n===1?'عرض واحد فعّال من محلات مدينتك':n===2?'عرضان فعّالان من محلات مدينتك':n<=10?`${n} عروض فعّالة من محلات مدينتك`:`${n} عرضاً فعّالاً من محلات مدينتك`}
-function offerCardV2(o){const m=M(o.mid),p=offerParts(o),own=_ofNorm(o.title),gen=_ofNorm(offerTitle(o)),title=ofvTitle(o);
+// Images: the first OFV_EAGER cards (the first screen, up to three rows) load at once with high priority.
+// The others start only when they come within 300px of the screen. Native loading="lazy" is not enough here: browsers start
+// "lazy" images up to 1250-2500px early, which is the whole Offers list, so every image competed for bandwidth on the first open.
+// Images already loaded once are shown straight away on later renders (filters, Back), with no new request.
+const OFV_EAGER=6,_ofvLoaded=new Set();let _ofvIO=null;
+function ofvImgDone(img){const u=img.getAttribute('src');if(u)_ofvLoaded.add(u)}
+function ofvImgTag(u,i){const err=`onerror="if(this.getAttribute('src')!=='${THUMB}'){this.src='${THUMB}'}"`;
+  if(i<OFV_EAGER||_ofvLoaded.has(u))return `<img class="o2cPic" src="${esc(u)}" alt="" width="320" height="200" decoding="async" fetchpriority="${i<OFV_EAGER?'high':'auto'}" onload="ofvImgDone(this)" ${err}>`;
+  return `<img class="o2cPic o2cLazy" data-src="${esc(u)}" alt="" width="320" height="200" decoding="async" fetchpriority="low" onload="ofvImgDone(this)" ${err}>`}
+function ofvLoadImg(img){const u=img.getAttribute('data-src');if(!u)return;img.removeAttribute('data-src');img.classList.remove('o2cLazy');img.src=u}
+function ofvObserve(){if(_ofvIO){_ofvIO.disconnect();_ofvIO=null}const imgs=[...document.querySelectorAll('img.o2cLazy[data-src]')];if(!imgs.length)return;
+  if(!('IntersectionObserver' in window)){imgs.forEach(ofvLoadImg);return}
+  _ofvIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){_ofvIO.unobserve(e.target);ofvLoadImg(e.target)}}),{rootMargin:'300px 0px'});imgs.forEach(i=>_ofvIO.observe(i))}
+function offerCardV2(o,i){const m=M(o.mid),p=offerParts(o),own=_ofNorm(o.title),gen=_ofNorm(offerTitle(o)),title=ofvTitle(o);
   const showCond=p.cond&&!(own&&own!==gen&&o.min&&own.includes('$'+o.min));
   const end=ofvEnd(o),left=Math.ceil((end-Date.now())/D),ar=ofvArea(m),img=o.img||m.photo||THUMB;
   const meta=[showCond?p.cond:'',left<=60?ofvEndsLabel(end):''].filter(Boolean);
   return `<article class="o2c" role="button" tabindex="0" onclick="openOfferDetails('${o.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOfferDetails('${o.id}')}">
-   <div class="o2cImg" style="background-image:url('${img}')"><span class="o2cTag"><span>${numIso(esc(offerBadgeText(o)))}</span></span>${o.badge?`<span class="o2cBadge">${esc(o.badge)}</span>`:''}</div>
+   <div class="o2cImg">${ofvImgTag(img,i)}<span class="o2cTag"><span>${numIso(esc(offerBadgeText(o)))}</span></span>${o.badge?`<span class="o2cBadge">${esc(o.badge)}</span>`:''}</div>
    <div class="o2cBody">
     <div class="o2cMer">${tpStoreLogoHtml(m,'o2cLogo')}<b>${esc(m.name||'')}</b>${ar?`<span class="ar">· ${esc(ar)}</span>`:''}</div>
     <b class="o2cTitle" dir="auto">${numIso(esc(title))}</b>
@@ -4011,7 +4039,7 @@ function ofvPanel(n){const f=ofvS(),all=liveOffers();
   const types=OFV_TYPES.map(([k,l,icn])=>{const on=f.type===k,c=all.filter(o=>ofvMatch(o,'type')&&o.type===k).length;
     return `<button type="button" class="ofvType" aria-pressed="${on}" onclick="ofvSet('type','${on?'':k}')"><span class="tIc">${icn==='%'?'%':ic(icn,16)}</span><span class="l">${l}</span><span class="n">${c}</span></button>`}).join('');
   const nf=[f.area,f.cat,f.type].filter(Boolean).length;
-  return `<section class="ofvPanel" id="ofvPanel" aria-label="الفلاتر"><div class="ofvPHd"><b>الفلاتر</b><button type="button" class="ofvPX" onclick="ofvToggle(false)" aria-label="إغلاق الفلاتر">✕</button></div>
+  return `<section class="ofvPanel" id="ofvPanel" aria-label="الفلاتر"><div class="ofvPHd"><b>الفلاتر</b><button type="button" class="ofvPX" onclick="ofvToggle(false)"><span aria-hidden="true">✕</span>إغلاق الفلاتر</button></div>
    <div class="ofvPBody">${areas.length?`<div class="ofvGrp"><b>المنطقة</b>${ofvChips('area',areas)}</div>`:''}${cats.length?`<div class="ofvGrp"><b>الفئة</b>${ofvChips('cat',cats)}</div>`:''}<div class="ofvGrp"><b>نوع العرض</b><div class="ofvTypes">${types}</div></div></div>
    <div class="ofvPFoot"><button type="button" class="ofvReset" onclick="ofvClear()" ${nf?'':'disabled'}>مسح الكل</button><button type="button" class="ofvApply" onclick="ofvApply()">عرض النتائج (${n})</button></div></section>`}
 function ofvSummary(){const f=ofvS();if(f.open)return '';const t=[];if(f.area)t.push(['area',f.area]);if(f.cat)t.push(['cat',CAT(f.cat)[1]]);if(f.type)t.push(['type',OFV_TYPES.find(x=>x[0]===f.type)[1]]);
@@ -4025,16 +4053,15 @@ function ofvBodyHtml(){const f=ofvS(),all=liveOffers(),l=ofvList(),sorts=ofvSort
   <div class="ofvResHd" id="ofvRes"><h2>${filtered?'النتائج':'كل العروض'} <span class="ofvCount">${l.length}</span></h2>
    <div class="ofvSortWrap"><button type="button" class="ofvSortBtn" onclick="ofvSortToggle()" aria-haspopup="menu" aria-expanded="${!!S.ofvSortOpen}">${ic('isliders',14)}${cur[1]}${ic('chev',12)}</button>
    ${S.ofvSortOpen?`<div class="ofvSortMenu" role="menu">${sorts.map(([k,lb])=>`<button type="button" role="menuitemradio" aria-checked="${cur[0]===k}" onclick="ofvSet('sort','${k}')">${lb}</button>`).join('')}</div>`:''}</div></div>
-  ${cur[0]==='cash'&&l.length?`<p class="ofvNote">مرتّبة حسب نسبة الخصم في عروض الخصم. الهدايا والأسعار الخاصة والنقاط الإضافية تظهر بعدها.</p>`:''}
-  ${l.length?`<div class="ofvGrid">${l.map(offerCardV2).join('')}</div>`:ofvEmpty(all.length)}`}
+  ${l.length?`<div class="ofvGrid">${l.map((o,i)=>offerCardV2(o,i)).join('')}</div>`:ofvEmpty(all.length)}`}
 function offersV2(){const f=ofvS(),u=unread(),nf=[f.area,f.cat,f.type].filter(Boolean).length;
   return `<div class="ofv${f.open?' isOpen':''}">
   <header class="ofvHd"><div class="ofvHdT"><h1>عروض طرابلس</h1><p>${ofvCountTxt(liveOffers().length)}</p></div><button type="button" class="ofvBell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell',20)}${notifBadge(u)}</button></header>
   <div class="ofvSRow"><label class="ofvSearch">${ic('search',18)}<input id="ofvQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="ابحث عن محل أو عرض" aria-label="ابحث عن محل أو عرض" value="${esc(f.q)}" oninput="ofvInput(this.value)" onkeydown="if(event.key==='Enter')this.blur()"><button type="button" class="ofvSClear" onclick="ofvSet('q','');var q=document.getElementById('ofvQ');if(q)q.focus()" aria-label="مسح البحث" ${f.q?'':'hidden'}>✕</button></label>
    <button type="button" class="ofvFBtn" onclick="ofvToggle()" aria-expanded="${!!f.open}" aria-controls="ofvPanel">${ic('isliders',18)}<span>فلترة</span>${nf?`<span class="ofvFN">${nf}</span>`:''}</button></div>
-  <div id="ofvBody">${ofvBodyHtml()}</div></div>`}
+  <div id="ofvBody">${ofvBodyHtml()}</div></div>`+(setTimeout(ofvObserve,0),'')}
 // Typing updates only the results area, so the iPhone keyboard stays open; the back-navigation snapshot is refreshed too
-function ofvInput(v){const f=ofvS();f.q=v;S.ofvSortOpen=false;const b=document.getElementById('ofvBody');if(!b)return render({bg:true});b.innerHTML=ofvBodyHtml();
+function ofvInput(v){const f=ofvS();f.q=v;S.ofvSortOpen=false;const b=document.getElementById('ofvBody');if(!b)return render({bg:true});b.innerHTML=ofvBodyHtml();ofvObserve();
   const x=document.querySelector('.ofvSClear');if(x)x.hidden=!v;if(typeof NAV!=='undefined'&&NAV.cur&&!NAV.restoring)NAV.cur=navSnap()}
 function ofvSet(k,v){const f=ofvS();f[k]=v;S.ofvSortOpen=false;render({bg:true})}
 function ofvToggle(open){const f=ofvS();f.open=open==null?!f.open:!!open;S.ofvSortOpen=false;render({bg:true})}
@@ -4042,6 +4069,12 @@ function ofvClear(all){const f=ofvS();f.area=f.cat=f.type='';if(all)f.q='';S.ofv
 function ofvApply(){const f=ofvS();f.open=false;S.ofvSortOpen=false;render({bg:true});const r=document.getElementById('ofvRes');if(r)r.scrollIntoView({block:'start',behavior:'smooth'})}
 function ofvSortToggle(){S.ofvSortOpen=!S.ofvSortOpen;render({bg:true})}
 document.addEventListener('click',e=>{if(S.ofvSortOpen&&S.tab==='offers'&&!S.sub&&!(e.target.closest&&e.target.closest('.ofvSortWrap'))){S.ofvSortOpen=false;render({bg:true})}});
+// Warm the browser cache with the images of the first Offers screen once offer data is in, after startup has settled:
+// only OFV_EAGER images, low priority, during idle time, once per image. Nothing else is fetched again.
+const _ofvWarmed=new Set(),_ofvWarmImgs=[];
+function ofvWarm(){if(S.tab==='offers'&&!S.sub)return;const run=()=>{try{const l=liveOffers().sort((a,b)=>(b.at-a.at)||String(a.id).localeCompare(String(b.id))).slice(0,OFV_EAGER);
+  l.forEach(o=>{const m=M(o.mid),u=o.img||(m&&m.photo)||'';if(!u||_ofvWarmed.has(u))return;_ofvWarmed.add(u);const im=new Image();im.decoding='async';try{im.fetchPriority='low'}catch(e){}im.src=u;_ofvWarmImgs.push(im);if(im.decode)im.decode().catch(()=>{})});TPP.mark('offers-warm')}catch(e){}};
+  setTimeout(()=>{(window.requestIdleCallback||(f=>setTimeout(f,1)))(run,{timeout:4000})},1500)}
 // Entry point for opening the Offers list with a category and/or area already chosen (for links from other screens)
 function openOffersList(pre){pre=pre||{};S.sub=null;S.tab='offers';S.offMode=null;S.offAreaSel=null;S.offView='list';S.sel=null;S.route=null;S.mv=null;S.ofvSortOpen=false;
   S.ofv=Object.assign(OFV_DEF(),{cat:pre.cat||'',area:pre.area||'',type:pre.type||'',q:pre.q||''});render();window.scrollTo(0,0)}
@@ -5271,6 +5304,8 @@ function navFallback(){
   render()}
 // نوافذ منبثقة فوق الصفحة: رجوع المتصفح يغلقها أولاً
 function navCloseOverlay(){
+  // Offers page: an open filter panel is closed by Back first (filters, search and sort are kept)
+  if(S.screen==='app'&&S.mode==='customer'&&S.tab==='offers'&&!S.sub&&S.ofv&&S.ofv.open&&document.getElementById('ofvPanel')){ofvToggle(false);return true}
   if(typeof topupConfirmEl!=='undefined'&&topupConfirmEl&&topupConfirmEl.isConnected){topupCancel();return true}
   for(const el of [typeof moreSortsEl!=='undefined'?moreSortsEl:null,typeof moreChoiceEl!=='undefined'?moreChoiceEl:null,typeof catModalEl!=='undefined'?catModalEl:null])if(el&&el.isConnected){el.remove();return true}
   const md=[...document.querySelectorAll('body > .modal')].pop();if(md){md.remove();return true}
@@ -5390,7 +5425,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102917-offers-v2';
+  b.textContent='Tripoli Points v31.1 · build 2026102918-offers-v2b';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
