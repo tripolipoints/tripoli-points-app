@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102910-stage1">
+<meta name="tp-build" content="v31.1 build 2026102911-stage1b">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1311,7 +1311,8 @@ body.tp23-map-open #rtchip{display:none!important}
 .tpOff{min-width:0;display:flex;flex-direction:column;background:#fff;border:1px solid #dbe4f3;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(8,38,90,.07);cursor:pointer;text-align:right}
 .tpOff:focus-visible{outline:2px solid #ffc20e;outline-offset:2px}
 .tpOffImg{position:relative;aspect-ratio:4/3;background:#e8eef8 center/cover no-repeat}
-.tpOffGrid.one .tpOffImg,.tpOff.isFeatured .tpOffImg{aspect-ratio:16/9}
+.tpOffGrid > .tpOff:last-child:nth-child(odd){grid-column:1/-1}
+.tpOffGrid.one .tpOffImg,.tpOff.isFeatured .tpOffImg,.tpOffGrid > .tpOff:last-child:nth-child(odd) .tpOffImg{aspect-ratio:16/9}
 .tpOffTag{position:absolute;top:8px;right:8px;max-width:calc(100% - 16px);box-sizing:border-box;font-size:11px;font-weight:800;line-height:1.3;padding:3px 8px;border-radius:999px;background:#ffc20e;color:#0c2a6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .tpOffBadge{position:absolute;bottom:8px;left:8px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:#0c2a6b;color:#ffc20e}
 .tpOffBody{flex:1;display:flex;flex-direction:column;gap:5px;padding:9px 10px 10px;min-width:0}
@@ -1327,6 +1328,7 @@ body.tp23-map-open #rtchip{display:none!important}
 .tpSubBar.tpCollapse{transform:translateY(-102%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .18s ease;gap:9px}
 .tpSubBar.tpCollapse.show{transform:none;opacity:1;pointer-events:auto}
 .tpSubBar.noanim{transition:none!important}
+html.tpBarOn{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
 .tpSubBar .tpSubThumb{flex:none;width:34px;height:34px;border-radius:10px;background:#1d3f86 center/cover no-repeat;border:1.5px solid rgba(255,194,14,.65);display:grid;place-items:center;font-size:17px;box-sizing:border-box}
 .tpSubBar .tpSubFav{flex:none;width:38px;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
 .tpSubBar .tpSubFav .ic{width:20px;height:20px;fill:none;stroke:currentColor}
@@ -5095,10 +5097,10 @@ window.addEventListener('popstate',e=>{
 // فقط بعد أن تمرّ الصورة تحت أعلى الشاشة، ويختفي عند العودة للأعلى. الشريط ثابت ولا يحجز مكاناً في الصفحة، فلا إزاحة للمحتوى إطلاقاً
 function heroBar(title,img,favId,k){const f=!!(favId&&S.fav[favId]);
   return `<div class="tpSubBar tpCollapse" role="navigation" aria-label="${esc(title||'')}" aria-hidden="true"><button type="button" class="tpBack" onclick="navBack()" aria-label="رجوع" tabindex="-1">${ic('back',22)}</button><span class="tpSubThumb" style="${img?`background-image:url('${img}')`:`background:${k?k[3]:'#1d3f86'}`}" aria-hidden="true">${img?'':(k?k[2]:'')}</span><b class="tpSubTitle" dir="auto">${esc(title||'')}</b>${favId?`<button type="button" class="tpSubFav${f?' on':''}" onclick="toggleFav('${favId}')" aria-label="المفضلة" aria-pressed="${f}" tabindex="-1"><svg class="ic" viewBox="0 0 24 24">${I.heart}</svg></button>`:'<span class="tpSubSide" aria-hidden="true"></span>'}</div>`}
-function syncCollapseBar(instant){const bar=document.querySelector('#subBarSlot .tpCollapse');if(!bar)return;const hero=document.querySelector('#app .hero');
+function syncCollapseBar(instant){const bar=document.querySelector('#subBarSlot .tpCollapse');if(!bar){document.documentElement.classList.remove('tpBarOn');return}const hero=document.querySelector('#app .hero');
   const show=!hero||hero.getBoundingClientRect().bottom<=bar.offsetHeight+4;
   if(instant){bar.classList.add('noanim');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.classList.remove('noanim')))}
-  if(bar.classList.contains('show')!==show){bar.classList.toggle('show',show);bar.setAttribute('aria-hidden',show?'false':'true');bar.querySelectorAll('button').forEach(b=>b.tabIndex=show?0:-1)}}
+  if(bar.classList.contains('show')!==show){bar.classList.toggle('show',show);document.documentElement.classList.toggle('tpBarOn',show);bar.setAttribute('aria-hidden',show?'false':'true');bar.querySelectorAll('button').forEach(b=>b.tabIndex=show?0:-1)}}
 let _scbRaf=0;window.addEventListener('scroll',()=>{if(_scbRaf)return;_scbRaf=requestAnimationFrame(()=>{_scbRaf=0;syncCollapseBar()})},{passive:true});
 function subBar(title){return `<div class="tpSubBar" role="navigation" aria-label="رجوع"><button type="button" class="tpBack" onclick="navBack()" aria-label="رجوع">${ic('back',22)}</button><b class="tpSubTitle" dir="auto">${esc(title||'')}</b><span class="tpSubSide" aria-hidden="true"></span></div>`}
 
@@ -5173,7 +5175,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102910-stage1';
+  b.textContent='Tripoli Points v31.1 · build 2026102911-stage1b';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
