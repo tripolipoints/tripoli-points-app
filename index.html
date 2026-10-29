@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102911-stage1b">
+<meta name="tp-build" content="v31.1 build 2026102912-stage2">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1302,6 +1302,7 @@ body.tp23-map-open #rtchip{display:none!important}
 .scr.hasSubBar > .hero:first-child{margin-top:-12px}
 .scr.hasSubBar > .storehero:first-child{margin-top:0}
 /* Storefront offers: consistent two-column grid */
+.tpStoreAddr .tpRedeemPct{display:inline-block;margin-inline-start:8px;font-size:12.5px;font-weight:800;line-height:1.5;color:#7d5300;background:#fff4cc;border:1px solid #ffd56b;border-radius:999px;padding:0 9px;white-space:nowrap;vertical-align:1px}
 .tpOffHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 2px 10px}
 .tpOffHead h3{margin:0}
 .tpOffCount{flex:none;font-size:12px;font-weight:800;color:#7d5300;background:#fff4cc;border:1px solid #ffd56b;border-radius:999px;padding:2px 10px}
@@ -2124,7 +2125,7 @@ const flag=`<svg width="26" height="18" viewBox="0 0 26 18"><rect width="26" hei
 function custNavActive(){return (S.sub==='collect'||(S.sub==='info'&&S.treasureRedirect))?'treasure':S.tab}
 function nav(tabs,variant){if(variant==='premium'){const act=custNavActive();return `<div class="nav navPremium" role="navigation" aria-label="التنقل الرئيسي">${tabs.map(([k,l,i,b])=>{const on=act===k;return `<button class="${on?'on':''}"${on?' aria-current="page"':''} onclick="navClick('${k}')">${k==='treasure'?ic('icastle').replace('class="ic"','class="ic tpIcCastle"'):ic(i)}${b?`<span class="nbadge">${b}</span>`:''}<span>${l}</span></button>`}).join('')}</div>`}
   return `<div class="nav">${tabs.map(([k,l,i,b])=>{const sp=k==='treasure';return `<button class="${S.tab===k?'on':''}" ${sp?'style="color:var(--yellow)"':''} onclick="navClick('${k}')">${sp?'<span style="font-size:19px;line-height:1">🏛️</span>':ic(i)}${b?`<span class="nbadge">${b}</span>`:''}<span>${l}</span></button>`}).join('')}</div>`}
-function navClick(k){S._homeY=null;S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
+function navClick(k){S._homeY=null;NAV.tabNav=true;S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
 const custInfoReady=c=>!!(c&&c.name&&c.name.trim()&&c.name!=='زبون جديد'&&c.last&&c.last.trim()&&c.photo);
 function openTreasure(){const c=S.customers[S.phone];if(custInfoReady(c))S.sub='collect';else{S.treasureRedirect=true;S.sub='info'}render()}
 function checkTreasureReady(){const c=S.customers[S.phone];if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
@@ -2879,7 +2880,7 @@ function collectV(c){const mids=collectedMids(S.phone),n=collectedCount(S.phone)
 function events(p){const ev=[];S.tx.filter(t=>t.phone===p&&t.status==='CONFIRMED').forEach(t=>{const n=M(t.mid).name;if(t.earn)ev.push({s:'+',n:t.earn,m:n,at:t.at,t});if(t.redeemPts)ev.push({s:'-',n:t.redeemPts,m:n,at:t.at+1,t})});S.bonuses.filter(b=>b.phone===p).forEach((b,i)=>ev.push({s:'+',n:b.pts,m:'هدية الترحيب',at:b.at,t:{id:'b'+i,invoice:0,redeemVal:0,net:0},bonus:true}));return ev.sort((a,b)=>b.at-a.at)}
 const chips=(list,cur,fn)=>`<div class="chips">${list.map(([k,l])=>`<button class="chip ${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`;
 const catPlainChips=(list,cur,fn)=>`<div class="catPlainRow">${list.map(([k,l,icn])=>`<button class="catPlain ${cur===k?'on':''}" onclick="${fn}('${k}')"><i>${icn}</i><span>${l}</span></button>`).join('')}</div>`;
-const subHead=t=>`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">${t}</h3><div style="width:34px"></div></div>`;
+const subHead=t=>S.mode==='customer'?subBar(t):`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">${t}</h3><div style="width:34px"></div></div>`;
 const act=(i,l,c)=>`<button class="act" onclick="${c}"><i>${ic(i,20)}</i>${l}</button>`;
 const soonBox=`<div class="ask"><b>قريباً</b><div>هذه الميزة ليست ضمن النسخة الأولى. تُكتسب النقاط حالياً من مشترياتك في المحلات المشاركة.</div></div>`;
 function pendingBanner(){return S.tx.filter(t=>t.phone===S.phone&&t.status==='PENDING').map(t=>{
@@ -3468,7 +3469,7 @@ function shopChooserV(){
  </div>`}
 function shopHomeV(){
  const q=(S.shopQ||'').trim().toLowerCase();
- const banner=`<div class="shopBanner"><button class="circ" style="right:14px" onclick="shopBackMode()" aria-label="رجوع">${ic('back',20)}</button><span class="ico">🛍️</span><div><b>تسوّق في طرابلس</b><span>اكتشف محلات مدينتك واكسب نقاط</span></div></div>`;
+ const banner=subBar('تصفّح حسب الفئة التجارية')+`<div class="shopBanner"><span class="ico">🛍️</span><div><b>تسوّق في طرابلس</b><span>اكتشف محلات مدينتك واكسب نقاط</span></div></div>`;
  const search=`<div class="search">${ic('search')}<input placeholder="ابحث عن محل أو منتج..." value="${esc(S.shopQ||'')}" oninput="shopSetQ(this.value)"></div>`;
  if(q){const merch=allActiveMerchants().filter(m=>m.name.toLowerCase().includes(q)||CAT(effCat(m))[1].toLowerCase().includes(q));
   return banner+search+`<h3 style="margin:4px 0 8px">نتائج البحث</h3>`+shopStoreCards(merch)}
@@ -3484,7 +3485,7 @@ function shopCatV(){
  let list=allActiveMerchants().filter(m=>cur==='all'?mHasMainCat(m,main.slug):mHasCat(m,cur));
  const qq=(S.shopQ||'').trim().toLowerCase();
  if(qq)list=list.filter(m=>m.name.toLowerCase().includes(qq));
- const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="shopBackHome()">${ic('back',22)}</button><b style="font-size:17px">${main.name_ar}</b></div>`;
+ const head=`${subBar(main.name_ar)}`;
  const search=`<div class="search">${ic('search')}<input placeholder="ابحث داخل هذه الفئة..." value="${esc(S.shopQ||'')}" oninput="shopSetQ(this.value)"></div>`;
  const chips=subs.length?catPlainChips([['all','الكل','🗂️'],...subs.map(c=>[c.slug,c.name_ar,CAT(c.slug)[2]])],cur,'shopSetSub'):'';
  return head+search+chips+shopStoreCards(list)}
@@ -3494,14 +3495,14 @@ function shopBackArea(){S.shopArea=null;S.shopQ='';render()}
 function shopAreaPickV(){
  const counts={};areaDir().forEach(([nm])=>counts[nm]=0);
  allActiveMerchants().forEach(m=>{const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});
- const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="shopBackMode()">${ic('back',22)}</button><b style="font-size:17px">تصفّح حسب المنطقة</b></div>`;
+ const head=subBar('تصفّح حسب المنطقة');
  const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='shopPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="--tp15-area-color:${AREA_COLORS[name]||'#1459a4'}">${ic('pin',24)}</span><span class="areaBoxName">${name}</span><span class="tp14-card-caption">${counts[name]?`${counts[name]} محل`:'استكشف المنطقة'}</span></button>`).join('')}</div>`;
  return head+grid}
 function shopAreaResultsV(){
  const list0=allActiveMerchants().filter(m=>(m.area||nearestArea(m.lat,m.lng))===S.shopArea);
  const qq=(S.shopQ||'').trim().toLowerCase();
  const list=qq?list0.filter(m=>m.name.toLowerCase().includes(qq)):list0;
- const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="shopBackArea()">${ic('back',22)}</button><b style="font-size:17px">${esc(S.shopArea||'')}</b></div>`;
+ const head=subBar(S.shopArea||'');
  const search=`<div class="search">${ic('search')}<input placeholder="ابحث داخل هذه المنطقة..." value="${esc(S.shopQ||'')}" oninput="shopSetQ(this.value)"></div>`;
  return head+search+shopStoreCards(list)}
 function shopV(){
@@ -3655,9 +3656,8 @@ function myPageV(){const m=M(S.mypageMid);
   <button class="circ" style="left:14px;color:${f?'#e5487e':'var(--navy)'}" onclick="toggleFav('${m.id}')"><svg class="ic" style="fill:${f?'#e5487e':'none'}" viewBox="0 0 24 24">${I.heart}</svg></button></div>
   <div style="text-align:center;margin:14px 0 4px"><span class="badge b1" style="background:${k[3]}22;color:${k[3]};font-weight:800">${k[2]} ${esc(k[1])}</span></div>
   <div class="tp21-store-brand">${tpStoreLogoHtml(m)}<h2 style="margin:6px 0 2px;text-align:center;color:var(--navy)">${esc(m.name)}</h2></div>
-  <div class="muted" style="text-align:center">${m.addr||'طرابلس'} · ${fdist(dist(m))} ${rtxt(m.id)}</div>
+  <div class="muted tpStoreAddr" style="text-align:center">${m.addr||'طرابلس'} · ${fdist(dist(m))} ${rtxt(m.id)}<span class="tpRedeemPct">حسم ${rdPct(m,S.phone)}% بالنقاط</span></div>
   ${m.pageBlurb?`<p class="muted" style="text-align:center;padding:0 10px">${esc(m.pageBlurb)}</p>`:''}
-  <div style="text-align:center;margin:10px 0 2px"><span class="badge b1" style="font-size:13px;padding:3px 12px">نسبة الحسم ${rdPct(m,S.phone)}%</span></div>
   <div class="acts" style="margin:14px 0"><a href="#" onclick="openStoreDirections('${m.id}');return false">${ic('nav',22)}الاتجاهات</a><a href="tel:+961${m.phone}">${ic('phone',22)}اتصال</a><a target="_blank" href="https://wa.me/961${m.phone}">${ic('phone',22)}واتساب</a><a href="#" onclick="toggleFav('${m.id}');return false">${ic('heart',22)}المفضلة</a></div>
   <div class="card"><h3>معلومات المحل</h3><div class="info">${ic('pin',20)}<span>العنوان: ${addrLine(m)}</span></div><div class="info">${ic('clock',20)}<span>أوقات العمل: ${hrs(m)}</span></div>${soc}</div>
   ${galleryLoadingHtml}
@@ -3773,7 +3773,7 @@ function flipPromoSlot(){
     requestAnimationFrame(()=>{ni.style.transition='transform .17s ease-out';ni.style.transform='rotateY(0deg)'});setTimeout(ensureMapCardVisible,240);setTimeout(ensureMapCardVisible,560)
   },170)}
 function tripoliOffersV(){
-  return `<div class="top"><button class="back" style="margin:0" onclick="S.sub=S.prevSub||null;S.prevSub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">عروض Tripoli Points</h3><div style="width:34px"></div></div>`
+  return subBar('عروض Tripoli Points')
   +`<p class="muted" style="margin-top:0">أحدث عروض ومفاجآت Tripoli Points، بما فيها عروض المواسم والأعياد.</p>
   ${collectTeaser()}
   ${promoCard()}
@@ -3853,14 +3853,14 @@ function offBackArea(){S.offAreaSel=null;S.q='';render()}
 function offAreaPickV(){
  const counts={};areaDir().forEach(([nm])=>counts[nm]=0);
  liveOffers().forEach(o=>{const m=M(o.mid);if(!m)return;const a=m.area||nearestArea(m.lat,m.lng);if(a&&counts[a]!==undefined)counts[a]++});
- const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="offBackMode()">${ic('back',22)}</button><b style="font-size:17px">تصفّح حسب المنطقة</b></div>`;
+ const head=subBar('عروض حسب المنطقة');
  const grid=`<div class="areaGrid">${areaDir().map(([name])=>`<button class="areaBox" onclick='offPickArea(${JSON.stringify(name)})'>${counts[name]?`<span class="nbadge">${counts[name]}</span>`:''}<span class="areaBoxIc" style="background:${AREA_COLORS[name]||'var(--navy)'}22;color:${AREA_COLORS[name]||'var(--navy)'}">${ic('pin',16)}</span><span class="areaBoxName">${name}</span></button>`).join('')}</div>`;
  return head+grid}
 function offAreaResultsV(){
  const list0=liveOffers().filter(o=>{const m=M(o.mid);return m&&(m.area||nearestArea(m.lat,m.lng))===S.offAreaSel});
  const qq=(S.q||'').trim().toLowerCase();
  const list=qq?list0.filter(o=>{const m=M(o.mid);return(m.name||'').toLowerCase().includes(qq)||offerTitle(o).toLowerCase().includes(qq)}):list0;
- const head=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="back" style="margin:0" onclick="offBackArea()">${ic('back',22)}</button><b style="font-size:17px">${esc(S.offAreaSel||'')}</b></div>`;
+ const head=subBar(S.offAreaSel||'');
  const search=`<div class="search">${ic('search')}<input placeholder="ابحث داخل هذه المنطقة..." value="${esc(S.q||'')}" oninput="S.q=this.value;render()"></div>`;
  return head+search+(list.length?list.map(offerCardHtml).join(''):'<p class="muted" style="text-align:center;margin-top:10px">لا توجد عروض في هذه المنطقة حالياً.</p>')}
 function offersTabV(){
@@ -3895,7 +3895,7 @@ function offersV(){
   const iconsBlock=filtered
     ?`<div class="obIcons"><button class="circ" onclick="moreCats()" aria-label="رجوع لاختيار فئة">${ic('back',20)}</button></div>`
     :`<div class="obIcons"><button class="circ" onclick="offBackMode()" aria-label="رجوع">${ic('back',20)}</button><button class="obIcoBtn" onclick="openNotes()" aria-label="الإشعارات">${ic('bell',16)}${notifBadge(u)}</button><button class="obIcoBtn" onclick="navClick('acc')" aria-label="حسابي">${ic('menu',16)}</button></div>`;
-  const banner=`<div class="offBanner"><div class="obTop">${iconsBlock}${logoBlock}</div><h2 class="obTitle"><span class="obSpark">✦</span>عروض تستاهلها!</h2><p class="obSub">اكتشف أفضل العروض من محلات مدينتك</p></div>`;
+  const banner=subBar('العروض حسب الفئة')+`<div class="offBanner"><div class="obTop">${iconsBlock}${logoBlock}</div><h2 class="obTitle"><span class="obSpark">✦</span>عروض تستاهلها!</h2><p class="obSub">اكتشف أفضل العروض من محلات مدينتك</p></div>`;
   return `${banner}${srch}${topBar}${ch}${body}`}
 
 function oSearch(v){const el=document.getElementById('offSearch'),pos=el?el.selectionStart:null;
@@ -4999,8 +4999,11 @@ function render(opts){
   // نظام الرجوع الموحّد: مفتاح الصفحة السابقة ولقطة حالتها وموضع تمريرها قبل إعادة البناء
   const navPrevKey=NAV.curKey,navPrevSnap=NAV.cur,navPrevY=window.scrollY,navNewKey=navKey(),navNewSec=navIsSec();
   let navEntry=null;
+  const navFromTab=NAV.tabNav;NAV.tabNav=false;
   if(!NAV.restoring&&S.screen==='app'&&navNewKey!==navPrevKey){
-    if(navNewSec&&navPrevSnap&&navPrevSnap.screen==='app'){navEntry={snap:navEntrySnap(navPrevSnap),y:navPrevY};NAV.stack.push(navEntry);navHistPush()}
+    // إكمال الملف الشخصي المطلوب لكنوز طرابلس ثم الانتقال لمعرض الكنوز: يحلّ المعرض محلّ صفحة الملف (الرجوع منه يعود لما قبلها مباشرة)
+    if(navNewSec&&navPrevSnap&&navPrevSnap.sub==='info'&&navPrevSnap.treasureRedirect&&S.sub==='collect'){}
+    else if(navNewSec&&navPrevSnap&&navPrevSnap.screen==='app'){if(navFromTab&&NAV.stack.length)navReset(true);navEntry={snap:navEntrySnap(navPrevSnap),y:navPrevY};NAV.stack.push(navEntry);navHistPush()}
     else if(!navNewSec&&NAV.stack.length)navReset(true)}
   else if(S.screen!=='app'&&NAV.stack.length)navReset(true);
   // تحديث خلفي (وصول بيانات من الخادم) على نفس الشاشة: تُعاد بناء بقية الصفحة كالمعتاد، لكن عنصر خريطة الرئيسية الحيّ نفسه يُعاد إلى مكانه بدل هدمه وإنشاء خريطة جديدة
@@ -5041,21 +5044,31 @@ let _renderSig='';
 // ويُضاف قيد واحد لسجل المتصفح. زر الرجوع الظاهر، وزر الرجوع في المتصفح، وسحب الرجوع على آيفون كلها تمرّ بنفس الدالة (navPop) فتستعيد الصفحة السابقة كما هي.
 // لا تدخّل في شاشات الدخول/التسجيل/رمز الحماية/الخروج: كل ذلك يعمل فقط حين S.screen==='app'.
 const NAV={stack:[],cur:null,curKey:'',restoring:false,restoreY:null,restoreMap:null,ignorePop:0,pendingPush:false,busy:false,armed:false};
-const NAV_SEC={customer:{mypage:1,offer:1,calc:1}};
-const NAV_KEYS=['screen','mode','tab','sub','offView','offMode','offAreaSel','offSort','offerId','storeId','mypageMid','mypageReturn','prevSub','mapReturn','shopMode','shopNav','shopCat','shopQ','shopArea','catResSort','catNav','q','sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups','treasureRedirect','txf'];
-function navKey(){return S.screen==='app'?[S.screen,S.mode,S.tab,S.sub||'',S.sub==='mypage'?S.mypageMid:'',S.sub==='offer'?S.offerId:'',S.sub==='calc'?S.storeId:''].join('|'):S.screen}
-function navIsSec(){return S.screen==='app'&&!!(S.sub&&NAV_SEC[S.mode]&&NAV_SEC[S.mode][S.sub])}
+// الصفحات الفرعية التي تدخل نظام الرجوع: المرحلة 1 (المتجر، تفاصيل العرض، الحاسبة) + المرحلة 2 (كنوز طرابلس، صفحات الحساب الفرعية، مستويات «تسوّق» و«العروض» الداخلية)
+const NAV_SUBS={customer:{mypage:1,offer:1,calc:1,collect:1,info:1,notes:1,txlog:1,topup:1,transfer:1,redeem:1,help:1,favs:1,tripoliOffers:1}};
+const NAV_KEYS=['screen','mode','tab','sub','offView','offMode','offAreaSel','offSort','filter','offerId','storeId','mypageMid','mypageReturn','prevSub','mapReturn','shopMode','shopNav','shopCat','shopQ','shopArea','catResSort','catNav','q','sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups','treasureRedirect','txf'];
+function navKey(){if(S.screen!=='app')return S.screen;
+  const inner=S.sub?'':S.tab==='shop'?['shop',S.shopMode||'',S.shopArea||'',(S.shopNav&&S.shopNav.mainId)||''].join(':'):S.tab==='offers'?['off',S.offMode||'',S.offAreaSel||''].join(':'):'';
+  return [S.screen,S.mode,S.tab,S.sub||'',S.sub==='mypage'?S.mypageMid:'',S.sub==='offer'?S.offerId:'',S.sub==='calc'?S.storeId:'',inner].join('|')}
+function navIsSec(){if(S.screen!=='app')return false;
+  if(S.sub)return !!(NAV_SUBS[S.mode]&&NAV_SUBS[S.mode][S.sub]);
+  return S.mode==='customer'&&((S.tab==='shop'&&!!S.shopMode)||(S.tab==='offers'&&!!S.offMode))}
 // لقطة الصفحة السابقة لحظة فتح الصفحة الفرعية: هوية الصفحة (التبويب والصفحة الفرعية والمتجر/العرض) من آخر رسم لها، وبقية الحالة الحيّة
 // (المحل المختار على الخريطة، المسار، العرض، فلاتر التسوّق) كما هي الآن — لأن اختيار محل أو رسم مسار يحدث دون إعادة رسم الصفحة كاملة
-const NAV_PAGE_KEYS=['screen','mode','tab','sub','mypageMid','mypageReturn','offerId','storeId','prevSub'];
-function navEntrySnap(prev){const o=navSnap();NAV_PAGE_KEYS.forEach(k=>{o[k]=prev[k]});return o}
+// حالة الخريطة وحدها تُؤخذ حيّة (تتغيّر دون إعادة رسم)؛ كل ما عداها (الصفحة، مستويات التسوّق والعروض، البحث والفلاتر) من آخر رسم للصفحة السابقة
+const NAV_LIVE_KEYS=['sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups'];
+function navEntrySnap(prev){const live=navSnap(),o=Object.assign({},prev);NAV_LIVE_KEYS.forEach(k=>{o[k]=live[k]});return o}
 function navSnap(){const o={};NAV_KEYS.forEach(k=>{const v=S[k];o[k]=(v&&typeof v==='object'&&k!=='route')?JSON.parse(JSON.stringify(v)):v});return o}
 function navDropMap(st){if(!st||!st.tm)return;const keep=TM;TM=st.tm;destroyMap();TM=keep===st.tm?null:keep}
-function navHistPush(){if(NAV.ignorePop){NAV.pendingPush=true;return}try{history.pushState({tp:'nav',d:NAV.stack.length},'')}catch(e){}}
+// مزامنة سجل المتصفح مع عدد الصفحات المحفوظة: قيد واحد لكل صفحة فرعية فوق قيد الحماية (d=0). أثناء رجوع معلَّق (history.go) لا تُرسل أي عملية أخرى؛
+// المزامنة تُستكمل عند وصوله، فلا تتراكم القيود ولا يتجاوز الرجوع قيود التطبيق (حتى مع عدة عمليات رسم متتالية بسرعة)
+function navSyncHistory(){if(NAV.ignorePop)return;let st=null;try{st=history.state}catch(e){}
+  const d=(st&&st.tp==='nav')?st.d:-1,want=NAV.stack.length;if(d<0)return;
+  try{if(d>want){NAV.ignorePop++;history.go(want-d)}else for(let i=d+1;i<=want;i++)history.pushState({tp:'nav',d:i},'')}catch(e){}}
+function navHistPush(){navSyncHistory()}
 function navArm(){if(NAV.armed)return;NAV.armed=true;try{const st=history.state;if(!(st&&st.tp==='nav'))history.pushState({tp:'nav',d:0},'')}catch(e){}}
 // خروج من سياق الصفحات الفرعية دون رجوع (تبويب رئيسي، صفحة أخرى، تسجيل خروج): تُفرَّغ اللقطات وتُسحب قيود السجل الخاصة بها كي لا يبقى رجوع "فارغ" لاحقاً
-function navReset(unwind){const n=NAV.stack.length;NAV.stack.forEach(e=>navDropMap(e.map));NAV.stack=[];
-  if(unwind&&n){try{const st=history.state;if(st&&st.tp==='nav'&&st.d>=n){NAV.ignorePop++;history.go(-n)}}catch(e){}}}
+function navReset(unwind){NAV.stack.forEach(e=>navDropMap(e.map));NAV.stack=[];if(unwind)navSyncHistory()}
 function navPop(){const e=NAV.stack.pop();if(!e)return false;
   NAV_KEYS.forEach(k=>{S[k]=e.snap[k]});NAV.restoring=true;NAV.restoreY=e.y;NAV.restoreMap=e.map||null;
   try{render()}finally{NAV.restoring=false;NAV.restoreY=null}
@@ -5067,7 +5080,13 @@ function navBack(){if(NAV.busy)return;
   if(st&&st.tp==='nav'&&st.d===NAV.stack.length){NAV.busy=true;clearTimeout(NAV._t);NAV._t=setTimeout(()=>{if(NAV.busy){NAV.busy=false;navPop()}},1200);history.back();return}
   navPop()}
 // لا صفحة سابقة محفوظة (مثلاً فُتحت الصفحة مباشرة): نفس سلوك زر الرجوع القديم لكل صفحة
-function navFallback(){if(S.sub==='mypage'){S.sub=S.mypageReturn||null;S.mypageReturn=null}else S.sub=null;render()}
+function navFallback(){
+  if(S.sub==='mypage'){S.sub=S.mypageReturn||null;S.mypageReturn=null}
+  else if(S.sub==='tripoliOffers'){S.sub=S.prevSub||null;S.prevSub=null}
+  else if(S.sub){S.sub=null}
+  else if(S.tab==='shop'&&S.shopMode){if(S.shopArea)return shopBackArea();if(S.shopNav&&S.shopNav.mainId)return shopBackHome();return shopBackMode()}
+  else if(S.tab==='offers'&&S.offMode){if(S.offAreaSel)return offBackArea();return offBackMode()}
+  render()}
 // نوافذ منبثقة فوق الصفحة: رجوع المتصفح يغلقها أولاً
 function navCloseOverlay(){
   if(typeof topupConfirmEl!=='undefined'&&topupConfirmEl&&topupConfirmEl.isConnected){topupCancel();return true}
@@ -5077,7 +5096,7 @@ function navCloseOverlay(){
 // موضع التمرير تستعيده التطبيق بنفسه من اللقطة؛ استعادة المتصفح التلقائية كانت تعيد الصفحة لأعلى عند الرجوع إلى أول قيد
 try{if('scrollRestoration' in history)history.scrollRestoration='manual'}catch(e){}
 window.addEventListener('popstate',e=>{
-  if(NAV.ignorePop>0){NAV.ignorePop--;if(NAV.pendingPush){NAV.pendingPush=false;navHistPush()}return}
+  if(NAV.ignorePop>0){NAV.ignorePop--;navSyncHistory();return}
   if(S.screen!=='app')return;
   const st=e.state,d=(st&&st.tp==='nav')?st.d:-1,here=NAV.stack.length;
   const rm=document.getElementById('rmap');
@@ -5175,7 +5194,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102911-stage1b';
+  b.textContent='Tripoli Points v31.1 · build 2026102912-stage2';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
