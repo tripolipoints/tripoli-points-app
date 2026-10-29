@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102918-offers-v2b">
+<meta name="tp-build" content="v31.1 build 2026102919-offers-v2c">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1349,8 +1349,9 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvPanel{background:#fff;border:1px solid #dbe4f3;border-radius:18px;margin:0 0 12px;box-shadow:0 8px 22px rgba(8,38,90,.08)}
 .ofvPHd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 4px}
 .ofvPHd b{font-size:15px;color:#0c2a6b}
-.ofvPX{height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 13px;border-radius:999px;border:1.5px solid #0c2a6b;background:#fff;color:#0c2a6b;font:inherit;font-size:13.5px;font-weight:800}
-.ofvPX span{font-size:12px;font-weight:900}
+.ofvPX{min-height:40px;display:inline-flex;align-items:center;gap:7px;padding:0 15px;border-radius:999px;border:1px solid #e0a800;background:#ffc20e;color:#0c2a6b;font:inherit;font-size:14px;font-weight:800;box-shadow:0 2px 8px rgba(224,168,0,.35)}
+.ofvPX span{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#0c2a6b;color:#ffc20e;font-size:11px;font-weight:900}
+.ofvPX:active{background:#f2b600}
 .ofvPBody{padding:4px 14px 6px}
 .ofvGrp{margin:8px 0 12px}
 .ofvGrp>b{display:block;font-size:13px;color:#13234a;margin:0 2px 7px}
@@ -1361,6 +1362,42 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvChip[aria-pressed="true"]{background:#0c2a6b;border-color:#0c2a6b;color:#fff}
 .ofvChip[aria-pressed="true"] .n{color:#c9d6f2}
 .ofvTypes{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ofvSel{width:100%;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px solid #dbe4f3;background:#f6f8fd;color:#13234a;font:inherit;font-size:14px;font-weight:700;text-align:right}
+.ofvSel .v{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.ofvSel .v i{font-style:normal}
+.ofvSel .c{flex:none;font-size:12px;font-weight:600;color:#6b7a99}
+.ofvSel .ic{flex:none;width:14px;height:14px;transform:rotate(-90deg);color:#6b7a99}
+.ofvSel.on{border-color:#0c2a6b;background:#eef3fc;box-shadow:inset 0 0 0 1px #0c2a6b}
+.notePend{margin:0 0 12px;padding:10px;border-radius:16px;background:#fff8dc;border:1.5px solid #ffd56b}
+.notePend>.h{display:flex;align-items:center;gap:6px;color:#7d5300;font-size:14px;margin:0 2px 6px}
+.notePend.flash{animation:notePendFlash 1.2s ease}
+@keyframes notePendFlash{0%,60%{box-shadow:0 0 0 4px rgba(255,194,14,.65)}100%{box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.notePend.flash{animation:none}}
+.noteTx{cursor:pointer}.noteTxHint{color:#1d63e0;font-weight:700}
+.noteTxP{margin-top:8px;padding:10px 12px;border-radius:12px;background:#f6f8fd;border:1px solid #dbe4f3;cursor:default}
+.noteTxRow{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #eef2f8;font-size:13px}
+.noteTxRow .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.noteTxRow .am{flex:none;font-weight:800;color:#0c2a6b}
+.noteTxRow .st{flex:none;font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.noteTxRow .tm{flex:none;font-size:11.5px;color:#6b7a99}
+.modal.ofvSheetWrap{align-items:flex-end;padding:0;z-index:60}
+.ofvSheet{width:100%;max-width:560px;margin:0 auto;box-sizing:border-box;background:#fff;border-radius:22px 22px 0 0;display:flex;flex-direction:column;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 48px);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));box-shadow:0 -10px 30px rgba(6,20,52,.25);direction:rtl}
+.ofvSheetGrab{flex:none;width:40px;height:5px;border-radius:3px;background:#d5ddec;margin:4px auto 8px}
+.ofvSheetHd{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.ofvSheetHd b{font-size:17px;color:#0c2a6b}
+.ofvSheetX{min-height:38px;padding:0 14px;border-radius:999px;border:1.5px solid #0c2a6b;background:#fff;color:#0c2a6b;font:inherit;font-size:14px;font-weight:800}
+.ofvSheetSearch{flex:none;height:46px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:13px;border:1.5px solid #dbe4f3;background:#fff;color:#6b7a99;margin:0 0 8px}
+.ofvSheetSearch:focus-within{border-color:#0c2a6b}
+.ofvSheetSearch input{flex:1;min-width:0;height:100%;border:0;outline:0;background:none;font:inherit;font-size:16px;color:#13234a;padding:0;box-shadow:none}
+.ofvSheetSearch input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+.ofvSheetList{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -4px;padding:0 4px}
+.ofvOpt{width:100%;min-height:48px;display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;border-bottom:1px solid #eef2f8;background:#fff;color:#13234a;font:inherit;font-size:15px;font-weight:700;text-align:right}
+.ofvOpt i{flex:none;font-style:normal;font-size:16px}
+.ofvOpt .l{flex:1;min-width:0;line-height:1.35;overflow-wrap:anywhere}
+.ofvOpt .n{flex:none;min-width:28px;height:24px;padding:0 8px;border-radius:999px;background:#eef3fc;color:#0c2a6b;font-size:12.5px;font-weight:800;display:grid;place-items:center}
+.ofvOpt[aria-selected="true"]{background:#eef3fc;border-radius:12px;box-shadow:inset 0 0 0 1.5px #0c2a6b}
+.ofvOpt[aria-selected="true"]::after{content:"✓";flex:none;font-weight:900;color:#0c2a6b}
+.ofvOptNone{margin:14px 4px;color:#6b7a99;font-size:14px;text-align:center}
 .ofvType{min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:12px;border:1px solid #dbe4f3;background:#f6f8fd;color:#13234a;font:inherit;font-size:13px;font-weight:700;text-align:right}
 .ofvType[aria-pressed="true"]{border-color:#0c2a6b;background:#eef3fc;box-shadow:inset 0 0 0 1px #0c2a6b}
 .ofvType .tIc{flex:none;width:26px;height:26px;border-radius:8px;background:#fff4cc;color:#7d5300;display:grid;place-items:center;font-weight:900;font-size:15px}
@@ -2148,8 +2185,12 @@ async function createTx(mid,p,inv,on,items,offerId){
   return null;
 }
 async function decide(id,ok){
+  if(S._deciding)return; // one decision request at a time: a second tap (or the same purchase shown twice) is ignored
+  S._deciding=String(id);render({bg:true});
+  try{return await decideRun(id,ok)}finally{S._deciding=null;render({bg:true})}}
+async function decideRun(id,ok){
   const res=await sbRpc('decide_transaction',{p_tx_id:id,p_confirm:ok});
-  if(!res||!res.ok){toast('انتهت مهلة العملية');return render()}
+  if(!res||!res.ok){toast('انتهت مهلة العملية');await custTxRefresh(S.phone);return render()}
   const p=S.phone;
   toast(ok?'تم تأكيد العملية':'تم إلغاء العملية');
   await syncCustomerData(p);
@@ -3004,7 +3045,7 @@ function pendingBanner(){return S.tx.filter(t=>t.phone===S.phone&&t.status==='PE
   return `<div class="ask"><b>تأكيد عملية شراء</b><div>${M(t.mid).name}: فاتورة <b>${usd(t.invoice)}</b></div>${t.offerTitle?`<div>العرض: <b>${t.offerTitle}</b>${t.disc?` (-${usd(t.disc)})`:''}${t.gift?` · هدية: ${t.gift}`:''}</div>`:''}
   ${t.redeemPts?`<div>خصم من النقاط: ${fmt(t.redeemPts)} نقطة (${usd(t.redeemVal)})</div>`:''}
   <div>المبلغ النقدي: <b>${usd(t.net)}</b> · ستربح <b>${fmt(t.earn)}</b> نقطة</div><div class="muted">تنتهي المهلة خلال ${left} د</div>
-  <div class="row" style="margin-top:10px"><button class="btn ok" onclick='decide(${JSON.stringify(t.id)},true)'>نعم، أؤكد</button><button class="btn bad" onclick='decide(${JSON.stringify(t.id)},false)'>لا، ألغِ</button></div></div>`}).join('')}
+  <div class="row" style="margin-top:10px"><button class="btn ok" ${S._deciding?'disabled':''} onclick='decide(${JSON.stringify(t.id)},true)'>نعم، أؤكد</button><button class="btn bad" ${S._deciding?'disabled':''} onclick='decide(${JSON.stringify(t.id)},false)'>لا، ألغِ</button></div></div>`}).join('')}
 function evRow(e){const add=e.s==='+',k=e.t.id+e.s,open=S.openTx===k;
   return `<div class="tx" style="flex-wrap:wrap;cursor:pointer" onclick="S.openTx=${open?'null':`'${k}'`};render()">
   <span class="dot ${add?'p':'m'}" style="width:36px;height:36px">${ic('star',18)}</span>
@@ -3012,7 +3053,30 @@ function evRow(e){const add=e.s==='+',k=e.t.id+e.s,open=S.openTx===k;
   <div style="text-align:left"><b style="font-size:18px;color:${add?'var(--ok)':'var(--bad)'}">${add?'+':'−'}${fmt(e.n)}</b>${e.bonus?'':`<div class="muted">${usd(e.t.invoice)}</div>`}</div>
   ${open?`<div class="muted" style="width:100%;background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:6px">${e.bonus?'هدية ترحيبية عند التسجيل':`الفاتورة ${usd(e.t.invoice)}${e.t.disc?` · خصم العرض ${usd(e.t.disc)}`:''} · خصم النقاط ${usd(e.t.redeemVal)} · المدفوع نقداً ${usd(e.t.net)}${e.t.gift?` · هدية: ${e.t.gift}`:''}`}</div>`:''}</div>`}
 function toggleFav(id){S.fav[id]=!S.fav[id];render({bg:true})}
-function openNotes(){S.sub='notes';S.read[S.phone]=Date.now();render()}
+function openNotes(){S.sub='notes';S.read[S.phone]=Date.now();S.noteTx=null;render();custTxRefresh(S.phone)}
+// Refresh this customer's transactions and notifications from the server (existing read-only RPCs, same mapping as syncCustomerData).
+// Used when «الإشعارات» opens or a purchase notification is tapped, so pending/confirmed/cancelled/expired states are the server's.
+let _custTxBusy=null;
+function custTxRefresh(p){if(!p||S.mode!=='customer')return Promise.resolve();if(_custTxBusy)return _custTxBusy;
+  _custTxBusy=Promise.all([sbRpc('customer_transactions',{p_phone:p}),sbRpc('customer_notes_list',{p_phone:p})]).then(([tx,notes])=>{
+    if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.phone===p));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid:r.mid,phone:p})));sweep()}
+    if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
+    if(S.screen==='app')render({bg:true})}).catch(()=>{}).finally(()=>{_custTxBusy=null});return _custTxBusy}
+// A purchase can be confirmed only while the server lists it as PENDING and the existing 5-minute window is open (same rule as before)
+const custPendingTx=()=>S.tx.filter(t=>t.phone===S.phone&&t.status==='PENDING'&&Date.now()-t.at<EXPIRY);
+// Purchase-confirmation notifications carry no transaction id (customer_notes has no such column), so they are recognised by their text
+const isPurchaseNote=n=>{const s=(n.title||'')+' '+(n.body||'');return /عملي[ةه]|شراء|فاتورة/.test(s)&&/تأكيد|بانتظار/.test(s)};
+const TX_ST={PENDING:['بانتظار تأكيدك','#7d5300','#fff4cc'],CONFIRMED:['مؤكدة','#14713f','#e3f6ea'],CANCELLED:['ملغاة','#b42318','#fdecea'],EXPIRED:['انتهت مهلتها','#6b7a99','#eef1f6'],REVIEW:['قيد المراجعة','#1d4ed8','#e6efff']};
+function txStatusOf(t){return t.status==='PENDING'&&Date.now()-t.at>=EXPIRY?'EXPIRED':t.status}
+function noteTxPanel(){const pend=custPendingTx();
+  if(pend.length)return `<div class="noteTxP"><b>هذه العملية بانتظار تأكيدك</b><div class="muted">يمكنك تأكيدها أو إلغاؤها من الأعلى.</div></div>`;
+  const recent=S.tx.filter(t=>t.phone===S.phone).sort((a,b)=>b.at-a.at).slice(0,3);
+  return `<div class="noteTxP"><b>لا توجد عملية بانتظار تأكيدك الآن</b>${recent.length?`<div class="muted" style="margin:2px 0 6px">آخر عمليات الشراء وحالتها:</div>${recent.map(t=>{const st=TX_ST[txStatusOf(t)]||[t.status,'#13234a','#eef1f6'],m=M(t.mid);
+    return `<div class="noteTxRow"><span class="nm">${esc((m&&m.name)||'')}</span><span class="am">${numIso(esc(usd(t.invoice)))}</span><span class="st" style="color:${st[1]};background:${st[2]}">${st[0]}</span><span class="tm">${ago(t.at)}</span></div>`}).join('')}`:''}
+   <button type="button" class="btn ghost sm" style="margin-top:8px" onclick="S.sub='txlog';render()">سجل المعاملات</button></div>`}
+function noteTap(id){const n=myNotes().find(x=>String(x.id)===String(id));if(!n||!isPurchaseNote(n))return;
+  S.noteTx=String(S.noteTx)===String(id)?null:id;render({bg:true});
+  custTxRefresh(S.phone).then(()=>{if(custPendingTx().length){const e=document.getElementById('notePend');if(e){e.scrollIntoView({block:'start',behavior:'smooth'});e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}}})}
 const setTxf=k=>{S.txf=k;render()}, setNf=k=>{S.nf=k;render()}, setCat=k=>{S.filter=k==='all'?null:k;S.sel=null;S.sheetFull=false;S.mv=null;S.route=null;render()};
 
 // ===== المسافة والتقييم والمحلات القريبة =====
@@ -3787,7 +3851,7 @@ function customerView(){
   const c=S.customers[S.phone];let body;
   if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=`<div class="tp15-shoptab">${shopV()}</div>`;else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
   const hm=!S.sub&&S.tab==='home';
-  return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${S.sub==='offer'||hm?'':pendingBanner()}${body}</div>${pendOverlay()}${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']],'premium')}`}
+  return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${S.sub==='offer'||S.sub==='notes'||hm?'':pendingBanner()}${body}</div>${pendOverlay()}${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']],'premium')}`}
 function newPicModal(){const p=S.newPicUnlock,done=collectedCount(S.phone)>=S.collectPics.length;
   return `<div class="modal"><div class="sheet" style="text-align:center">
    <div style="height:140px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:10px;${p.img?`background:url(${p.img}) center/cover`:'background:linear-gradient(150deg,#0c2a6b,#1d63e0)'}">${p.img?'':'<span style="font-size:44px">🏛️</span>'}</div>
@@ -4031,16 +4095,40 @@ function offerCardV2(o,i){const m=M(o.mid),p=offerParts(o),own=_ofNorm(o.title),
    </div></article>`}
 function ofvChips(key,items){const f=ofvS();return `<div class="ofvChips">${[['','الكل'],...items].map(([v,l,icn,n])=>{const on=f[key]===v;
   return `<button type="button" class="ofvChip" aria-pressed="${on}" onclick='ofvSet(${JSON.stringify(key)},${JSON.stringify(v)})'>${icn?`<i>${icn}</i>`:''}${esc(l)}${n!=null?` <span class="n">${n}</span>`:''}</button>`}).join('')}</div>`}
-function ofvPanel(n){const f=ofvS(),all=liveOffers();
-  const aCount={};all.filter(o=>ofvMatch(o,'area')).forEach(o=>{const a=ofvArea(M(o.mid));if(a)aCount[a]=(aCount[a]||0)+1});
-  const areas=areaDir().map(a=>a[0]).filter((a,i,arr)=>arr.indexOf(a)===i&&(aCount[a]||f.area===a)).map(a=>[a,a,'',aCount[a]||0]);
+// Area / category options: only values that have offers under the other active filters (plus the current selection), with counts
+function ofvOptions(key){const f=ofvS(),all=liveOffers();
+  if(key==='area'){const aCount={};all.filter(o=>ofvMatch(o,'area')).forEach(o=>{const a=ofvArea(M(o.mid));if(a)aCount[a]=(aCount[a]||0)+1});
+    const names=[...areaDir().map(a=>a[0]),...Object.keys(aCount)].filter((a,i,arr)=>arr.indexOf(a)===i);
+    return names.filter(a=>aCount[a]||f.area===a).map(a=>[a,a,'',aCount[a]||0])}
   const cats=mainCats().map(c=>[c.slug,c.name_ar,CAT(c.slug)[2],all.filter(o=>ofvMatch(o,'cat')&&mHasMainCat(M(o.mid),c.slug)).length]).filter(c=>c[3]||f.cat===c[0]);
   if(f.cat&&!cats.some(c=>c[0]===f.cat))cats.push([f.cat,CAT(f.cat)[1],CAT(f.cat)[2],all.filter(o=>ofvMatch(o,'cat')&&mHasMainCat(M(o.mid),f.cat)).length]);
+  return cats}
+const OFV_GRP={area:{t:'المنطقة',sheet:'اختيار المنطقة',all:'كل المناطق',ph:'ابحث عن منطقة'},cat:{t:'الفئة',sheet:'اختيار الفئة',all:'كل الفئات',ph:'ابحث عن فئة'}};
+const OFV_CHIP_MAX=4; // up to 4 options: chips; more than 4: a compact control that opens a searchable bottom sheet
+function ofvGroup(key){const opts=ofvOptions(key),f=ofvS(),g=OFV_GRP[key];if(!opts.length)return '';
+  if(opts.length<=OFV_CHIP_MAX)return `<div class="ofvGrp"><b>${g.t}</b>${ofvChips(key,opts)}</div>`;
+  const cur=opts.find(o=>o[0]===f[key]);
+  return `<div class="ofvGrp"><b>${g.t}</b><button type="button" class="ofvSel${cur?' on':''}" onclick="ofvSheetOpen('${key}')" aria-haspopup="dialog"><span class="v">${cur?`${cur[2]?`<i>${cur[2]}</i>`:''}${esc(cur[1])}`:g.all}</span><span class="c">${cur?cur[3]:opts.reduce((a,o)=>a+o[3],0)}</span>${ic('chev',14)}</button></div>`}
+let ofvSheetEl=null;
+function ofvSheetRows(key,q){const f=ofvS(),g=OFV_GRP[key],opts=ofvOptions(key),nq=ofvNorm(q||''),total=liveOffers().filter(o=>ofvMatch(o,key)).length;
+  const rows=opts.filter(o=>!nq||ofvNorm(o[1]).includes(nq)||ofvNorm(o[1]).replace(/ /g,'').includes(nq.replace(/ /g,'')));
+  const row=(v,l,icn,n)=>`<button type="button" class="ofvOpt" role="option" aria-selected="${f[key]===v}" onclick='ofvSheetPick(${JSON.stringify(key)},${JSON.stringify(v)})'>${icn?`<i>${icn}</i>`:''}<span class="l">${esc(l)}</span><span class="n">${n}</span></button>`;
+  return (nq?'':row('',g.all,'',total))+(rows.length?rows.map(o=>row(o[0],o[1],o[2],o[3])).join(''):`<p class="ofvOptNone">لا توجد نتائج مطابقة لـ «${esc(q)}»</p>`)}
+function ofvSheetOpen(key){ofvSheetClose();const g=OFV_GRP[key],md=document.createElement('div');md.className='modal ofvSheetWrap';md.onclick=e=>{if(e.target===md)ofvSheetClose()};
+  md.innerHTML=`<div class="ofvSheet" role="dialog" aria-modal="true" aria-label="${g.sheet}"><div class="ofvSheetGrab"></div>
+   <div class="ofvSheetHd"><b>${g.sheet}</b><button type="button" class="ofvSheetX" onclick="ofvSheetClose()">إغلاق</button></div>
+   <label class="ofvSheetSearch">${ic('search',17)}<input type="search" enterkeyhint="search" autocomplete="off" placeholder="${g.ph}" aria-label="${g.ph}" oninput="ofvSheetFilter('${key}',this.value)"></label>
+   <div class="ofvSheetList" role="listbox">${ofvSheetRows(key,'')}</div></div>`;
+  document.body.appendChild(md);ofvSheetEl=md}
+function ofvSheetFilter(key,q){const l=ofvSheetEl&&ofvSheetEl.querySelector('.ofvSheetList');if(l)l.innerHTML=ofvSheetRows(key,q)}
+function ofvSheetClose(){if(ofvSheetEl){ofvSheetEl.remove();ofvSheetEl=null;return true}return false}
+function ofvSheetPick(key,v){ofvSheetClose();ofvSet(key,v)}
+function ofvPanel(n){const f=ofvS(),all=liveOffers();
   const types=OFV_TYPES.map(([k,l,icn])=>{const on=f.type===k,c=all.filter(o=>ofvMatch(o,'type')&&o.type===k).length;
     return `<button type="button" class="ofvType" aria-pressed="${on}" onclick="ofvSet('type','${on?'':k}')"><span class="tIc">${icn==='%'?'%':ic(icn,16)}</span><span class="l">${l}</span><span class="n">${c}</span></button>`}).join('');
   const nf=[f.area,f.cat,f.type].filter(Boolean).length;
   return `<section class="ofvPanel" id="ofvPanel" aria-label="الفلاتر"><div class="ofvPHd"><b>الفلاتر</b><button type="button" class="ofvPX" onclick="ofvToggle(false)"><span aria-hidden="true">✕</span>إغلاق الفلاتر</button></div>
-   <div class="ofvPBody">${areas.length?`<div class="ofvGrp"><b>المنطقة</b>${ofvChips('area',areas)}</div>`:''}${cats.length?`<div class="ofvGrp"><b>الفئة</b>${ofvChips('cat',cats)}</div>`:''}<div class="ofvGrp"><b>نوع العرض</b><div class="ofvTypes">${types}</div></div></div>
+   <div class="ofvPBody">${ofvGroup('area')}${ofvGroup('cat')}<div class="ofvGrp"><b>نوع العرض</b><div class="ofvTypes">${types}</div></div></div>
    <div class="ofvPFoot"><button type="button" class="ofvReset" onclick="ofvClear()" ${nf?'':'disabled'}>مسح الكل</button><button type="button" class="ofvApply" onclick="ofvApply()">عرض النتائج (${n})</button></div></section>`}
 function ofvSummary(){const f=ofvS();if(f.open)return '';const t=[];if(f.area)t.push(['area',f.area]);if(f.cat)t.push(['cat',CAT(f.cat)[1]]);if(f.type)t.push(['type',OFV_TYPES.find(x=>x[0]===f.type)[1]]);
   if(!t.length)return '';return `<div class="ofvSum">${t.map(([k,l])=>`<button type="button" class="ofvSumC" onclick="ofvSet('${k}','')" aria-label="إزالة ${esc(l)}">${esc(l)}<i>✕</i></button>`).join('')}${t.length>1?`<button type="button" class="ofvSumX" onclick="ofvClear()">مسح الكل</button>`:''}</div>`}
@@ -4064,7 +4152,7 @@ function offersV2(){const f=ofvS(),u=unread(),nf=[f.area,f.cat,f.type].filter(Bo
 function ofvInput(v){const f=ofvS();f.q=v;S.ofvSortOpen=false;const b=document.getElementById('ofvBody');if(!b)return render({bg:true});b.innerHTML=ofvBodyHtml();ofvObserve();
   const x=document.querySelector('.ofvSClear');if(x)x.hidden=!v;if(typeof NAV!=='undefined'&&NAV.cur&&!NAV.restoring)NAV.cur=navSnap()}
 function ofvSet(k,v){const f=ofvS();f[k]=v;S.ofvSortOpen=false;render({bg:true})}
-function ofvToggle(open){const f=ofvS();f.open=open==null?!f.open:!!open;S.ofvSortOpen=false;render({bg:true})}
+function ofvToggle(open){const f=ofvS();f.open=open==null?!f.open:!!open;if(!f.open)ofvSheetClose();S.ofvSortOpen=false;render({bg:true})}
 function ofvClear(all){const f=ofvS();f.area=f.cat=f.type='';if(all)f.q='';S.ofvSortOpen=false;render({bg:true})}
 function ofvApply(){const f=ofvS();f.open=false;S.ofvSortOpen=false;render({bg:true});const r=document.getElementById('ofvRes');if(r)r.scrollIntoView({block:'start',behavior:'smooth'})}
 function ofvSortToggle(){S.ofvSortOpen=!S.ofvSortOpen;render({bg:true})}
@@ -4078,7 +4166,7 @@ function ofvWarm(){if(S.tab==='offers'&&!S.sub)return;const run=()=>{try{const l
 // Entry point for opening the Offers list with a category and/or area already chosen (for links from other screens)
 function openOffersList(pre){pre=pre||{};S.sub=null;S.tab='offers';S.offMode=null;S.offAreaSel=null;S.offView='list';S.sel=null;S.route=null;S.mv=null;S.ofvSortOpen=false;
   S.ofv=Object.assign(OFV_DEF(),{cat:pre.cat||'',area:pre.area||'',type:pre.type||'',q:pre.q||''});render();window.scrollTo(0,0)}
-function offersTabV(){
+function offersTabV(){if(S.offView==='map'&&S.offMode)ofvSheetClose();
  if(S.offMode&&S.offView==='map')return offersV(); // the map hosted by the Offers tab is unchanged
  return offersV2()}
 function offersV(){
@@ -4173,7 +4261,8 @@ function favsV(){const l=S.merchants.filter(m=>S.fav[m.id]&&m.status==='active'&
   return subHead('المحلات المفضلة')+(l.length?l.map(m=>{const k=CAT(m.cat);return `<div class="card row"><div><b>${m.name}</b><div class="muted">${k[1]} · ${m.addr||''}</div></div><button class="back" style="margin:0;color:#e5487e" onclick="toggleFav('${m.id}')"><svg class="ic" style="fill:#e5487e" viewBox="0 0 24 24">${I.heart}</svg></button></div>`}).join(''):'<p class="muted">لم تضف أي محل بعد. اضغط على القلب في صفحة العروض.</p>')}
 function notesV(){const f=S.nf,l=myNotes().filter(n=>f==='all'||n.type===f||(f==='general'&&n.type==='nearby')),col={offer:'var(--yellow)',points:'var(--ok)',general:'var(--navy)',nearby:'var(--blue)'},icn={offer:'gift',points:'star',general:'bell',nearby:'pin'};
   const tripoliSection=`${collectTeaser()}${promoCard()}`;
-  return subHead('الإشعارات')+(tripoliSection.trim()?`<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:14px">عروض Tripoli Points</b><button class="chip" style="font-size:12px" onclick="openTripoliOffers()">عرض الكل${ic('chev',14)}</button></div>${tripoliSection}</div>`:'')+chips([['all','الكل'],['offer','العروض'],['points','النقاط'],['general','عام']],f,'setNf')+(l.length?l.map(n=>`<div class="card row" style="align-items:flex-start;justify-content:flex-start;gap:12px"><span class="dot" style="width:38px;height:38px;background:${col[n.type]};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type],18)}</span><div style="flex:1"><b>${n.title}</b><div>${n.body}</div><div class="muted">${ago(n.at)}</div></div></div>`).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
+  const pend=custPendingTx(),pendBox=pend.length?`<div class="notePend" id="notePend"><b class="h">${ic('star',16)} بانتظار تأكيدك</b>${pendingBanner()}</div>`:'';
+  return subHead('الإشعارات')+pendBox+(tripoliSection.trim()?`<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:14px">عروض Tripoli Points</b><button class="chip" style="font-size:12px" onclick="openTripoliOffers()">عرض الكل${ic('chev',14)}</button></div>${tripoliSection}</div>`:'')+chips([['all','الكل'],['offer','العروض'],['points','النقاط'],['general','عام']],f,'setNf')+(l.length?l.map(n=>{const tx=isPurchaseNote(n),open=tx&&String(S.noteTx)===String(n.id);return `<div class="card row${tx?' noteTx':''}" style="align-items:flex-start;justify-content:flex-start;gap:12px;flex-wrap:wrap" ${tx?`role="button" tabindex="0" aria-expanded="${open}" onclick='noteTap(${JSON.stringify(String(n.id))})'`:''}><span class="dot" style="width:38px;height:38px;background:${col[n.type]||'var(--navy)'};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type]||'bell',18)}</span><div style="flex:1;min-width:0"><b>${n.title}</b><div>${n.body}</div><div class="muted">${ago(n.at)}${tx?' · <span class="noteTxHint">اضغط لعرض العملية</span>':''}</div></div>${open?`<div style="flex-basis:100%" onclick="event.stopPropagation()">${noteTxPanel()}</div>`:''}</div>`}).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
 function viewPhoto(src){const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};md.innerHTML=`<div style="max-width:92vw;max-height:82vh"><img src="${src}" style="max-width:100%;max-height:82vh;border-radius:16px;display:block"></div>`;document.body.appendChild(md)}
 function accV(c){const buys=S.tx.filter(t=>t.phone===S.phone&&t.status==='CONFIRMED').length,cl=S.claims.filter(x=>x.phone===S.phone).length;
   return `<div style="text-align:center"><div class="avatar" style="margin:6px auto;width:72px;height:72px;cursor:pointer;${c.photo?`background:url(${c.photo}) center/cover`:''}" onclick="${c.photo?`viewPhoto('${c.photo}')`:`S.sub='info';render()`}">${c.photo?'':ic('user',36)}</div><b style="font-size:18px">${c.name}${c.last?' '+c.last:''}</b><div class="ltr muted" style="display:block">${dph(S.phone)}</div></div>
@@ -5261,7 +5350,7 @@ let _renderSig='';
 const NAV={stack:[],cur:null,curKey:'',restoring:false,restoreY:null,restoreMap:null,ignorePop:0,pendingPush:false,busy:false,armed:false};
 // الصفحات الفرعية التي تدخل نظام الرجوع: المرحلة 1 (المتجر، تفاصيل العرض، الحاسبة) + المرحلة 2 (كنوز طرابلس، صفحات الحساب الفرعية، مستويات «تسوّق» و«العروض» الداخلية)
 const NAV_SUBS={customer:{mypage:1,offer:1,calc:1,collect:1,info:1,notes:1,txlog:1,topup:1,transfer:1,redeem:1,help:1,favs:1,tripoliOffers:1}};
-const NAV_KEYS=['screen','mode','tab','sub','faq','offView','offMode','offAreaSel','offSort','ofv','filter','offerId','storeId','mypageMid','mypageReturn','prevSub','mapReturn','shopMode','shopNav','shopCat','shopQ','shopArea','catResSort','catNav','q','sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups','treasureRedirect','txf'];
+const NAV_KEYS=['screen','mode','tab','sub','faq','noteTx','offView','offMode','offAreaSel','offSort','ofv','filter','offerId','storeId','mypageMid','mypageReturn','prevSub','mapReturn','shopMode','shopNav','shopCat','shopQ','shopArea','catResSort','catNav','q','sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups','treasureRedirect','txf'];
 function navKey(){if(S.screen!=='app')return S.screen;
   const inner=S.sub==='help'?(S.faq==null?'':'faq:'+S.faq):S.sub?'':S.tab==='shop'?['shop',S.shopMode||'',S.shopArea||'',(S.shopNav&&S.shopNav.mainId)||''].join(':'):S.tab==='offers'?['off',S.offMode||'',S.offAreaSel||''].join(':'):'';
   return [S.screen,S.mode,S.tab,S.sub||'',S.sub==='mypage'?S.mypageMid:'',S.sub==='offer'?S.offerId:'',S.sub==='calc'?S.storeId:'',inner].join('|')}
@@ -5305,6 +5394,7 @@ function navFallback(){
 // نوافذ منبثقة فوق الصفحة: رجوع المتصفح يغلقها أولاً
 function navCloseOverlay(){
   // Offers page: an open filter panel is closed by Back first (filters, search and sort are kept)
+  if(typeof ofvSheetEl!=='undefined'&&ofvSheetEl&&ofvSheetEl.isConnected){ofvSheetClose();return true}
   if(S.screen==='app'&&S.mode==='customer'&&S.tab==='offers'&&!S.sub&&S.ofv&&S.ofv.open&&document.getElementById('ofvPanel')){ofvToggle(false);return true}
   if(typeof topupConfirmEl!=='undefined'&&topupConfirmEl&&topupConfirmEl.isConnected){topupCancel();return true}
   for(const el of [typeof moreSortsEl!=='undefined'?moreSortsEl:null,typeof moreChoiceEl!=='undefined'?moreChoiceEl:null,typeof catModalEl!=='undefined'?catModalEl:null])if(el&&el.isConnected){el.remove();return true}
@@ -5425,7 +5515,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102918-offers-v2b';
+  b.textContent='Tripoli Points v31.1 · build 2026102919-offers-v2c';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
