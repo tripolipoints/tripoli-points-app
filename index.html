@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102824-review">
+<meta name="tp-build" content="v31.1 build 2026102910-stage1">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1289,6 +1289,50 @@ body > .rmap.tp23-fullscreen .mchip.mround{bottom:calc(28px + env(safe-area-inse
 body.tp23-map-open > #promoSlot{display:none!important}
 body.tp23-map-open #mapcard,body.tp23-map-open #storeSheet{display:none!important}
 body.tp23-map-open #rtchip{display:none!important}
+</style><style id="tp40-subbar-offers">
+/* Shared sticky back bar for secondary pages (fixed, outside #app like the bottom bar). Content is pushed below it; it never covers the safe area or the bottom nav. */
+.tpSubBar{position:fixed;top:0;left:0;right:0;margin:0 auto;max-width:560px;z-index:6;box-sizing:border-box;height:calc(52px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 10px 0;display:flex;align-items:center;gap:10px;direction:rtl;background:linear-gradient(180deg,#113683 0%,#0c2a6b 60%,#0a2459 100%);border-bottom:2px solid rgba(255,194,14,.55);box-shadow:0 4px 14px rgba(6,22,62,.22);color:#fff}
+.tpSubBar .tpBack{flex:none;width:38px;height:38px;border-radius:12px;border:1.5px solid rgba(255,194,14,.7);background:rgba(255,255,255,.08);color:#ffc20e;display:grid;place-items:center;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tpSubBar .tpBack .ic{width:22px;height:22px}
+.tpSubBar .tpBack:active{background:rgba(255,194,14,.18)}
+.tpSubBar .tpBack:focus-visible{outline:2px solid #ffc20e;outline-offset:2px}
+.tpSubBar .tpSubTitle{flex:1;min-width:0;font-size:16px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;text-align:right}
+.tpSubBar .tpSubSide{flex:none;width:38px}
+.scr.hasSubBar{padding-top:calc(52px + env(safe-area-inset-top,0px) + 12px)!important}
+.scr.hasSubBar > .hero:first-child{margin-top:-12px}
+.scr.hasSubBar > .storehero:first-child{margin-top:0}
+/* Storefront offers: consistent two-column grid */
+.tpOffHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 2px 10px}
+.tpOffHead h3{margin:0}
+.tpOffCount{flex:none;font-size:12px;font-weight:800;color:#7d5300;background:#fff4cc;border:1px solid #ffd56b;border-radius:999px;padding:2px 10px}
+.tpOffGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.tpOffGrid.one{grid-template-columns:minmax(0,1fr)}
+.tpOff.isFeatured{grid-column:1/-1;border:1.5px solid #f2c94c}
+.tpOff{min-width:0;display:flex;flex-direction:column;background:#fff;border:1px solid #dbe4f3;border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(8,38,90,.07);cursor:pointer;text-align:right}
+.tpOff:focus-visible{outline:2px solid #ffc20e;outline-offset:2px}
+.tpOffImg{position:relative;aspect-ratio:4/3;background:#e8eef8 center/cover no-repeat}
+.tpOffGrid.one .tpOffImg,.tpOff.isFeatured .tpOffImg{aspect-ratio:16/9}
+.tpOffTag{position:absolute;top:8px;right:8px;max-width:calc(100% - 16px);box-sizing:border-box;font-size:11px;font-weight:800;line-height:1.3;padding:3px 8px;border-radius:999px;background:#ffc20e;color:#0c2a6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.tpOffBadge{position:absolute;bottom:8px;left:8px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:#0c2a6b;color:#ffc20e}
+.tpOffBody{flex:1;display:flex;flex-direction:column;gap:5px;padding:9px 10px 10px;min-width:0}
+.tpOffTitle{font-size:13px;font-weight:800;line-height:1.35;color:#13234a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em;overflow-wrap:anywhere}
+.tpOffPrice{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.tpOffPrice .now{font-size:15px;font-weight:900;color:#0c2a6b}
+.tpOffPrice .was{font-size:12px;color:#6b7a99;text-decoration:line-through}
+.tpOffCond,.tpOffLeft{font-size:11.5px;line-height:1.35;color:#6b7a99}
+.tpOffLeft{font-size:11px}
+.tpOffCta{margin-top:auto;height:32px;border:0;border-radius:10px;background:#0c2a6b;color:#fff;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.tpOffCta:active{background:#123a8c}
+@media (max-width:339.98px){.tpOffGrid{gap:8px}.tpOffBody{padding:8px}.tpOffTitle{font-size:12.5px}}
+.tpSubBar.tpCollapse{transform:translateY(-102%);opacity:0;pointer-events:none;transition:transform .2s ease,opacity .18s ease;gap:9px}
+.tpSubBar.tpCollapse.show{transform:none;opacity:1;pointer-events:auto}
+.tpSubBar.noanim{transition:none!important}
+.tpSubBar .tpSubThumb{flex:none;width:34px;height:34px;border-radius:10px;background:#1d3f86 center/cover no-repeat;border:1.5px solid rgba(255,194,14,.65);display:grid;place-items:center;font-size:17px;box-sizing:border-box}
+.tpSubBar .tpSubFav{flex:none;width:38px;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
+.tpSubBar .tpSubFav .ic{width:20px;height:20px;fill:none;stroke:currentColor}
+.tpSubBar .tpSubFav.on .ic{fill:#e5487e;stroke:#e5487e}
+.scr > .hero .circ{top:calc(14px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){.tpSubBar.tpCollapse{transition:none}}
 </style><style id="tp33-map-fixes">
 /* Embedded home map: own stacking context so no map control can paint above the fixed bottom navigation (z-index 5). */
 .rmap.tp23-home-map:not(.tp23-fullscreen){isolation:isolate;z-index:0}
@@ -1655,6 +1699,7 @@ body.tp23-map-open #rtchip{display:none!important}
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
 <script>TPP.mark('boot-screen')</script>
 <div id="navSlot"></div>
+<div id="subBarSlot"></div>
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -2847,7 +2892,7 @@ function evRow(e){const add=e.s==='+',k=e.t.id+e.s,open=S.openTx===k;
   <div style="flex:1"><b>${e.m}</b><div class="muted">${dtm(e.at)}</div><span class="tag ${add?'tg':'tr'}">${add?'إضافة نقاط':'استخدام نقاط'}</span></div>
   <div style="text-align:left"><b style="font-size:18px;color:${add?'var(--ok)':'var(--bad)'}">${add?'+':'−'}${fmt(e.n)}</b>${e.bonus?'':`<div class="muted">${usd(e.t.invoice)}</div>`}</div>
   ${open?`<div class="muted" style="width:100%;background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:6px">${e.bonus?'هدية ترحيبية عند التسجيل':`الفاتورة ${usd(e.t.invoice)}${e.t.disc?` · خصم العرض ${usd(e.t.disc)}`:''} · خصم النقاط ${usd(e.t.redeemVal)} · المدفوع نقداً ${usd(e.t.net)}${e.t.gift?` · هدية: ${e.t.gift}`:''}`}</div>`:''}</div>`}
-function toggleFav(id){S.fav[id]=!S.fav[id];render()}
+function toggleFav(id){S.fav[id]=!S.fav[id];render({bg:true})}
 function openNotes(){S.sub='notes';S.read[S.phone]=Date.now();render()}
 const setTxf=k=>{S.txf=k;render()}, setNf=k=>{S.nf=k;render()}, setCat=k=>{S.filter=k==='all'?null:k;S.sel=null;S.sheetFull=false;S.mv=null;S.route=null;render()};
 
@@ -3471,7 +3516,7 @@ function setCatResSort(s){S.catResSort=s;render()}
 function openTripoliOffers(){S.prevSub=S.sub;S.sub='tripoliOffers';render()}
 function openCalc(id){S.storeId=id;S.cc={inv:'',redeem:true,offer:null};S.sub='calc';render();syncStoreOffers(id);syncDirectory()}
 function calcV(){const m=M(S.storeId),k=CAT(m.cat),c=S.customers[S.phone];
-  return subHead('عملية شراء جديدة')+`<div class="storehero" style="${m.photo?`background-image:url('${m.photo}')`:`background:linear-gradient(135deg,var(--navy),var(--blue))`}">${m.photo?'':`<div class="noph">${k[2]}</div>`}<div class="storehero-info"><b>${m.name}</b><div class="muted">${m.addr||''} - ${k[1]}</div><span class="badge b1">نسبة الحسم ${rdPct(m,S.phone)}%</span></div></div>
+  return subBar('عملية شراء جديدة')+`<div class="storehero" style="${m.photo?`background-image:url('${m.photo}')`:`background:linear-gradient(135deg,var(--navy),var(--blue))`}">${m.photo?'':`<div class="noph">${k[2]}</div>`}<div class="storehero-info"><b>${m.name}</b><div class="muted">${m.addr||''} - ${k[1]}</div><span class="badge b1">نسبة الحسم ${rdPct(m,S.phone)}%</span></div></div>
   <div class="avail"><div>رصيدك الحالي</div><b>${fmt(c.points)} نقطة</b><div class="muted">≈ ${usd(c.points/RATE)} · الحد الأقصى للاستخدام في هذه العملية ${CAP*100}% من رصيدك</div></div>
   <label class="muted">قيمة الفاتورة المتوقعة ($)</label><div class="field"><input type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" placeholder="25" value="${S.cc.inv}" oninput="S.cc.inv=this.value;calcUpd()"></div>
   <div id="ccpick">${ccPickHtml()}</div>
@@ -3589,7 +3634,7 @@ function pageTemplateFor(m){return PAGE_TEMPLATES[mainCatSlugOf(m.cat)]||{layout
 function openMyPage(mid){S.mypageMid=mid;S.mypageReturn=S.sub;S.sub='mypage';render();syncStoreGallery(mid);syncStoreOffers(mid)}
 function closeMyPage(){S.sub=S.mypageReturn||null;S.mypageReturn=null;render()}
 function myPageV(){const m=M(S.mypageMid);
-  if(!m)return `<div class="top"><button class="back" style="margin:0" onclick="closeMyPage()">${ic('back',26)}</button></div><p class="muted">تعذّر العثور على المحل.</p>`;
+  if(!m)return subBar('المتجر')+`<p class="muted">تعذّر العثور على المحل.</p>`;
   const k=CAT(m.cat),tpl=pageTemplateFor(m),f=S.fav[m.id],items=S.gallery.filter(g=>g.mid===m.id),offs=liveOffers().filter(o=>o.mid===m.id);
   const cols=tpl.layout==='food'?2:3;
   const galTitle=m.pageEnabled?tpl.sectionTitle:'معرض الصور';
@@ -3599,18 +3644,12 @@ function myPageV(){const m=M(S.mypageMid);
   const photoItems=items.filter(g=>isPhotoOnlyItem(g));
   const productItems=items.filter(g=>!isPhotoOnlyItem(g));
   const photoGrid=photoItems.length?`<h3>صور من المحل</h3><div class="card tp18-gallery"><div class="tp19-photo-list">${photoItems.map(g=>`<div class="tp19-photo-card" onclick='openGalItem(${JSON.stringify(g.id)})'><img src="${g.img}" alt="${esc(g.name||'صورة من المحل')}" loading="${photoItems.indexOf(g)===0?'eager':'lazy'}" decoding="async"></div>`).join('')}</div></div>`:'';
-  const grid=productItems.length?`<h3>${galTitle}</h3><div class="card" style="padding:10px"><div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:${tpl.layout==='food'?10:8}px">${productItems.map(g=>`<div style="cursor:pointer" onclick='openGalItem(${JSON.stringify(g.id)})'><div style="aspect-ratio:${tpl.layout==='food'?'4/3':'1'};border-radius:12px;background:url(${g.img}) center/cover"></div><div style="font-size:12.5px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(g.name)}</div>${g.price!=null?`<div class="muted" style="font-size:11.5px">${usd(g.price)}</div>`:''}</div>`).join('')}</div></div>`:'';
-  const offersGrid=offs.length?`<h3>عروضنا الحالية</h3><div class="card" style="padding:10px"><div style="display:grid;grid-template-columns:repeat(${cols+1},1fr);gap:7px">${offs.map(o=>{const oimg=o.img||m.photo||THUMB;
-    return `<div style="cursor:pointer" onclick="closeMyPage();S.offerId='${o.id}';S.sub='offer';render()">
-     <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:url('${oimg}') center/cover">
-      <button class="btn sm" style="position:absolute;left:3px;right:3px;bottom:3px;background:var(--ok);color:#fff;font-size:10px;padding:3px 0;border-radius:7px" onclick="event.stopPropagation();closeMyPage();S.offerId='${o.id}';S.sub='offer';render()">اكتشف</button>
-     </div>
-     <div style="font-size:11px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.title)}</div>
-     <div class="muted" style="font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(offerTitle(o))}</div>
-    </div>`}).join('')}</div></div>`:'';
+  const grid=productItems.length?`<h3>${galTitle}</h3><div class="card" style="padding:10px"><div style="display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:${tpl.layout==='food'?10:8}px">${productItems.map(g=>`<div style="cursor:pointer" onclick='openGalItem(${JSON.stringify(g.id)})'><div style="aspect-ratio:${tpl.layout==='food'?'4/3':'1'};border-radius:12px;background:url(${g.img}) center/cover"></div><div style="font-size:12.5px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(g.name)}</div>${g.price!=null?`<div class="muted" style="font-size:11.5px">${usd(g.price)}</div>`:''}</div>`).join('')}</div></div>`:'';
+  // عروض المتجر: شبكة عمودين متّسقة (إطار صورة ثابت 4:3، عنوان واحد، الشرط أو السعر الفعلي، نفس الإجراءات) — انظر offerCardV
+  const offersGrid=offs.length?`<div class="tpOffHead"><h3>عروضنا الحالية</h3><span class="tpOffCount">${offs.length===1?'عرض واحد':offs.length===2?'عرضان':offs.length+' عروض'}</span></div><div class="tpOffGrid${offs.length===1?' one':''}">${offs.map(o=>offerCardV(o,m)).join('')}</div>`:'';
   const soc=(m.ig||m.fb)?`<div class="info"><span>مواقع التواصل</span></div><div style="display:flex;gap:10px;margin:4px 0 8px">${m.ig?`<a class="soc" style="background:linear-gradient(45deg,#f9a03c,#e1306c,#833ab4)" target="_blank" href="https://instagram.com/${m.ig}">IG</a>`:''}${m.fb?`<a class="soc" style="background:#1877f2" target="_blank" href="https://facebook.com/${m.fb}">f</a>`:''}</div>`:'';
-  return `<div class="hero" style="background:${m.photo?`url(${m.photo}) center/cover`:`linear-gradient(160deg,${k[3]}66,${k[3]}11)`}">${m.photo?'':`<span style="font-size:48px">${k[2]}</span>`}
-  <button class="circ" style="right:14px" onclick="closeMyPage()">${ic('back',22)}</button>
+  return heroBar(m.name,m.photo,m.id,k)+`<div class="hero" style="background:${m.photo?`url(${m.photo}) center/cover`:`linear-gradient(160deg,${k[3]}66,${k[3]}11)`}">${m.photo?'':`<span style="font-size:48px">${k[2]}</span>`}
+  <button class="circ tpHeroBack" style="right:14px" onclick="navBack()" aria-label="رجوع">${ic('back',22)}</button>
   <button class="circ" style="left:14px;color:${f?'#e5487e':'var(--navy)'}" onclick="toggleFav('${m.id}')"><svg class="ic" style="fill:${f?'#e5487e':'none'}" viewBox="0 0 24 24">${I.heart}</svg></button></div>
   <div style="text-align:center;margin:14px 0 4px"><span class="badge b1" style="background:${k[3]}22;color:${k[3]};font-weight:800">${k[2]} ${esc(k[1])}</span></div>
   <div class="tp21-store-brand">${tpStoreLogoHtml(m)}<h2 style="margin:6px 0 2px;text-align:center;color:var(--navy)">${esc(m.name)}</h2></div>
@@ -3751,6 +3790,35 @@ function offerDiscScore(o){
   if(o.type==='discount')return Number(o.val)||0;
   if(o.type==='product'&&o.oldPrice&&o.newPrice)return Math.max(0,Math.round((1-o.newPrice/o.oldPrice)*100));
   return 0}
+
+// ===== بطاقة عرض المتجر =====
+// كل ما يظهر مأخوذ من بيانات العرض الحالية فقط (لا أسعار أو خصومات أو ترتيب مختلَق). عنوان واحد: عنوان التاجر، إلا إذا كان مطابقاً للوصف المولَّد تلقائياً
+// (وهو سبب التكرار السابق)، فيُستخدم حينها عنوان مختصر حسب نوع العرض، ويظهر الشرط أو السعر في سطر مستقل.
+// isFeaturedOffer: نقطة ربط جاهزة لعرض «مميّز» تختاره الإدارة مستقبلاً — لا يوجد حقل أو صلاحية لذلك حالياً، فتُرجع false دائماً
+function isFeaturedOffer(o){return false}
+const _ofNorm=t=>String(t||'').replace(/\s+/g,' ').trim();
+function offerParts(o){
+  const cond=o.min?`عند شراء بـ $${o.min} فأكثر`:'';
+  if(o.type==='discount')return{head:`خصم ${o.val}% على الفاتورة`,cond,price:null};
+  if(o.type==='gift')return{head:`${o.gift}${/مجان/.test(o.gift||'')?'':' مجاناً'}`,cond,price:null};
+  if(o.type==='product')return{head:(String(o.specs||'').split('\n').map(x=>x.trim()).find(Boolean)||'سعر خاص'),cond:'',price:(o.newPrice!=null&&o.newPrice!=='')?{now:o.newPrice,was:(o.oldPrice!=null&&o.oldPrice!=='')?o.oldPrice:null}:null};
+  return{head:`${o.pts} نقطة إضافية على كل $${o.per}`,cond,price:null}}
+function openOfferDetails(id){S.offerId=id;S.sub='offer';render()}
+function offerCardV(o,m){const p=offerParts(o),own=_ofNorm(o.title),gen=_ofNorm(offerTitle(o));
+  const title=own&&own!==gen?own:p.head;
+  const showCond=p.cond&&!(own&&own!==gen&&o.min&&own.includes('$'+o.min));
+  const left=Math.ceil((o.at+o.days*D-Date.now())/D);
+  const img=o.img||m.photo||THUMB;
+  return `<article class="tpOff${isFeaturedOffer(o)?' isFeatured':''}" role="button" tabindex="0" onclick="openOfferDetails('${o.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOfferDetails('${o.id}')}">
+   <div class="tpOffImg" style="background-image:url('${img}')"><span class="tpOffTag">${esc(offerBadgeText(o))}</span>${o.badge?`<span class="tpOffBadge">${esc(o.badge)}</span>`:''}</div>
+   <div class="tpOffBody">
+    <b class="tpOffTitle" dir="auto">${esc(title)}</b>
+    ${p.price?`<div class="tpOffPrice"><span class="now">$${esc(String(p.price.now))}</span>${p.price.was!=null?`<span class="was">$${esc(String(p.price.was))}</span>`:''}</div>`:''}
+    ${showCond?`<div class="tpOffCond">${esc(p.cond)}</div>`:''}
+    ${left>0&&left<=60?`<div class="tpOffLeft">ينتهي العرض بعد ${left} يوم</div>`:''}
+    <button type="button" class="tpOffCta" onclick="event.stopPropagation();openOfferDetails('${o.id}')">اكتشف</button>
+   </div>
+  </article>`}
 function offerBadgeText(o){
   if(o.type==='discount')return `خصم ${o.val}%`;
   if(o.type==='product'&&o.oldPrice&&o.newPrice)return `خصم ${offerDiscScore(o)}%`;
@@ -3832,8 +3900,8 @@ function oSearch(v){const el=document.getElementById('offSearch'),pos=el?el.sele
   S.q=v;render();
   const el2=document.getElementById('offSearch');if(el2){el2.focus();if(pos!=null)el2.setSelectionRange(pos,pos)}}
 function offerV(){const o=S.offers.find(x=>x.id===S.offerId),m=M(o.mid),k=CAT(m.cat),f=S.fav[m.id],left=Math.ceil((o.at+o.days*D-Date.now())/D),hero=m.photo;
-  return `<div class="hero" style="background:${hero?`url(${hero}) center/cover`:`linear-gradient(160deg,${k[3]}55,${k[3]}11)`}">${hero?'':k[2]}
-  <button class="circ" style="right:14px" onclick="S.sub=null;render()">${ic('back',22)}</button>
+  return heroBar(m.name,hero,m.id,k)+`<div class="hero" style="background:${hero?`url(${hero}) center/cover`:`linear-gradient(160deg,${k[3]}55,${k[3]}11)`}">${hero?'':k[2]}
+  <button class="circ tpHeroBack" style="right:14px" onclick="navBack()" aria-label="رجوع">${ic('back',22)}</button>
   <button class="circ" style="left:14px;color:${f?'#e5487e':'var(--navy)'}" onclick="toggleFav('${m.id}')"><svg class="ic" style="fill:${f?'#e5487e':'none'}" viewBox="0 0 24 24">${I.heart}</svg></button></div>
   <div class="card" style="display:flex;align-items:center;gap:12px;margin-top:14px">
    ${o.img?`<div class="ofProdImg" style="background-image:url('${o.img}')" onclick="openImgZoom('${o.img}')"></div>`:''}
@@ -4926,6 +4994,13 @@ function render(opts){
   if(__rmFs&&__rmFs.classList.contains('tp23-fullscreen')){__pendingBgRender=true;return}
   if(S.screen==='app'&&S.mode==='admin'){if(!S.adminOk||Date.now()>S.adminUntil){const was=S.adminOk;S.adminOk=false;S.mode=null;S.screen='splash';if(was)toast('انتهت جلسة الإدارة. سجّل الدخول من جديد')}else S.adminUntil=Date.now()+ADMIN_SESSION}
   sweep();const a=$('#app');
+  // نظام الرجوع الموحّد: مفتاح الصفحة السابقة ولقطة حالتها وموضع تمريرها قبل إعادة البناء
+  const navPrevKey=NAV.curKey,navPrevSnap=NAV.cur,navPrevY=window.scrollY,navNewKey=navKey(),navNewSec=navIsSec();
+  let navEntry=null;
+  if(!NAV.restoring&&S.screen==='app'&&navNewKey!==navPrevKey){
+    if(navNewSec&&navPrevSnap&&navPrevSnap.screen==='app'){navEntry={snap:navEntrySnap(navPrevSnap),y:navPrevY};NAV.stack.push(navEntry);navHistPush()}
+    else if(!navNewSec&&NAV.stack.length)navReset(true)}
+  else if(S.screen!=='app'&&NAV.stack.length)navReset(true);
   // تحديث خلفي (وصول بيانات من الخادم) على نفس الشاشة: تُعاد بناء بقية الصفحة كالمعتاد، لكن عنصر خريطة الرئيسية الحيّ نفسه يُعاد إلى مكانه بدل هدمه وإنشاء خريطة جديدة
   // (فتبقى البلاطات والدبابيس والمسار وأي حركة جارية كما هي)، ويبقى موضع التمرير كما هو. أي تنقّل من المستخدم يمرّ بالمسار الكامل المعتاد دون تغيير
   const bg=!!(opts&&opts.bg),sig=[S.screen,S.mode,S.tab,S.sub,S.offView].join('|'),sameScreen=sig===_renderSig;
@@ -4941,14 +5016,92 @@ function render(opts){
   else a.innerHTML={splash:splashView,login:loginView,pin:pinView,welcome:welcomeView,type:typeView,terms:termsView,mreg:mregView,mpending:mpendView,adminlogin:adminLoginView,mforgotpin:mForgotPinView}[S.screen]();
   // نقل الشريط السفلي الثابت (.nav) إلى خارج #app (الذي له overflow-x:hidden) ليبقى ثابتاً فعلياً فوق الشاشة أثناء التمرير على بعض متصفحات الجوال، بدل أن يختفي أو يُقصّ بسبب تعشيشه داخل عنصر له overflow
   const navSlot=$('#navSlot');if(navSlot){const navEl=a.querySelector(':scope > .nav');navSlot.innerHTML='';if(navEl)navSlot.appendChild(navEl)}
+  // شريط الرجوع الثابت للصفحات الفرعية: يُنقل خارج #app (مثل الشريط السفلي) ويُحجز مكانه أعلى المحتوى كي لا يغطّي شيئاً
+  const sbSlot=$('#subBarSlot');if(sbSlot){const sb=a.querySelector('.tpSubBar');sbSlot.innerHTML='';if(sb){const scr=sb.closest('.scr');if(scr&&!sb.classList.contains('tpCollapse'))scr.classList.add('hasSubBar');sbSlot.appendChild(sb)}}
   if(S.screen==='app'&&S.mode==='customer'&&S.sub==='calc')calcUpd();
   if((S.screen==='app'&&S.mode==='customer'&&!S.sub&&(S.tab==='home'||(S.tab==='offers'&&S.offView==='map')))||(S.screen==='mreg'&&(S.reg.step||1)===2)||(S.screen==='app'&&S.mode==='admin'&&S.sub==='map')){
     const fresh=document.getElementById('rmap');
-    if(keepMap&&fresh&&fresh!==liveMap&&fresh.classList.contains('tp23-home-map'))reuseLiveMap(liveMap,fresh);else initRealMap()}
-  else destroyMap();
-  fitSplash();window.scrollTo(0,keepY!=null?keepY:restoreY!=null?restoreY:0);placeLocateBtn();
+    if(keepMap&&fresh&&fresh!==liveMap&&fresh.classList.contains('tp23-home-map'))reuseLiveMap(liveMap,fresh);
+    // الرجوع إلى الخريطة: نُعيد نفس عنصر الخريطة الحيّ ونفس كائنها (البلاطات والدبابيس والمسار كما هي) بدل إنشاء خريطة جديدة
+    else if(NAV.restoreMap&&fresh&&fresh.classList.contains('tp23-home-map')){const st=NAV.restoreMap;NAV.restoreMap=null;destroyMap();TM=st.tm;reuseLiveMap(st.el,fresh)}
+    else initRealMap()}
+  else{
+    // مغادرة الخريطة إلى صفحة فرعية: يُحفظ عنصر الخريطة الحيّ وكائنها جانباً مع لقطة الصفحة السابقة لاستعادتهما عند الرجوع
+    if(navEntry&&TM&&!GM&&!TM.pick&&liveMap&&TM.el===liveMap&&liveMap.classList.contains('tp23-home-map')&&!liveMap.classList.contains('tp23-fullscreen')){cancelAnimationFrame(TM.anim);navEntry.map={el:liveMap,tm:TM};TM=null}
+    destroyMap()}
+  if(NAV.restoreMap){navDropMap(NAV.restoreMap);NAV.restoreMap=null}
+  fitSplash();const navY=NAV.restoring&&NAV.restoreY!=null?NAV.restoreY:null;window.scrollTo(0,navY!=null?navY:keepY!=null?keepY:restoreY!=null?restoreY:0);placeLocateBtn();syncCollapseBar(true);
+  NAV.cur=S.screen==='app'?navSnap():null;NAV.curKey=navNewKey;if(S.screen==='app')navArm();else NAV.armed=false;
 }
 let _renderSig='';
+// ===== نظام الرجوع الموحّد (المرحلة 1: صفحة المتجر، تفاصيل العرض، حاسبة النقاط) =====
+// قبل فتح صفحة فرعية تُحفظ لقطة الصفحة السابقة (التبويب، المتجر/العرض المختار، فلاتر التسوّق والعروض، اختيار الخريطة ومسارها وعرضها) وموضع التمرير،
+// ويُضاف قيد واحد لسجل المتصفح. زر الرجوع الظاهر، وزر الرجوع في المتصفح، وسحب الرجوع على آيفون كلها تمرّ بنفس الدالة (navPop) فتستعيد الصفحة السابقة كما هي.
+// لا تدخّل في شاشات الدخول/التسجيل/رمز الحماية/الخروج: كل ذلك يعمل فقط حين S.screen==='app'.
+const NAV={stack:[],cur:null,curKey:'',restoring:false,restoreY:null,restoreMap:null,ignorePop:0,pendingPush:false,busy:false,armed:false};
+const NAV_SEC={customer:{mypage:1,offer:1,calc:1}};
+const NAV_KEYS=['screen','mode','tab','sub','offView','offMode','offAreaSel','offSort','offerId','storeId','mypageMid','mypageReturn','prevSub','mapReturn','shopMode','shopNav','shopCat','shopQ','shopArea','catResSort','catNav','q','sel','sheetFull','mapBig','mv','route','rcard','rmode','mapFocus','mapOfferFocus','_mapOpenGroup','_mapSplitGroups','treasureRedirect','txf'];
+function navKey(){return S.screen==='app'?[S.screen,S.mode,S.tab,S.sub||'',S.sub==='mypage'?S.mypageMid:'',S.sub==='offer'?S.offerId:'',S.sub==='calc'?S.storeId:''].join('|'):S.screen}
+function navIsSec(){return S.screen==='app'&&!!(S.sub&&NAV_SEC[S.mode]&&NAV_SEC[S.mode][S.sub])}
+// لقطة الصفحة السابقة لحظة فتح الصفحة الفرعية: هوية الصفحة (التبويب والصفحة الفرعية والمتجر/العرض) من آخر رسم لها، وبقية الحالة الحيّة
+// (المحل المختار على الخريطة، المسار، العرض، فلاتر التسوّق) كما هي الآن — لأن اختيار محل أو رسم مسار يحدث دون إعادة رسم الصفحة كاملة
+const NAV_PAGE_KEYS=['screen','mode','tab','sub','mypageMid','mypageReturn','offerId','storeId','prevSub'];
+function navEntrySnap(prev){const o=navSnap();NAV_PAGE_KEYS.forEach(k=>{o[k]=prev[k]});return o}
+function navSnap(){const o={};NAV_KEYS.forEach(k=>{const v=S[k];o[k]=(v&&typeof v==='object'&&k!=='route')?JSON.parse(JSON.stringify(v)):v});return o}
+function navDropMap(st){if(!st||!st.tm)return;const keep=TM;TM=st.tm;destroyMap();TM=keep===st.tm?null:keep}
+function navHistPush(){if(NAV.ignorePop){NAV.pendingPush=true;return}try{history.pushState({tp:'nav',d:NAV.stack.length},'')}catch(e){}}
+function navArm(){if(NAV.armed)return;NAV.armed=true;try{const st=history.state;if(!(st&&st.tp==='nav'))history.pushState({tp:'nav',d:0},'')}catch(e){}}
+// خروج من سياق الصفحات الفرعية دون رجوع (تبويب رئيسي، صفحة أخرى، تسجيل خروج): تُفرَّغ اللقطات وتُسحب قيود السجل الخاصة بها كي لا يبقى رجوع "فارغ" لاحقاً
+function navReset(unwind){const n=NAV.stack.length;NAV.stack.forEach(e=>navDropMap(e.map));NAV.stack=[];
+  if(unwind&&n){try{const st=history.state;if(st&&st.tp==='nav'&&st.d>=n){NAV.ignorePop++;history.go(-n)}}catch(e){}}}
+function navPop(){const e=NAV.stack.pop();if(!e)return false;
+  NAV_KEYS.forEach(k=>{S[k]=e.snap[k]});NAV.restoring=true;NAV.restoreY=e.y;NAV.restoreMap=e.map||null;
+  try{render()}finally{NAV.restoring=false;NAV.restoreY=null}
+  return true}
+// زر الرجوع الظاهر في الشريط الثابت: يمرّ عبر سجل المتصفح نفسه (history.back) كي يبقى السجل والتطبيق متطابقين، فلا رجوع مزدوج ولا قيود مكررة
+function navBack(){if(NAV.busy)return;
+  if(!NAV.stack.length){navFallback();return}
+  let st=null;try{st=history.state}catch(e){}
+  if(st&&st.tp==='nav'&&st.d===NAV.stack.length){NAV.busy=true;clearTimeout(NAV._t);NAV._t=setTimeout(()=>{if(NAV.busy){NAV.busy=false;navPop()}},1200);history.back();return}
+  navPop()}
+// لا صفحة سابقة محفوظة (مثلاً فُتحت الصفحة مباشرة): نفس سلوك زر الرجوع القديم لكل صفحة
+function navFallback(){if(S.sub==='mypage'){S.sub=S.mypageReturn||null;S.mypageReturn=null}else S.sub=null;render()}
+// نوافذ منبثقة فوق الصفحة: رجوع المتصفح يغلقها أولاً
+function navCloseOverlay(){
+  if(typeof topupConfirmEl!=='undefined'&&topupConfirmEl&&topupConfirmEl.isConnected){topupCancel();return true}
+  for(const el of [typeof moreSortsEl!=='undefined'?moreSortsEl:null,typeof moreChoiceEl!=='undefined'?moreChoiceEl:null,typeof catModalEl!=='undefined'?catModalEl:null])if(el&&el.isConnected){el.remove();return true}
+  const md=[...document.querySelectorAll('body > .modal')].pop();if(md){md.remove();return true}
+  return false}
+// موضع التمرير تستعيده التطبيق بنفسه من اللقطة؛ استعادة المتصفح التلقائية كانت تعيد الصفحة لأعلى عند الرجوع إلى أول قيد
+try{if('scrollRestoration' in history)history.scrollRestoration='manual'}catch(e){}
+window.addEventListener('popstate',e=>{
+  if(NAV.ignorePop>0){NAV.ignorePop--;if(NAV.pendingPush){NAV.pendingPush=false;navHistPush()}return}
+  if(S.screen!=='app')return;
+  const st=e.state,d=(st&&st.tp==='nav')?st.d:-1,here=NAV.stack.length;
+  const rm=document.getElementById('rmap');
+  // أول رجوع أثناء الخريطة بملء الشاشة: يُغلق ملء الشاشة فقط ويعود للخريطة المدمجة كما هي (نفس زر الإغلاق المعتمد)، ويُعاد قيد السجل الذي استُهلك
+  if(rm&&rm.classList.contains('tp23-fullscreen')){toggleMapFullscreen(false);if(d<here){try{history.pushState({tp:'nav',d:here},'')}catch(_){}}return}
+  if(!NAV.busy&&navCloseOverlay()){if(d<here){try{history.pushState({tp:'nav',d:here},'')}catch(_){}}return}
+  NAV.busy=false;clearTimeout(NAV._t);
+  if(d>=0&&d<here){while(NAV.stack.length>d+1){const x=NAV.stack.pop();navDropMap(x.map)}navPop();return}
+  if(d<0){ // وصلنا لأول قيد في السجل: تبويب رئيسي بلا صفحة سابقة — يبقى التطبيق مفتوحاً (لا رجوع لشاشة البداية أو الدخول ولا تسجيل خروج)، ويُعاد قيد حماية واحد فقط مكان المستهلَك
+    if(here)navPop(); // حالة نادرة لعدم تطابق السجل: نرجع خطوة واحدة ثم نعيد بناء قيود السجل للصفحات المتبقية
+    try{history.pushState({tp:'nav',d:0},'');for(let i=1;i<=NAV.stack.length;i++)history.pushState({tp:'nav',d:i},'')}catch(_){}
+    return}
+  // تقدّم (Forward) لقيد لم يعد موجوداً: نبقى في الصفحة الحالية
+});
+// شريط الرجوع الثابت (كحلي وذهبي) للصفحات الفرعية
+// صفحات بصورة رئيسية (المتجر، تفاصيل العرض): تبقى الصورة الكبيرة بزرّي الرجوع والمفضلة كما هي، ويظهر شريط مضغوط (رجوع، صورة مصغّرة، الاسم، المفضلة)
+// فقط بعد أن تمرّ الصورة تحت أعلى الشاشة، ويختفي عند العودة للأعلى. الشريط ثابت ولا يحجز مكاناً في الصفحة، فلا إزاحة للمحتوى إطلاقاً
+function heroBar(title,img,favId,k){const f=!!(favId&&S.fav[favId]);
+  return `<div class="tpSubBar tpCollapse" role="navigation" aria-label="${esc(title||'')}" aria-hidden="true"><button type="button" class="tpBack" onclick="navBack()" aria-label="رجوع" tabindex="-1">${ic('back',22)}</button><span class="tpSubThumb" style="${img?`background-image:url('${img}')`:`background:${k?k[3]:'#1d3f86'}`}" aria-hidden="true">${img?'':(k?k[2]:'')}</span><b class="tpSubTitle" dir="auto">${esc(title||'')}</b>${favId?`<button type="button" class="tpSubFav${f?' on':''}" onclick="toggleFav('${favId}')" aria-label="المفضلة" aria-pressed="${f}" tabindex="-1"><svg class="ic" viewBox="0 0 24 24">${I.heart}</svg></button>`:'<span class="tpSubSide" aria-hidden="true"></span>'}</div>`}
+function syncCollapseBar(instant){const bar=document.querySelector('#subBarSlot .tpCollapse');if(!bar)return;const hero=document.querySelector('#app .hero');
+  const show=!hero||hero.getBoundingClientRect().bottom<=bar.offsetHeight+4;
+  if(instant){bar.classList.add('noanim');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.classList.remove('noanim')))}
+  if(bar.classList.contains('show')!==show){bar.classList.toggle('show',show);bar.setAttribute('aria-hidden',show?'false':'true');bar.querySelectorAll('button').forEach(b=>b.tabIndex=show?0:-1)}}
+let _scbRaf=0;window.addEventListener('scroll',()=>{if(_scbRaf)return;_scbRaf=requestAnimationFrame(()=>{_scbRaf=0;syncCollapseBar()})},{passive:true});
+function subBar(title){return `<div class="tpSubBar" role="navigation" aria-label="رجوع"><button type="button" class="tpBack" onclick="navBack()" aria-label="رجوع">${ic('back',22)}</button><b class="tpSubTitle" dir="auto">${esc(title||'')}</b><span class="tpSubSide" aria-hidden="true"></span></div>`}
+
 // زر «موقعي» على خريطة الرئيسية المدمجة: يبقى دائماً داخل الجزء الظاهر فعلياً من الخريطة (فوق الشريط السفلي الثابت وحافة الشاشة الآمنة)،
 // السبب الجذري: الخريطة تمتد (88vh) تحت الشريط السفلي، والزر مثبّت على أسفل حاويتها (bottom:10px) وبطبقة z-index أعلى من الشريط، فيظهر فوقه.
 // الحل: عزل طبقات الخريطة المدمجة تحت الشريط (CSS isolation) + رفع الزر بمقدار الجزء المحجوب من أسفل الخريطة لحظة التمرير/تغيير الحجم (بلا مؤقتات)
@@ -5020,7 +5173,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102824-review';
+  b.textContent='Tripoli Points v31.1 · build 2026102910-stage1';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
