@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102919-offers-v2c">
+<meta name="tp-build" content="v31.1 build 2026102920-offers-v2d">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1368,6 +1368,15 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvSel .c{flex:none;font-size:12px;font-weight:600;color:#6b7a99}
 .ofvSel .ic{flex:none;width:14px;height:14px;transform:rotate(-90deg);color:#6b7a99}
 .ofvSel.on{border-color:#0c2a6b;background:#eef3fc;box-shadow:inset 0 0 0 1px #0c2a6b}
+.txBanner{position:fixed;z-index:70;top:calc(8px + env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));max-width:540px;margin:0 auto;display:flex;align-items:center;gap:9px;padding:9px 10px 9px 8px;border-radius:16px;background:#0c2a6b;color:#fff;border:1.5px solid rgba(255,194,14,.7);box-shadow:0 10px 26px rgba(6,22,62,.35);direction:rtl;animation:txbIn .25s ease}
+@keyframes txbIn{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.txBanner{animation:none}}
+.txbIc{flex:none;width:32px;height:32px;border-radius:50%;background:#ffc20e;color:#0c2a6b;display:grid;place-items:center}
+.txbT{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.txbT b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txbT span{font-size:12.5px;color:#d6e0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txbGo{flex:none;min-height:36px;padding:0 12px;border-radius:10px;border:0;background:#ffc20e;color:#0c2a6b;font:inherit;font-size:13px;font-weight:800}
+.txbX{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:12px;font-weight:900;padding:0}
 .notePend{margin:0 0 12px;padding:10px;border-radius:16px;background:#fff8dc;border:1.5px solid #ffd56b}
 .notePend>.h{display:flex;align-items:center;gap:6px;color:#7d5300;font-size:14px;margin:0 2px 6px}
 .notePend.flash{animation:notePendFlash 1.2s ease}
@@ -2431,7 +2440,7 @@ async function syncCustomerData(p){
   if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
   if(offs){S.offers=S.offers.filter(o=>!o.db);offs.forEach(o=>S.offers.push(mapOfferRow(o)));TPP.mark('offers-data');ofvWarm()}
   if(prof&&prof.ok)hydrateCustomer(prof.customer);
-  render({bg:true});
+  render({bg:true});txBannerCheck();
 }
 function mapOfferRow(o){return{id:o.id,mid:o.mid,title:o.title,badge:o.badge,at:o.at,days:o.days,active:o.active,type:o.type,val:o.val,gift:o.gift_text,pts:o.pts,per:o.per,oldPrice:o.old_price,newPrice:o.new_price,img:o.img_url,specs:o.specs,min:o.min,first:o.first,db:true}}
 function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
@@ -3040,11 +3049,16 @@ const catPlainChips=(list,cur,fn)=>`<div class="catPlainRow">${list.map(([k,l,ic
 const subHead=t=>S.mode==='customer'?subBar(t):`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">${t}</h3><div style="width:34px"></div></div>`;
 const act=(i,l,c)=>`<button class="act" onclick="${c}"><i>${ic(i,20)}</i>${l}</button>`;
 const soonBox=`<div class="ask"><b>قريباً</b><div>هذه الميزة ليست ضمن النسخة الأولى. تُكتسب النقاط حالياً من مشترياتك في المحلات المشاركة.</div></div>`;
+// Remaining time of a pending purchase, always measured from its original creation time (t.at, from the server);
+// navigating, dismissing, reloading or reopening never restarts it. The window (EXPIRY) is the one the server enforces today.
+function txCdText(end){const s=Math.max(0,Math.round((end-Date.now())/1000));return s?`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')} د`:'انتهت المهلة'}
+setInterval(()=>{const els=document.querySelectorAll('.txCd[data-end]');if(!els.length)return;let ended=false;els.forEach(e=>{const end=+e.dataset.end;e.textContent=txCdText(end);if(end<=Date.now())ended=true});
+  if(ended&&sweep()&&S.screen==='app')render({bg:true})},1000);
 function pendingBanner(){return S.tx.filter(t=>t.phone===S.phone&&t.status==='PENDING').map(t=>{
   const left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000));
   return `<div class="ask"><b>تأكيد عملية شراء</b><div>${M(t.mid).name}: فاتورة <b>${usd(t.invoice)}</b></div>${t.offerTitle?`<div>العرض: <b>${t.offerTitle}</b>${t.disc?` (-${usd(t.disc)})`:''}${t.gift?` · هدية: ${t.gift}`:''}</div>`:''}
   ${t.redeemPts?`<div>خصم من النقاط: ${fmt(t.redeemPts)} نقطة (${usd(t.redeemVal)})</div>`:''}
-  <div>المبلغ النقدي: <b>${usd(t.net)}</b> · ستربح <b>${fmt(t.earn)}</b> نقطة</div><div class="muted">تنتهي المهلة خلال ${left} د</div>
+  <div>المبلغ النقدي: <b>${usd(t.net)}</b> · ستربح <b>${fmt(t.earn)}</b> نقطة</div><div class="muted">تنتهي المهلة خلال <b class="txCd" data-end="${t.at+EXPIRY}">${txCdText(t.at+EXPIRY)}</b></div>
   <div class="row" style="margin-top:10px"><button class="btn ok" ${S._deciding?'disabled':''} onclick='decide(${JSON.stringify(t.id)},true)'>نعم، أؤكد</button><button class="btn bad" ${S._deciding?'disabled':''} onclick='decide(${JSON.stringify(t.id)},false)'>لا، ألغِ</button></div></div>`}).join('')}
 function evRow(e){const add=e.s==='+',k=e.t.id+e.s,open=S.openTx===k;
   return `<div class="tx" style="flex-wrap:wrap;cursor:pointer" onclick="S.openTx=${open?'null':`'${k}'`};render()">
@@ -3053,15 +3067,41 @@ function evRow(e){const add=e.s==='+',k=e.t.id+e.s,open=S.openTx===k;
   <div style="text-align:left"><b style="font-size:18px;color:${add?'var(--ok)':'var(--bad)'}">${add?'+':'−'}${fmt(e.n)}</b>${e.bonus?'':`<div class="muted">${usd(e.t.invoice)}</div>`}</div>
   ${open?`<div class="muted" style="width:100%;background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:6px">${e.bonus?'هدية ترحيبية عند التسجيل':`الفاتورة ${usd(e.t.invoice)}${e.t.disc?` · خصم العرض ${usd(e.t.disc)}`:''} · خصم النقاط ${usd(e.t.redeemVal)} · المدفوع نقداً ${usd(e.t.net)}${e.t.gift?` · هدية: ${e.t.gift}`:''}`}</div>`:''}</div>`}
 function toggleFav(id){S.fav[id]=!S.fav[id];render({bg:true})}
-function openNotes(){S.sub='notes';S.read[S.phone]=Date.now();S.noteTx=null;render();custTxRefresh(S.phone)}
+function openNotes(focusPending){if(typeof txBannerClose==='function')txBannerClose();S.sub='notes';S.read[S.phone]=Date.now();S.noteTx=null;render();
+  const go=()=>{if(!focusPending)return;const e=document.getElementById('notePend');if(e){e.scrollIntoView({block:'start',behavior:'smooth'});e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}};
+  go();custTxRefresh(S.phone).then(go)}
 // Refresh this customer's transactions and notifications from the server (existing read-only RPCs, same mapping as syncCustomerData).
 // Used when «الإشعارات» opens or a purchase notification is tapped, so pending/confirmed/cancelled/expired states are the server's.
 let _custTxBusy=null;
 function custTxRefresh(p){if(!p||S.mode!=='customer')return Promise.resolve();if(_custTxBusy)return _custTxBusy;
   _custTxBusy=Promise.all([sbRpc('customer_transactions',{p_phone:p}),sbRpc('customer_notes_list',{p_phone:p})]).then(([tx,notes])=>{
+    const sig=()=>S.tx.filter(t=>t.phone===p).map(t=>t.id+':'+t.status).sort().join(',')+'|'+S.notes.filter(n=>n.db).map(n=>n.id).join(','),before=sig();
     if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.phone===p));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid:r.mid,phone:p})));sweep()}
     if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
-    if(S.screen==='app')render({bg:true})}).catch(()=>{}).finally(()=>{_custTxBusy=null});return _custTxBusy}
+    // re-render only when the data changed and the screen shows it (typing, scrolling and the map are left alone otherwise)
+    if(S.screen==='app'&&sig()!==before&&(S.sub==='notes'||S.sub==='txlog'||S.sub==='success'||(!S.sub&&(S.tab==='wallet'||S.tab==='acc'))))render({bg:true});
+    txBannerCheck()}).catch(()=>{}).finally(()=>{_custTxBusy=null});return _custTxBusy}
+// ===== Compact purchase banner =====
+// A new pending purchase is announced once with a small banner at the top of the current screen (merchant, amount, «عرض العملية»).
+// It closes by itself after a few seconds or with ✕. Closing it never touches the transaction; confirming or cancelling only happens
+// in «الإشعارات» through the existing server-validated decide_transaction. Each purchase is announced once per app session.
+const TXB_SHOW_MS=8000,_txbSeen=new Set();let _txbEl=null,_txbT=0;
+document.addEventListener('click',()=>{if(_txbEl&&(S.screen!=='app'||S.mode!=='customer'))txBannerClose()},true);
+function txBannerClose(){clearTimeout(_txbT);if(_txbEl){_txbEl.remove();_txbEl=null}}
+function txBannerCheck(){if(S.screen!=='app'||S.mode!=='customer'||!S.phone)return;
+  const t=custPendingTx().filter(x=>!_txbSeen.has(String(x.id))).sort((a,b)=>b.at-a.at)[0];if(!t)return;
+  custPendingTx().forEach(x=>_txbSeen.add(String(x.id)));
+  if(S.sub==='notes')return; // already visible in «الإشعارات»
+  txBannerClose();const m=M(t.mid),el=document.createElement('div');el.className='txBanner';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  el.innerHTML=`<span class="txbIc">${ic('star',18)}</span><div class="txbT"><b>عملية بانتظار تأكيدك</b><span>${esc((m&&m.name)||'')} · ${numIso(esc(usd(t.invoice)))}</span></div>
+   <button type="button" class="txbGo" onclick="txBannerClose();openNotes(true)">عرض العملية</button><button type="button" class="txbX" onclick="txBannerClose()" aria-label="إغلاق التنبيه">✕</button>`;
+  document.body.appendChild(el);_txbEl=el;_txbT=setTimeout(txBannerClose,TXB_SHOW_MS)}
+// While the customer app is open and visible, pending purchases are checked with the existing read-only customer_transactions RPC
+// every TX_POLL_MS, and immediately when the app comes back to the foreground. No render unless the shown data changed.
+const TX_POLL_MS=20000;
+function custTxPollTick(){if(S.screen==='app'&&S.mode==='customer'&&S.phone&&document.visibilityState!=='hidden')return custTxRefresh(S.phone);return Promise.resolve()}
+setInterval(custTxPollTick,TX_POLL_MS);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')custTxPollTick()});
 // A purchase can be confirmed only while the server lists it as PENDING and the existing 5-minute window is open (same rule as before)
 const custPendingTx=()=>S.tx.filter(t=>t.phone===S.phone&&t.status==='PENDING'&&Date.now()-t.at<EXPIRY);
 // Purchase-confirmation notifications carry no transaction id (customer_notes has no such column), so they are recognised by their text
@@ -3851,7 +3891,7 @@ function customerView(){
   const c=S.customers[S.phone];let body;
   if(S.sub)body=subView(c);else if(S.tab==='home')body=homeV(c);else if(S.tab==='shop')body=`<div class="tp15-shoptab">${shopV()}</div>`;else if(S.tab==='offers')body=offersTabV();else if(S.tab==='wallet')body=walletV(c);else body=accV(c);
   const hm=!S.sub&&S.tab==='home';
-  return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${S.sub==='offer'||S.sub==='notes'||hm?'':pendingBanner()}${body}</div>${pendOverlay()}${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']],'premium')}`}
+  return `<div class="scr"${hm?' style="padding-top:0;padding-bottom:calc(77px + env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:100vh;min-height:100dvh"':''}>${body}</div>${S.wel?welcomeModal():''}${S.newPicUnlock?newPicModal():''}${nav([['acc','حسابي','user'],['wallet','نقاطي','star'],['treasure','كنوز طرابلس','store'],['offers','العروض','gift'],['shop','تسوّق','bag'],['home','الخريطة','pin']],'premium')}`}
 function newPicModal(){const p=S.newPicUnlock,done=collectedCount(S.phone)>=S.collectPics.length;
   return `<div class="modal"><div class="sheet" style="text-align:center">
    <div style="height:140px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:10px;${p.img?`background:url(${p.img}) center/cover`:'background:linear-gradient(150deg,#0c2a6b,#1d63e0)'}">${p.img?'':'<span style="font-size:44px">🏛️</span>'}</div>
@@ -3963,7 +4003,6 @@ function homeV(c){const u=unread();
   return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button></div>
   <button class="bal2" onclick="S.tab='wallet';render()"><div class="g"><span class="bag">🛍️</span><div style="font-size:12.5px;line-height:1.3;font-weight:700">استخدم نقاطك في<br>المحلات المشاركة</div></div><div class="sep"></div>
   <div class="g" style="flex:none"><div><div style="font-size:10.5px;opacity:.9">رصيدك من النقاط</div><div class="n">${fmt(c.points)} <span style="font-size:11.5px;color:var(--yellow)">نقطة</span></div></div><div class="wr">${ic('wallet',18)}</div></div></button>
-  ${pendingBanner()}
   <div class="cats2" id="catrow">${catsHtml()}</div>
   ${mapBlock()}
   <div class="promoSlot" id="promoSlot">${promoSlotHtml()}</div>`}
@@ -5515,7 +5554,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102919-offers-v2c';
+  b.textContent='Tripoli Points v31.1 · build 2026102920-offers-v2d';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
