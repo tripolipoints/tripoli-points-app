@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 2026102920-offers-v2d">
+<meta name="tp-build" content="v31.1 build 2026103021-pr7e">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1368,6 +1368,7 @@ bdi.tpNum{unicode-bidi:isolate;direction:ltr}
 .ofvSel .c{flex:none;font-size:12px;font-weight:600;color:#6b7a99}
 .ofvSel .ic{flex:none;width:14px;height:14px;transform:rotate(-90deg);color:#6b7a99}
 .ofvSel.on{border-color:#0c2a6b;background:#eef3fc;box-shadow:inset 0 0 0 1px #0c2a6b}
+.noteStale{display:inline-block;margin:4px 0 2px;padding:1px 8px;border-radius:999px;background:#eef1f6;color:#5b6577;font-size:12px;font-weight:700}
 .txBanner{position:fixed;z-index:70;top:calc(8px + env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));max-width:540px;margin:0 auto;display:flex;align-items:center;gap:9px;padding:9px 10px 9px 8px;border-radius:16px;background:#0c2a6b;color:#fff;border:1.5px solid rgba(255,194,14,.7);box-shadow:0 10px 26px rgba(6,22,62,.35);direction:rtl;animation:txbIn .25s ease}
 @keyframes txbIn{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.txBanner{animation:none}}
@@ -2997,17 +2998,30 @@ function pickDirArea(lat,lng,name){if(areaModalEl){areaModalEl.remove();areaModa
 const HERO='assets/img/home-hero.9ab77c055c.jpg',THUMB='assets/img/thumb-default.69460e952a.jpg';
 function welcomeModal(){const wb=Number(S.settings.welcome_bonus)||0,wd=Number(S.settings.welcome_days)||0;
   return `<div class="modal"><div class="sheet"><div style="font-size:44px">🎉</div><h2 style="margin:6px 0">مرحباً بك في Tripoli Points</h2><p class="sub">هدية ترحيبية: <b>${fmt(wb)} نقطة</b> ≈ ${usd(wb/RATE)}</p><p class="small" style="color:var(--bad);font-weight:700">هذه الهدية صالحة للاستخدام لمدة ${wd} أيام من تاريخ اليوم</p><p class="small">استكشف المحلات على الخريطة واستخدم نقاطك فيها.</p><button class="btn blue" onclick="S.wel=false;render()">ابدأ الاستكشاف</button></div></div>`}
-async function sendToMerchant(id){const inv=parseFloat(S.cc.inv)||0;if(!(inv>0))return toast('اكتب قيمة الفاتورة أولاً');
-  const res=await sbRpc('customer_create_request',{p_merchant_id:id,p_phone:S.phone,p_invoice:inv,p_offer_id:S.cc.offer||null});
-  if(!res||!res.ok)return toast((res&&res.error)||'تعذّر إرسال الطلب للتاجر');
-  useHere(id)}
-function useHere(id){const m=M(id),p=S.phone,of=S.cc.offer&&S.offers.find(x=>x.id===S.cc.offer&&x.mid===id);
+// Customer «متابعة»: one request at a time, a visible «جارٍ الإرسال…» state, and after the server confirms, the form is replaced by a
+// sent state (no second tap possible). A repeat for the same shop and amount within 10 minutes, or a retry after an unclear
+// failure (the request may have arrived), needs an explicit confirmation. The server call itself is unchanged.
+const _reqSent={};let _reqUnsure=null;
+async function sendToMerchant(id){if(S._reqSending)return;const inv=parseFloat(S.cc.inv)||0;if(!(inv>0))return toast('اكتب قيمة الفاتورة أولاً');
+  const key=id+'|'+inv.toFixed(2),prev=_reqSent[key];
+  if(prev&&Date.now()-prev<10*60000&&!confirm(`أرسلت طلباً بنفس القيمة (${usd(inv)}) لهذا المحل منذ ${Math.max(1,Math.round((Date.now()-prev)/60000))} د. هل تريد إرسال طلب جديد؟`))return;
+  if(_reqUnsure&&_reqUnsure.key===key&&Date.now()-_reqUnsure.at<10*60000&&!confirm('لم نتأكد من وصول طلبك السابق للتاجر، وقد يكون وصل فعلاً. اسأل التاجر أولاً. هل تريد الإرسال مرة أخرى؟'))return;
+  S._reqSending=true;render({bg:true});let res=null;
+  try{res=await sbRpc('customer_create_request',{p_merchant_id:id,p_phone:S.phone,p_invoice:inv,p_offer_id:S.cc.offer||null})}finally{S._reqSending=false}
+  if(!res){_reqUnsure={key,at:Date.now()};render({bg:true});return toast('تعذّر التأكد من إرسال الطلب. اسأل التاجر قبل إعادة الإرسال')}
+  if(!res.ok){render({bg:true});return toast(res.error||'تعذّر إرسال الطلب للتاجر')}
+  _reqSent[key]=Date.now();_reqUnsure=null;
+  const of=S.cc.offer&&S.offers.find(x=>x.id===S.cc.offer&&x.mid===id),p=S.phone;
   if(of&&!S.claims.some(c=>c.phone===p&&c.oid===of.id))S.claims.push({phone:p,oid:of.id,at:Date.now()});
-  const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};
-  md.innerHTML=`<div class="sheet"><p class="muted">أعطِ التاجر هذا الرقم عند الدفع واطلب استخدام النقاط</p><div class="code" style="font-size:26px;letter-spacing:1px">+961 ${p}</div>
-  ${of?`<div class="prev" style="text-align:right"><b>العرض المختار:</b> ${of.title}<div class="muted" style="color:var(--ink)">سيراه التاجر عند تسجيل العملية.</div></div>`:''}
-  <p class="small"><b>وصل طلبك إلى التاجر مباشرة بقيمة الفاتورة، فلن يحتاج لكتابتها من جديد. ستصلك العملية هنا لتؤكدها قبل اكتمالها.</b></p><button class="btn" onclick="this.closest('.modal').remove()">تم</button></div>`;
-  document.body.appendChild(md)}
+  S.cc={inv:'',redeem:true,offer:null,sent:{mid:id,inv,offerTitle:of?of.title:'',at:Date.now()}};render({bg:true});window.scrollTo(0,0)}
+function calcSentV(m){const s=S.cc.sent;
+  return subBar('عملية شراء جديدة')+`<div class="card" style="text-align:center;padding:18px 14px"><div class="chkc" style="background:var(--ok);margin:0 auto 8px">✓</div>
+   <h2 style="margin:0 0 6px;color:var(--navy);font-size:19px">وصل طلبك إلى ${esc(m.name)}</h2>
+   <p class="muted" style="margin:0 0 10px">القيمة <b>${numIso(esc(usd(s.inv)))}</b> وصلت للتاجر مباشرة، فلن يحتاج لكتابتها من جديد. ستصلك العملية في «الإشعارات» لتؤكدها قبل اكتمالها.</p>
+   ${s.offerTitle?`<div class="prev" style="text-align:right;margin-bottom:10px"><b>العرض المختار:</b> ${esc(s.offerTitle)}<div class="muted" style="color:var(--ink)">سيراه التاجر عند تسجيل العملية.</div></div>`:''}
+   <p class="muted" style="margin:0 0 4px">أعطِ التاجر هذا الرقم عند الدفع واطلب استخدام النقاط</p><div class="code" style="font-size:24px;letter-spacing:1px">+961 ${S.phone}</div></div>
+   <button class="btn blue" onclick="navBack()">تم</button>`}
+// (the former «تم» sheet is now the sent state of the calculator, calcSentV)
 
 // ===== الزبون =====
 const SUPPORT_WA='96170000000';
@@ -3105,6 +3119,11 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // A purchase can be confirmed only while the server lists it as PENDING and the existing 5-minute window is open (same rule as before)
 const custPendingTx=()=>S.tx.filter(t=>t.phone===S.phone&&t.status==='PENDING'&&Date.now()-t.at<EXPIRY);
 // Purchase-confirmation notifications carry no transaction id (customer_notes has no such column), so they are recognised by their text
+// P3B: a purchase notice keeps its original text, so it must not keep saying «بانتظار تأكيدك» once that can no longer be true.
+// Without a transaction link on the notice, only two facts are certain: the notice is older than the confirmation window, or the
+// customer has no pending purchase at all right now. In both cases a muted chip says so; the tap shows the server statuses.
+function noteStaleChip(n,pend){const old=Date.now()-n.at>EXPIRY;if(!old&&pend.length)return'';
+  return `<span class="noteStale">${old?'لم تعد بانتظار تأكيدك':'لا توجد عملية بانتظار تأكيدك الآن'}</span>`}
 const isPurchaseNote=n=>{const s=(n.title||'')+' '+(n.body||'');return /عملي[ةه]|شراء|فاتورة/.test(s)&&/تأكيد|بانتظار/.test(s)};
 const TX_ST={PENDING:['بانتظار تأكيدك','#7d5300','#fff4cc'],CONFIRMED:['مؤكدة','#14713f','#e3f6ea'],CANCELLED:['ملغاة','#b42318','#fdecea'],EXPIRED:['انتهت مهلتها','#6b7a99','#eef1f6'],REVIEW:['قيد المراجعة','#1d4ed8','#e6efff']};
 function txStatusOf(t){return t.status==='PENDING'&&Date.now()-t.at>=EXPIRY?'EXPIRED':t.status}
@@ -3738,14 +3757,14 @@ function catResSortList(all){const s=S.catResSort||'near';
 function setCatResSort(s){S.catResSort=s;render()}
 function openTripoliOffers(){S.prevSub=S.sub;S.sub='tripoliOffers';render()}
 function openCalc(id){S.storeId=id;S.cc={inv:'',redeem:true,offer:null};S.sub='calc';render();syncStoreOffers(id);syncDirectory()}
-function calcV(){const m=M(S.storeId),k=CAT(m.cat),c=S.customers[S.phone];
+function calcV(){const m=M(S.storeId),k=CAT(m.cat),c=S.customers[S.phone];if(S.cc&&S.cc.sent&&S.cc.sent.mid===m.id)return calcSentV(m);
   return subBar('عملية شراء جديدة')+`<div class="storehero" style="${m.photo?`background-image:url('${m.photo}')`:`background:linear-gradient(135deg,var(--navy),var(--blue))`}">${m.photo?'':`<div class="noph">${k[2]}</div>`}<div class="storehero-info"><b>${m.name}</b><div class="muted">${m.addr||''} - ${k[1]}</div><span class="badge b1">نسبة الحسم ${rdPct(m,S.phone)}%</span></div></div>
   <div class="avail"><div>رصيدك الحالي</div><b>${fmt(c.points)} نقطة</b><div class="muted">≈ ${usd(c.points/RATE)} · الحد الأقصى للاستخدام في هذه العملية ${CAP*100}% من رصيدك</div></div>
   <label class="muted">قيمة الفاتورة المتوقعة ($)</label><div class="field"><input type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" placeholder="25" value="${S.cc.inv}" oninput="S.cc.inv=this.value;calcUpd()"></div>
   <div id="ccpick">${ccPickHtml()}</div>
   <div class="card"><h3>تفاصيل العملية</h3><div id="cout"></div><div class="row" style="padding:8px 0 0"><span>استخدام نقاطي</span><button id="csw" class="sw" aria-label="استخدام النقاط" onclick="S.cc.redeem=!S.cc.redeem;calcUpd()"></button></div></div>
   <div class="prev" style="font-size:13px">الحد الأقصى للاستخدام ${CAP*100}% من رصيدك${isVip(m,S.phone)?`، وأنت زبون VIP هنا بحد ${fmt(vipCap(m,S.phone))} نقطة في العملية 👑`:`، وفي هذا المحل حتى ${rdPct(m,S.phone)}% من قيمة الفاتورة`}. هذا تقدير فقط؛ القيمة النهائية يسجّلها التاجر وتؤكدها أنت قبل اكتمال العملية.</div>
-  <button class="btn blue" onclick="sendToMerchant('${m.id}')">متابعة</button>${reportBtn(m.id)}`}
+  <button class="btn blue" ${S._reqSending?'disabled aria-busy="true"':''} onclick="sendToMerchant('${m.id}')">${S._reqSending?'جارٍ الإرسال…':'متابعة'}</button>${reportBtn(m.id)}`}
 function ccPickHtml(){const m=M(S.storeId),offs=liveOffers().filter(o=>o.mid===m.id);if(!offs.length)return'';
   return `<h3>اختر عرضاً (اختياري)</h3><div class="card">${[null,...offs].map(o=>`<div class="oc ${(S.cc.offer||null)===(o?o.id:null)?'on':''}" onclick="pickCc(${o?`'${o.id}'`:'null'})">${o&&o.img?`<div style="width:56px;aspect-ratio:3/2;flex:none;border-radius:10px;background:url('${o.img}') center/cover"></div>`:''}<div><b>${o?o.title:'بدون عرض'}</b>${o?`<div class="muted">${OTL[o.type]||''}${o.min?` · حد أدنى $${o.min}`:''}${o.first?' · للزائر الجديد':''}</div>`:''}</div></div>`).join('')}</div>`}
 function pickCc(id){S.cc.offer=id;const e=$('#ccpick');if(e)e.innerHTML=ccPickHtml();calcUpd()}
@@ -4301,7 +4320,7 @@ function favsV(){const l=S.merchants.filter(m=>S.fav[m.id]&&m.status==='active'&
 function notesV(){const f=S.nf,l=myNotes().filter(n=>f==='all'||n.type===f||(f==='general'&&n.type==='nearby')),col={offer:'var(--yellow)',points:'var(--ok)',general:'var(--navy)',nearby:'var(--blue)'},icn={offer:'gift',points:'star',general:'bell',nearby:'pin'};
   const tripoliSection=`${collectTeaser()}${promoCard()}`;
   const pend=custPendingTx(),pendBox=pend.length?`<div class="notePend" id="notePend"><b class="h">${ic('star',16)} بانتظار تأكيدك</b>${pendingBanner()}</div>`:'';
-  return subHead('الإشعارات')+pendBox+(tripoliSection.trim()?`<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:14px">عروض Tripoli Points</b><button class="chip" style="font-size:12px" onclick="openTripoliOffers()">عرض الكل${ic('chev',14)}</button></div>${tripoliSection}</div>`:'')+chips([['all','الكل'],['offer','العروض'],['points','النقاط'],['general','عام']],f,'setNf')+(l.length?l.map(n=>{const tx=isPurchaseNote(n),open=tx&&String(S.noteTx)===String(n.id);return `<div class="card row${tx?' noteTx':''}" style="align-items:flex-start;justify-content:flex-start;gap:12px;flex-wrap:wrap" ${tx?`role="button" tabindex="0" aria-expanded="${open}" onclick='noteTap(${JSON.stringify(String(n.id))})'`:''}><span class="dot" style="width:38px;height:38px;background:${col[n.type]||'var(--navy)'};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type]||'bell',18)}</span><div style="flex:1;min-width:0"><b>${n.title}</b><div>${n.body}</div><div class="muted">${ago(n.at)}${tx?' · <span class="noteTxHint">اضغط لعرض العملية</span>':''}</div></div>${open?`<div style="flex-basis:100%" onclick="event.stopPropagation()">${noteTxPanel()}</div>`:''}</div>`}).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
+  return subHead('الإشعارات')+pendBox+(tripoliSection.trim()?`<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:14px">عروض Tripoli Points</b><button class="chip" style="font-size:12px" onclick="openTripoliOffers()">عرض الكل${ic('chev',14)}</button></div>${tripoliSection}</div>`:'')+chips([['all','الكل'],['offer','العروض'],['points','النقاط'],['general','عام']],f,'setNf')+(l.length?l.map(n=>{const tx=isPurchaseNote(n),open=tx&&String(S.noteTx)===String(n.id);return `<div class="card row${tx?' noteTx':''}" style="align-items:flex-start;justify-content:flex-start;gap:12px;flex-wrap:wrap" ${tx?`role="button" tabindex="0" aria-expanded="${open}" onclick='noteTap(${JSON.stringify(String(n.id))})'`:''}><span class="dot" style="width:38px;height:38px;background:${col[n.type]||'var(--navy)'};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type]||'bell',18)}</span><div style="flex:1;min-width:0"><b>${n.title}</b><div>${n.body}</div>${tx?noteStaleChip(n,pend):''}<div class="muted">${ago(n.at)}${tx?' · <span class="noteTxHint">اضغط لعرض العملية</span>':''}</div></div>${open?`<div style="flex-basis:100%" onclick="event.stopPropagation()">${noteTxPanel()}</div>`:''}</div>`}).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
 function viewPhoto(src){const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};md.innerHTML=`<div style="max-width:92vw;max-height:82vh"><img src="${src}" style="max-width:100%;max-height:82vh;border-radius:16px;display:block"></div>`;document.body.appendChild(md)}
 function accV(c){const buys=S.tx.filter(t=>t.phone===S.phone&&t.status==='CONFIRMED').length,cl=S.claims.filter(x=>x.phone===S.phone).length;
   return `<div style="text-align:center"><div class="avatar" style="margin:6px auto;width:72px;height:72px;cursor:pointer;${c.photo?`background:url(${c.photo}) center/cover`:''}" onclick="${c.photo?`viewPhoto('${c.photo}')`:`S.sub='info';render()`}">${c.photo?'':ic('user',36)}</div><b style="font-size:18px">${c.name}${c.last?' '+c.last:''}</b><div class="ltr muted" style="display:block">${dph(S.phone)}</div></div>
@@ -4450,13 +4469,19 @@ async function markCollected(id){const res=await sbRpc('admin_mark_order_collect
   if(!res||!res.ok)return toast((res&&res.error)||'تعذّر التحديث');
   toast('تم تسجيل التحصيل');await syncAdminOrders()}
 const openCustReq=mid=>S.custReq.filter(r=>r.mid===mid&&!r.used&&Date.now()-r.at<30*60000);
+// Identical requests (same customer, amount and offer, sent within 10 minutes of each other) are shown as one row with a count,
+// so the merchant cannot process the same purchase twice by mistake. Display only; the requests themselves are unchanged.
+const _reqKey=r=>[r.phone,(+r.invoice).toFixed(2),r.offer||''].join('|');
+function custReqGroups(mid){const l=openCustReq(mid).sort((a,b)=>b.at-a.at),g=[];l.forEach(r=>{const x=g.find(x=>x.key===_reqKey(r)&&Math.abs(x.first.at-r.at)<10*60000);if(x)x.ids.push(r.id);else g.push({key:_reqKey(r),first:r,ids:[r.id]})});return g}
+function mfDupReqIds(id){const r=S.custReq.find(x=>x.id===id);if(!r)return[id];const g=custReqGroups(r.mid).find(x=>x.ids.includes(id));return g?g.ids:[id]}
 function useCustReq(id){const r=S.custReq.find(x=>x.id===id);if(!r||r.used)return;
  mfReset();S.mf.phone=r.phone;S.mf.items=[{n:'فاتورة الزبون',p:String(r.invoice),q:1}];if(r.offer)S.mf.offer=r.offer;S.mf.reqId=id;
  S.sub='new';render()}
-function reqRow(r){const c=S.customers[r.phone];return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:'زبون'}</b><div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
-function reqBanner(m){const l=openCustReq(m.id);if(!l.length)return'';
+function reqRow(r){const c=S.customers[r.phone];return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:'زبون'}</b>${r.dupN>1?` <span style="display:inline-block;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap" title="أرسل الزبون نفس الطلب أكثر من مرة، ويُعالَج مرة واحدة">${r.dupN===2?'أُرسل مرتين':`أُرسل ${numIso(String(r.dupN))} مرات`}</span>`:''}<div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
+const reqGrouped=m=>custReqGroups(m.id).map(g=>Object.assign({},g.first,{dupN:g.ids.length}));
+function reqBanner(m){const l=reqGrouped(m);if(!l.length)return'';
  return `<div class="card" style="border-right:4px solid var(--ok)">${l.map(reqRow).join('<div style="border-top:1px solid var(--line)"></div>')}</div>`}
-function reqSectionV(m){const l=openCustReq(m.id);if(!l.length)return'';
+function reqSectionV(m){const l=reqGrouped(m);if(!l.length)return'';
  return `<div class="row" style="margin-bottom:8px"><h3 style="margin:0">عمليات بانتظار تأكيد التاجر</h3><span class="badge b1" style="font-size:13px">${l.length}</span></div>
  <div class="card" style="border-right:4px solid var(--ok);margin-bottom:14px">${l.map(reqRow).join('<div style="border-top:1px solid var(--line)"></div>')}</div>`}
 function mhomeV(m){
@@ -4751,9 +4776,25 @@ function mfNext(){const p=norm(S.mf.phone),m=M(S.merchantId);
   if(reserved(p)>0)return toast('لدى الزبون عملية قيد التأكيد');
   if(S.mf.offer){const o=S.offers.find(x=>x.id===S.mf.offer),e=offerElig(o,mfTotal(),p);if(!e.ok)return toast(e.why)}
   S.mf.step=2;render()}
-async function mfSend(){const e=await createTx(S.merchantId,norm(S.mf.phone),mfTotal(),S.mf.redeem,S.mf.items.filter(i=>parseFloat(i.p)>0).map(i=>({n:i.n.trim()||'أصناف أخرى',q:parseInt(i.q)||1,p:parseFloat(i.p)})),S.mf.offer);
-  if(e==='INSUFFICIENT'){toast('رصيد محفظتك غير كافٍ لمنح هذه النقاط');S.resumeTx=1;return openBuy(1)}
-  if(e)return toast(e);S.mf.step=3;render()}
+// Merchant «تأكيد العملية»: one submission at a time with «جارٍ الإرسال…». After the server confirms, the form is cleared and the merchant
+// returns to the pending-transactions list with a clear message. If the answer is unclear (no response), the app first checks the
+// merchant's own transactions for the request it just sent, and offers a retry only when it is not there. createTx is unchanged.
+async function mfSend(){const f=S.mf;if(f.sending)return;
+  const mid=S.merchantId,p=norm(f.phone),inv=mfTotal(),items=f.items.filter(i=>parseFloat(i.p)>0).map(i=>({n:i.n.trim()||'أصناف أخرى',q:parseInt(i.q)||1,p:parseFloat(i.p)}));
+  const dup=S.tx.find(t=>t.mid===mid&&t.phone===p&&t.status==='PENDING'&&Date.now()-t.at<EXPIRY);
+  if(dup&&!confirm(`يوجد طلب بانتظار تأكيد هذا الزبون منذ ${Math.max(1,Math.round((Date.now()-dup.at)/60000))} د بقيمة ${usd(dup.invoice)}. هل تريد إرسال طلب جديد؟`))return;
+  const orig=f.reqId,reqIds=orig?mfDupReqIds(orig):[];
+  f.sending=true;f.sendErr=null;render({bg:true});const t0=Date.now();let e;
+  try{e=await createTx(mid,p,inv,f.redeem,items,f.offer)}finally{if(S.mf===f)f.sending=false}
+  if(e==='تعذّر الاتصال بالخادم'){ // unclear: the request may have been created; look for it before allowing a retry
+    await syncMerchantData(mid);const got=S.tx.filter(t=>t.mid===mid&&t.phone===p&&Math.abs(t.invoice-inv)<0.005&&t.at>=t0-120000).sort((a,b)=>b.at-a.at)[0];
+    if(got)e=null;else{if(S.mf===f){f.sendErr='لم نتمكن من التأكد من إرسال العملية. تحققنا ولم نجدها في عملياتك، يمكنك إعادة المحاولة.';render({bg:true})}return}}
+  if(e==='INSUFFICIENT'){render({bg:true});toast('رصيد محفظتك غير كافٍ لمنح هذه النقاط');S.resumeTx=1;return openBuy(1)}
+  if(e){render({bg:true});return toast(e)}
+  // the other copies of the same customer request (same phone, amount and offer) are closed too, with the existing merchant RPC
+  for(const rid of reqIds){if(rid===orig&&!f.reqId)continue; // createTx already closed the request it started from
+   const r=await sbRpc('merchant_close_request',{p_request_id:rid,p_merchant_id:mid});const x=S.custReq.find(q=>q.id===rid);if(r&&x)x.used=true}
+  mfReset();S.sub=null;S.tab='mops';S.mopf='PENDING';render();window.scrollTo(0,0);toast('تم إرسال العملية إلى الزبون، بانتظار تأكيده')}
 function mnewView(m){const f=S.mf,k=CAT(m.cat);
   if(f.step===3){const t=S.tx.find(x=>x.id===f.txId);if(!t||t.mid!==m.id){mfReset();return mnewView(m)}}
   const bar=`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:48px;height:48px;font-size:22px;background:${k[3]}22">${k[2]}</span><div><b>${m.name}</b><div><span class="badge b1">نسبة الحسم ${rdPct(m)}%</span></div></div></div>`;
@@ -4768,14 +4809,14 @@ function mnewView(m){const f=S.mf,k=CAT(m.cat);
   <div class="row" style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px"><b>إجمالي الفاتورة</b><b id="tot" style="font-size:20px;color:var(--navy)">${usd(mfTotal())}</b></div></div>
   <button class="btn blue" onclick="mfNext()">متابعة</button>`;
   if(f.step===2){const p=norm(f.phone),c=S.customers[p],inv=mfTotal(),o=f.offer?S.offers.find(x=>x.id===f.offer):null,r=calc(inv,m.pct,f.redeem,p,m,o),ln='padding:9px 0;border-bottom:1px solid var(--line)';
-   return `<div class="top"><button class="back" style="margin:0" onclick="S.mf.step=1;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">تفاصيل النقاط</h3><div style="width:34px"></div></div>
+   return `<div class="top"><button class="back" style="margin:0" onclick="if(!S.mf.sending){S.mf.step=1;render()}">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">تفاصيل النقاط</h3><div style="width:34px"></div></div>
    <div class="muted" style="margin-bottom:8px">${c.name} · <span class="ltr">+961 ${p}</span> · متاح ${fmt(avail(p))} نقطة</div>
    <div class="card"><div class="row" style="${ln}"><span>قيمة الفاتورة</span><b style="font-size:20px">${usd(inv)}</b></div>${offerRows(o,r,ln)}
    <div class="row" style="${ln}"><div><div>النقاط المستخدمة (من رصيد الزبون)</div><div class="muted">${isVip(m,p)?`زبون VIP · حتى ${fmt(vipCap(m,p))} نقطة 👑`:`سقف المحل للدفع بالنقاط: حتى ${rdPct(m,p)}% من قيمة الفاتورة (هذا منفصل عن أي عرض خصم نقدي مُطبّق أعلاه)`}</div></div><div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue)">${fmt(r.redeemPts)} نقطة</b><button class="sw ${f.redeem?'on':''}" aria-label="استخدام النقاط" onclick="S.mf.redeem=!S.mf.redeem;render()"></button></div></div>
    <div class="row" style="${ln}"><span>المبلغ المطلوب دفعه</span><b style="font-size:20px">${usd(r.net)}</b></div>${r.earn/RATE>wallet(m.id).avail?`<div class="alert" style="margin-top:10px"><b>⚠️ رصيد غير كافٍ</b><div>محفظتك التشغيلية لا تكفي لمنح ${fmt(r.earn)} نقطة لهذا الزبون (المتاح ${mpt(wallet(m.id).avail)}).</div><button class="btn sm" style="margin-top:8px" onclick="S.resumeTx=1;openBuy(1)">اشترِ نقاطاً لإتمام العملية</button></div>`:''}
    <div class="row" style="padding:9px 0"><div><div>النقاط الجديدة</div><div class="muted">تُحسب على المبلغ النقدي فقط${r.bonus?` · منها ${fmt(r.bonus)} من العرض`:''}</div></div><b style="font-size:19px;color:var(--ok)">${fmt(r.earn)} نقطة</b></div></div>
    <div class="prev" style="font-size:13px">سيتم خصم النقاط من رصيد الزبون، مع إضافة النقاط الجديدة بعد تأكيده العملية.</div>
-   <button class="btn blue" onclick="mfSend()">تأكيد العملية</button>`}
+   ${f.sendErr?`<div class="alert" style="margin:10px 0">${esc(f.sendErr)}</div>`:''}<button class="btn blue" ${f.sending?'disabled aria-busy="true"':''} onclick="mfSend()">${f.sending?'جارٍ الإرسال…':f.sendErr?'إعادة المحاولة':'تأكيد العملية'}</button>`}
   const t=S.tx.find(x=>x.id===f.txId),st=t.status,done=st==='CONFIRMED',bad=st==='CANCELLED'||st==='EXPIRED',left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000));
   return `<div style="text-align:center;padding-top:6px"><div class="chkc" style="background:${done?'var(--ok)':bad?'var(--bad)':'var(--yellow)'}">${done?'✓':bad?'✕':'…'}</div>
   <h1>${done?'تمت العملية بنجاح':st==='EXPIRED'?'انتهت مهلة التأكيد':bad?'ألغى الزبون العملية':'بانتظار تأكيد الزبون'}</h1>
@@ -5554,7 +5595,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 2026102920-offers-v2d';
+  b.textContent='Tripoli Points v31.1 · build 2026103021-pr7e';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
