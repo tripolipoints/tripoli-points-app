@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 20261030-pr7g">
+<meta name="tp-build" content="v31.1 build 20261030-pr7h">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4406,7 +4406,7 @@ function notesV(){const f=S.nf,l=myNotes().filter(n=>f==='all'||n.type===f||(f==
   const tripoliSection=`${collectTeaser()}${promoCard()}`;
   const pend=custPendingTx(),pendBox=pend.length?`<div class="notePend" id="notePend"><b class="h">${ic('star',16)} بانتظار تأكيدك</b>${pendingBanner()}</div>`:'';
   return subHead('الإشعارات')+pendBox+(tripoliSection.trim()?`<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:14px">عروض Tripoli Points</b><button class="chip" style="font-size:12px" onclick="openTripoliOffers()">عرض الكل${ic('chev',14)}</button></div>${tripoliSection}</div>`:'')+chips([['all','الكل'],['offer','العروض'],['points','النقاط'],['general','عام']],f,'setNf')+(l.length?l.map(n=>{const tx=isPurchaseNote(n),open=tx&&String(S.noteTx)===String(n.id);return `<div class="card row${tx?' noteTx':''}" style="align-items:flex-start;justify-content:flex-start;gap:12px;flex-wrap:wrap" ${tx?`role="button" tabindex="0" aria-expanded="${open}" onclick='noteTap(${JSON.stringify(String(n.id))})'`:''}><span class="dot" style="width:38px;height:38px;background:${col[n.type]||'var(--navy)'};color:${n.type==='offer'?'var(--navy)':'#fff'}">${ic(icn[n.type]||'bell',18)}</span><div style="flex:1;min-width:0"><b>${n.title}</b><div>${n.body}</div>${tx?noteStaleChip(n,pend):''}<div class="muted">${ago(n.at)}${tx?' · <span class="noteTxHint">اضغط لعرض العملية</span>':''}</div></div>${open?`<div style="flex-basis:100%" onclick="event.stopPropagation()">${noteTxPanel()}</div>`:''}</div>`}).join(''):'<p class="muted">لا توجد إشعارات.</p>')}
-function viewPhoto(src){const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};md.innerHTML=`<div style="max-width:92vw;max-height:82vh"><img src="${src}" style="max-width:100%;max-height:82vh;border-radius:16px;display:block"></div>`;document.body.appendChild(md)}
+function viewPhoto(src){const md=document.createElement('div');md.className='modal';md.onclick=e=>{if(e.target===md)md.remove()};md.innerHTML=`<div style="max-width:92vw;max-height:82vh;position:relative"><button type="button" aria-label="إغلاق الصورة" onclick="this.closest(\'.modal\').remove()" style="position:absolute;top:8px;right:8px;border:0;border-radius:50%;width:38px;height:38px;background:#fff;color:#13234a;font-size:22px;font-weight:bold;box-shadow:0 2px 10px #0005">✕</button><img src="${src}" style="max-width:100%;max-height:82vh;border-radius:16px;display:block"></div>`;document.body.appendChild(md)}
 function accV(c){const buys=S.tx.filter(t=>t.phone===S.phone&&t.status==='CONFIRMED').length,cl=S.claims.filter(x=>x.phone===S.phone).length;
   return `<div style="text-align:center"><div class="avatar" style="margin:6px auto;width:72px;height:72px;cursor:pointer;${c.photo?`background:url(${c.photo}) center/cover`:''}" onclick="${c.photo?`viewPhoto('${c.photo}')`:`S.sub='info';render()`}">${c.photo?'':ic('user',36)}</div><b style="font-size:18px">${c.name}${c.last?' '+c.last:''}</b><div class="ltr muted" style="display:block">${dph(S.phone)}</div></div>
   <div class="stat3"><div><b>${fmt(c.points)}</b><span class="muted">نقطة</span></div><div><b>${buys}</b><span class="muted">عمليات شراء</span></div><div><b>${cl}</b><span class="muted">عروض مفعّلة</span></div></div>
@@ -4759,7 +4759,7 @@ async function saveGalDraft(){
     if(!res||!res.ok)return toast((res&&res.error)||'تعذّر حفظ إحدى الصور');
   }
   S.galDraft=null;toast('تم حفظ الصور');await syncMerchantGallery(S.merchantId);render()}
-async function delGalItem(id){const res=await sbRpc('merchant_gallery_delete',{p_item_id:id,p_merchant_id:S.merchantId});
+async function delGalItem(id){if(!confirm('هل أنت متأكد أنك تريد حذف هذه الصورة نهائياً من معرض المحل؟'))return;const res=await sbRpc('merchant_gallery_delete',{p_item_id:id,p_merchant_id:S.merchantId});
   if(!res||!res.ok)return toast((res&&res.error)||'تعذّر الحذف');
   await syncMerchantGallery(S.merchantId);toast('تم الحذف');render()}
 function mgalleryV(m){const l=S.gallery.filter(g=>g.mid===m.id);
@@ -4771,8 +4771,8 @@ function mgalleryV(m){const l=S.gallery.filter(g=>g.mid===m.id);
     <label class="muted">السعر ($) *</label><div class="field"><input type="number" min="0.01" step="0.01" inputmode="decimal" dir="ltr" value="${it.price}" oninput="S.galDraft.items[${i}].price=this.value"></div>`}</div>`).join('')+
     `<button class="btn blue" onclick="saveGalDraft()">حفظ ${photo?'صور المحل':'المنتجات'}</button><button class="btn ghost" style="margin-top:8px" onclick="cancelGalDraft()">إلغاء</button>`;
   }
-  return subHead('معرض صور المحل')+`<p class="muted" style="margin-top:0">فرّقنا بين صور المحل العامة والمنتجات. الحد الأقصى الحالي 6 صور بالمجموع.</p>
-  ${l.length?`<div class="card" style="padding:10px"><div class="tp20-merchant-list">${l.map(g=>`<div class="tp20-merchant-item"><img src="${g.img}" alt="صورة" loading="lazy"><div><b>${isPhotoOnlyItem(g)?'صورة عامة للمحل':esc(g.name)}</b>${isPhotoOnlyItem(g)?'':`<div class="muted">${usd(g.price)}</div>`}</div><button class="circ" onclick='delGalItem(${JSON.stringify(g.id)})' aria-label="حذف">✕</button></div>`).join('')}</div></div>`:'<p class="muted">لم تُضف أي صورة بعد.</p>'}
+  return subHead('معرض صور المحل')+`<button class="btn ghost sm" style="margin:0 0 12px;width:100%" onclick="S.sub=null;S.tab=\'macc\';render()">رجوع إلى حسابي</button><p class="muted" style="margin-top:0">فرّقنا بين صور المحل العامة والمنتجات. الحد الأقصى الحالي 6 صور بالمجموع.</p>
+  ${l.length?`<div class="card" style="padding:10px"><div class="tp20-merchant-list">${l.map(g=>`<div class="tp20-merchant-item"><img src="${g.img}" alt="عرض الصورة" loading="lazy" style="cursor:pointer" onclick="viewPhoto(this.src)"><div><b>${isPhotoOnlyItem(g)?'صورة عامة للمحل':esc(g.name)}</b>${isPhotoOnlyItem(g)?'':`<div class="muted">${usd(g.price)}</div>`}</div><button class="btn ghost sm" style="width:auto;flex:none;color:var(--bad)" onclick='delGalItem(${JSON.stringify(g.id)})' aria-label="حذف الصورة">حذف الصورة</button></div>`).join('')}</div></div>`:'<p class="muted">لم تُضف أي صورة بعد.</p>'}
   ${l.length<6?`<button class="btn blue" onclick="chooseGalMode()">+ إضافة صورة أو منتج</button>`:'<p class="muted">وصلت للحد الأقصى (6 صور).</p>'}`;
 }
 function maccV(m){const k=CAT(m.cat),n=S.merchants.indexOf(m);
@@ -5681,7 +5681,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 20261030-pr7g';
+  b.textContent='Tripoli Points v31.1 · build 20261030-pr7h';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
