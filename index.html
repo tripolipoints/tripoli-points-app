@@ -2525,10 +2525,10 @@ function mForgotPinView(){return `<div class="scr">${backBtn('pin')}<h1>نسيت
 async function completeLogin(){
   const p=S.phone,m=S.merchants.find(x=>x.phone===p);
   if(m){S.merchantId=m.id;if(m.status==='active'){if(!m.photo&&!m.photoPending){addMNote(m.id,'photo','لم تُضف صورة لمحلك بعد','أضف صورة واجهة محلك ليراها الزبائن بدل الصورة الافتراضية، وسترسل للإدارة للموافقة عليها.','info');S.mPhotoNag=true}S.mode='merchant';S.tab='mhome';S.screen='app';syncMerchantData(m.id)}else S.screen='mpending';return render()}
-  if(S.customers[p]){if(S.customers[p].status!=='active'){toast('هذا الحساب مجمّد');return go('login')}TPP.mark('login');S.mode='customer';S.tab='home';S.screen='app';smartNotes(p);syncDirectory().then(()=>syncCustomerData(p));if(enterQrIfPending())return;return render()}
+  if(S.customers[p]){if(S.customers[p].status!=='active'){toast('هذا الحساب مجمّد');return go('login')}TPP.mark('login');S.mode='customer';S.tab='home';S.screen='app';smartNotes(p);syncDirectory().then(()=>{syncCustomerData(p);enterQrIfPending()});if(enterQrIfPending())return;return render()}
   S.screen='welcome';render();
 }
-function enterQrIfPending(){if(!S.qrMid)return false;const id=S.qrMid;S.qrMid=null;const mm=M(id);if(mm&&mm.status==='active'){openCalc(id);return true}return false}
+function enterQrIfPending(){if(!S.qrMid)return false;const id=S.qrMid;const mm=M(id);if(mm&&mm.status==='active'){S.qrMid=null;openCalc(id);return true}return false}
 function welcomeView(){return `<div class="scr">${backBtn('login')}<div style="display:flex;justify-content:center">${logo()}</div>
  <h1 style="margin-top:18px;text-align:center">أهلاً بك في Tripoli Points</h1>
  <p class="sub" style="text-align:center;font-weight:700;color:var(--ink);margin-top:-4px">كل نقطة.. بتدعم مدينتك</p>
@@ -3764,7 +3764,7 @@ function calcV(){const m=M(S.storeId),k=CAT(m.cat),c=S.customers[S.phone];if(S.c
   <div id="ccpick">${ccPickHtml()}</div>
   <div class="card"><h3>تفاصيل العملية</h3><div id="cout"></div><div class="row" style="padding:8px 0 0"><span>استخدام نقاطي</span><button id="csw" class="sw" aria-label="استخدام النقاط" onclick="S.cc.redeem=!S.cc.redeem;calcUpd()"></button></div></div>
   <div class="prev" style="font-size:13px">الحد الأقصى للاستخدام ${CAP*100}% من رصيدك${isVip(m,S.phone)?`، وأنت زبون VIP هنا بحد ${fmt(vipCap(m,S.phone))} نقطة في العملية 👑`:`، وفي هذا المحل حتى ${rdPct(m,S.phone)}% من قيمة الفاتورة`}. هذا تقدير فقط؛ القيمة النهائية يسجّلها التاجر وتؤكدها أنت قبل اكتمال العملية.</div>
-  <button class="btn blue" ${S._reqSending?'disabled aria-busy="true"':''} onclick="sendToMerchant('${m.id}')">${S._reqSending?'جارٍ الإرسال…':'متابعة'}</button>${reportBtn(m.id)}`}
+  <button id="ccGo" class="btn blue" ${(S._reqSending||!(parseFloat(S.cc.inv)>0))?'disabled style="opacity:.48;cursor:not-allowed" aria-disabled="true"':''} ${S._reqSending?'aria-busy="true"':''} onclick="sendToMerchant('${m.id}')">${S._reqSending?'جارٍ الإرسال…':'متابعة'}</button>${reportBtn(m.id)}`}
 function ccPickHtml(){const m=M(S.storeId),offs=liveOffers().filter(o=>o.mid===m.id);if(!offs.length)return'';
   return `<h3>اختر عرضاً (اختياري)</h3><div class="card">${[null,...offs].map(o=>`<div class="oc ${(S.cc.offer||null)===(o?o.id:null)?'on':''}" onclick="pickCc(${o?`'${o.id}'`:'null'})">${o&&o.img?`<div style="width:56px;aspect-ratio:3/2;flex:none;border-radius:10px;background:url('${o.img}') center/cover"></div>`:''}<div><b>${o?o.title:'بدون عرض'}</b>${o?`<div class="muted">${OTL[o.type]||''}${o.min?` · حد أدنى $${o.min}`:''}${o.first?' · للزائر الجديد':''}</div>`:''}</div></div>`).join('')}</div>`}
 function pickCc(id){S.cc.offer=id;const e=$('#ccpick');if(e)e.innerHTML=ccPickHtml();calcUpd()}
@@ -3773,7 +3773,7 @@ function calcUpd(){const e=$('#cout');if(!e)return;const m=M(S.storeId),inv=pars
   const r=calc(inv,m.pct,S.cc.redeem,S.phone,m,o),ln='padding:8px 0;border-bottom:1px solid var(--line)',row=(l,v,c)=>`<div class="row" style="${ln}"><span>${l}</span><b${c?` style="color:${c}"`:''}>${v}</b></div>`;
   e.innerHTML=row('قيمة الفاتورة',usd(inv))+(warn?`<div class="alert" style="margin:6px 0">${warn}</div>`:'')+(o&&r.disc>0?row('خصم العرض','- '+usd(r.disc),'var(--ok)'):'')+(o&&o.type==='gift'?row('الهدية',o.gift,'var(--ok)'):'')
    +row('النقاط المستخدمة (من رصيدك)',fmt(r.redeemPts),'var(--blue)')+row('المبلغ المطلوب دفعه',usd(r.net))+row(`النقاط الجديدة${r.bonus?` (منها ${fmt(r.bonus)} من العرض)`:' (على المبلغ المدفوع)'}`,fmt(r.earn),'var(--ok)');
-  const sw=$('#csw');if(sw)sw.className='sw '+(S.cc.redeem?'on':'')}
+  const sw=$('#csw');if(sw)sw.className='sw '+(S.cc.redeem?'on':'');const go=$('#ccGo');if(go){go.disabled=!!S._reqSending||!(inv>0);go.style.opacity=go.disabled?'.48':'';go.style.cursor=go.disabled?'not-allowed':'';go.setAttribute('aria-disabled',String(go.disabled))}}
 function inviteFriend(){window.open('https://wa.me/?text='+encodeURIComponent('انضم إلى Tripoli Points واجمع نقاطاً من محلات طرابلس! '+location.href.split('?')[0]+'?ref=friend'),'_blank')}
 function welcomeV(c){return `<div style="text-align:center;padding-top:6px"><div style="display:flex;justify-content:center">${logo()}</div><h1 style="margin-top:18px">مرحباً بك في Tripoli Points</h1><p class="sub">كل نقطة .. بتدعم مدينتك</p></div>
   <div class="wallet"><div style="opacity:.85">رصيدك من النقاط</div><div class="big">${fmt(c.points)} <span style="font-size:18px;color:var(--yellow)">نقطة</span></div><div style="opacity:.85;margin-top:6px">≈ ${usd(c.points/RATE)} · هدية ترحيبية منّا</div></div>
