@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 20261030-pr7h">
-<link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
+<meta name="tp-build" content="STAGING isolated config required">
+<!-- STAGING: production Supabase preconnect intentionally removed -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1873,9 +1873,21 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
 // هذه مفاتيح عامة (anon) مخصصة للاستخدام من المتصفح؛ الحماية الحقيقية هي قفل الجداول (RLS) وبوابات RPC بقاعدة البيانات، وليست سرّية هذه المفاتيح.
 TPP.mark('script-start');
 const SPLASH_IMG='assets/img/splash-bg.b06e6e9bc2.jpg';let SPLASH_FAIL=false;
-const SB_URL='https://lqbhfkowqaqlgcrdybvv.supabase.co';
-const SB_KEY='sb_publishable_XJ9NllXJeOeFjvYdfHkxjQ_MTHr8_L5';
+// STAGING ONLY: fail closed until a separate, non-production Supabase environment is explicitly configured.
+const TP_PRODUCTION_REF='lqbhfkowqaqlgcrdybvv';
+const TP_STAGE=window.TP_STAGING_CONFIG||{};
+const SB_URL=String(TP_STAGE.url||'').trim();
+const SB_KEY=String(TP_STAGE.publishableKey||'').trim();
+const _stagingValid=/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(SB_URL)
+  && !SB_URL.includes(TP_PRODUCTION_REF)
+  && /^sb_publishable_[A-Za-z0-9_-]+$/.test(SB_KEY)
+  && TP_STAGE.productionData===false;
+if(!_stagingValid){
+  document.body.innerHTML='<main style="max-width:560px;min-height:100vh;margin:auto;padding:55px 22px;background:#102b63;color:white;text-align:center;font:18px/1.7 system-ui" dir="rtl"><h1>🧪 Tripoli Points — STAGING</h1><p>هذه نسخة تجريبية غير متصلة بقاعدة البيانات.</p><p>لتفعيلها يلزم ربط Supabase تجريبي مستقل. لا تستخدم قاعدة الإنتاج.</p></main>';
+  throw new Error('STAGING BLOCKED: missing or invalid isolated Supabase configuration');
+}
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
 async function sbRpc(fn,args){try{const{data,error}=await sb.rpc(fn,args);if(error){console.error(fn,error);toast('خطأ: '+(error.message||error.hint||JSON.stringify(error)).slice(0,120));return null}return data}catch(e){console.error(fn,e);toast('تعذّر الاتصال بالخادم: '+(e&&e.message?e.message:'تحقق من الإنترنت'));return null}}
 async function sbFn(fn,body){try{const{data,error}=await sb.functions.invoke(fn,{body});if(error){console.error(fn,error);toast('خطأ: '+(error.message||JSON.stringify(error)).slice(0,120));return null}return data}catch(e){console.error(fn,e);toast('تعذّر الاتصال بالخادم: '+(e&&e.message?e.message:'تحقق من الإنترنت'));return null}}
 // ===== الإعدادات =====
