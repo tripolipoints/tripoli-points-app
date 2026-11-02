@@ -1,4 +1,4 @@
-const { test, expect, SHOP, open, login, shot } = require('./fixtures');
+const { test, expect, SHOP, open, login, toPin, shot } = require('./fixtures');
 
 test('merchant: grouped request → send purchase → customer confirms once', async ({ page }, ti) => {
   await open(page);
@@ -39,10 +39,7 @@ test('merchant: QR poster and forgotten PIN', async ({ page }, ti) => {
   await expect(page.locator('#app svg').first()).toBeVisible();
   await shot(page, ti, 'merchant-qr-poster');
   await page.evaluate(() => logout());
-  await page.evaluate(() => { S.screen = 'login'; render() });
-  await page.fill('#ph', '71000002');
-  await page.evaluate(() => phoneNext());
-  await page.waitForFunction(() => S.screen === 'pin');
+  await toPin(page, '71000002');
   await page.getByText('نسيت رمز الحماية؟').click();
   await expect(page.locator('#app')).toContainText('حساب محلك');
 });

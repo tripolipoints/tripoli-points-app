@@ -1,4 +1,4 @@
-const { test, expect, SHOP, open, login, shot } = require('./fixtures');
+const { test, expect, SHOP, open, login, toPin, shot } = require('./fixtures');
 
 test.describe('Customer', () => {
   test('login, home, balance, offers page', async ({ page }, ti) => {
@@ -36,10 +36,7 @@ test.describe('Customer', () => {
 
   test('forgotten PIN leads to support, never to a new-PIN form', async ({ page }, ti) => {
     await open(page);
-    await page.evaluate(() => { S.screen = 'login'; render() });
-    await page.fill('#ph', '70000001');
-    await page.evaluate(() => phoneNext());
-    await page.waitForFunction(() => S.screen === 'pin');
+    await toPin(page, '70000001');
     await page.getByText('نسيت رمز الحماية؟').click();
     await expect(page.locator('#app')).toContainText('لحماية حسابك ونقاطك');
     await expect(page.locator('a[href*="wa.me"]')).toBeVisible();

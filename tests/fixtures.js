@@ -30,11 +30,19 @@ async function open(page, hash = '') {
   await page.goto('/index.html?demo-reset=1' + hash);
   await page.waitForFunction(() => typeof S === 'object' && typeof render === 'function');
 }
+// Enter the phone and continue. A background redraw of the login screen (e.g. when the shop list arrives) can clear the
+// field between typing and «متابعة», so the value is set and submitted in one step, and retried if the PIN screen does not come.
+async function toPin(page, phone) {
+  for (let i = 0; i < 4; i++) {
+    await page.evaluate(() => { if (S.screen !== 'login') { S.screen = 'login'; render() } });
+    await page.waitForSelector('#ph');
+    await page.evaluate(p => { document.querySelector('#ph').value = p; phoneNext() }, phone);
+    try { await page.waitForFunction(() => S.screen === 'pin', null, { timeout: 5000 }); return } catch (e) {}
+  }
+  throw new Error('PIN screen did not open for ' + phone);
+}
 async function login(page, phone, pin = '1234') {
-  await page.evaluate(() => { S.screen = 'login'; render() });
-  await page.fill('#ph', phone);
-  await page.evaluate(() => phoneNext());
-  await page.waitForFunction(() => S.screen === 'pin');
+  await toPin(page, phone);
   for (const d of pin) await page.locator('.pad button', { hasText: new RegExp('^' + d + '$') }).click();
   await page.waitForFunction(() => S.screen === 'app');
 }
@@ -43,4 +51,4 @@ async function shot(page, testInfo, name) {
   await page.screenshot({ path: file });
   await testInfo.attach(name, { path: file, contentType: 'image/png' });
 }
-module.exports = { test, expect, SHOP, open, login, shot };
+module.exports = { test, expect, SHOP, open, login, toPin, shot };
