@@ -1,0 +1,74 @@
+# Playwright tests for Tripoli Points against the OFFLINE DEMO build only.
+# No secrets are used and nothing can reach Supabase: the demo replaces the database client, the build fails if a
+# production reference is left, and the tests block every request that is not to the local demo server.
+name: Playwright (offline demo)
+
+on:
+  push:
+    branches: [test/playwright-offline-demo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-offline-demo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium webkit
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+      - name: Build the offline demo (fails if any production reference remains)
+        run: |
+          python3 demo/build_demo.py dist-demo
+          if grep -rIl "lqbhfkowqaqlgcrdybvv\|supabase\.co" dist-demo; then echo "production reference found"; exit 1; fi
+      - name: Make the test-camera video of a shop QR poster
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory dist-demo > /dev/null 2>&1 &
+          sleep 2
+          node demo/make_camera_video.js "$RUNNER_TEMP/qr-camera.y4m"
+      - name: Run the tests (Chromium at 320/375/390/430 px, WebKit iPhone 13)
+        env:
+          QR_CAMERA_FILE: ${{ runner.temp }}/qr-camera.y4m
+        run: npx playwright test
+      - name: Summary
+        if: always()
+        run: node demo/summary.js test-results/results.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Package the demo for iPhone testing
+        if: always()
+        run: |
+          rm -f dist-demo/qr-camera.*
+          cd dist-demo && zip -qr ../tripoli-points-offline-demo.zip . && cd ..
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-and-results
+          path: |
+            test-results/**/*.png
+            test-results/results.json
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tripoli-points-offline-demo
+          path: tripoli-points-offline-demo.zip
+          retention-days: 14

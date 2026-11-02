@@ -1,0 +1,12 @@
+{
+  "name": "tripoli-points-tests",
+  "private": true,
+  "description": "Playwright tests for Tripoli Points, run against the offline demo build only (no Supabase).",
+  "scripts": {
+    "build:demo": "python3 demo/build_demo.py dist-demo",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
