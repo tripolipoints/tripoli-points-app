@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tripoli Points</title>
-<meta name="tp-build" content="v31.1 build 20261030-pr7h">
+<meta name="tp-build" content="v31.1 build 2026110209-pr7-rev5">
 <link rel="preconnect" href="https://lqbhfkowqaqlgcrdybvv.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -215,6 +215,17 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .offBanner .obTitle{margin:18px 0 3px;font-size:23px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
 .offBanner .obSub{margin:0;font-size:12.5px;color:#ffffffd0}
 .hero2 .bell{position:absolute;left:92.7%;top:42.2%;width:8.2%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:0;display:flex;align-items:center;justify-content:center;color:var(--navy);box-shadow:0 2px 8px #0003;padding:0}
+.hero2 .qrsHero{position:absolute;right:3.2%;top:68%;display:flex;align-items:center;gap:4px;height:clamp(28px,8.2vw,34px);padding:0 10px 0 9px;border-radius:999px;border:0;background:#fff;color:var(--navy);font-family:inherit;font-weight:800;font-size:12.5px;box-shadow:0 2px 8px #0003;cursor:pointer;z-index:2}
+.hero2 .qrsHero .ic{width:17px;height:17px;color:var(--navy)}
+.qrsSheet{text-align:center}.qrsSheet h3{margin:0 0 4px;color:var(--navy)}.qrsSheet>p.muted{margin:0 0 10px}
+.qrsCam[hidden],.qrsSheet .btn[hidden]{display:none}.qrsCam{position:relative;border-radius:14px;overflow:hidden;background:#0b1730;margin:0 auto 6px;max-width:100%}
+.qrsCam video{display:block;width:100%;max-height:min(46vh,300px);object-fit:cover}
+.qrsFrame{position:absolute;inset:16% 22%;border:3px solid var(--yellow);border-radius:14px;box-shadow:0 0 0 999px #0006;pointer-events:none}
+.qrsMsg{min-height:20px;margin:6px 0 10px;font-size:13px;line-height:1.7;color:var(--ink)}.qrsMsg.bad{color:var(--bad)}
+.qrsSheet .btn.blue{display:flex;align-items:center;justify-content:center;gap:8px}.qrsSheet .btn.blue .ic{width:20px;height:20px}
+.qrsL{display:block;margin:12px 0 4px;text-align:right}
+.qrsRow{display:flex;gap:8px;margin-bottom:8px}.qrsRow input{flex:1;min-width:0;height:44px;border:1px solid var(--line);border-radius:12px;padding:0 10px;font-size:16px;background:#fff;color:var(--ink)}.qrsRow .btn{width:auto;flex:none;margin:0;padding:0 16px}
+.qrsNote{margin:8px 0 0;color:var(--mut)}
 .hero2 .bell .ic{width:55%;height:55%}
 .hero2 .bell .dotn{top:0;right:0}
 .srch2{margin:-18px 0 0;position:relative;z-index:2;height:34px;border-radius:17px;background:#fff;box-shadow:0 6px 18px #0c2a6b26;display:flex;align-items:center;gap:8px;padding:0 14px;color:var(--navy);font-size:12.5px;flex:none;transition:margin-top .22s ease}
@@ -2404,7 +2415,7 @@ function syncDirectory(){
   if(S.dirState==='ok'&&Date.now()-_dirLoadedAt<DIR_TTL)return Promise.resolve();
   _dirInflight=(async()=>{TPP.mark('dir-start');let list=null;const pre=_dirPre;_dirPre=null;
     if(pre){await pre.p;if(pre.list&&Date.now()-pre.at<DIR_TTL){list=pre.list;TPP.mark('dir-from-prefetch')}}
-    if(!list)list=await sbRpc('list_merchants',{});if(list)TPP.mark('shops-data');if(list){list.forEach(hydrateMerchant);S.dirState='ok';_dirLoadedAt=Date.now()}else if(S.dirState!=='ok')S.dirState='error';render({bg:true})})().finally(()=>{_dirInflight=null});
+    if(!list)list=await sbRpc('list_merchants',{});if(list)TPP.mark('shops-data');if(list){list.forEach(hydrateMerchant);S.dirState='ok';_dirLoadedAt=Date.now()}else if(S.dirState!=='ok')S.dirState='error';if(!enterQrIfPending())render({bg:true})})().finally(()=>{_dirInflight=null});
   return _dirInflight}
 async function syncAdminMerchants(){const list=await sbRpc('admin_list_merchants',{});if(list){list.forEach(hydrateMerchant);render()}}
 async function syncAdminCustomers(){const list=await sbRpc('admin_list_customers',{});if(list){list.forEach(c=>{const existing=S.customers[c.phone]||{};S.customers[c.phone]=Object.assign({},existing,{name:c.name,last:c.last_name||'',photo:c.photo_url||existing.photo||'',points:c.points,status:c.status,src:c.src})});render()}}
@@ -2499,12 +2510,8 @@ async function pinSubmit(){
   if(S.pinMode==='confirm'){
     if(S.code!==S.pin1){S.code='';S.pin1='';S.pinMode='set';toast('الرمزان غير متطابقين، حاول مجدداً');return render()}
     const pin=S.code;S.code='';S.pin1='';
-    if(S.resetRole){
-      const fn=S.resetRole==='merchant'?'merchant_reset_pin':'customer_reset_pin',role=S.resetRole;S.resetRole=null;
-      const res=await sbRpc(fn,{p_phone:S.phone,p_new_pin:pin});
-      if(!res||!res.ok){toast('تعذّر تحديث الرمز، حاول مجدداً');S.pinMode='enter';S.loginRole=role;return render()}
-      toast('تم تحديث رمز الحماية، أدخله للدخول');S.pinMode='enter';S.loginRole=role;return render();
-    }
+    // Rev 5: the app never resets a PIN by phone number alone (customer_reset_pin / merchant_reset_pin are not called);
+    // «نسيت رمز الحماية؟» leads to the support screen for customers and merchants alike.
     S.pendingPin=pin;S.screen='welcome';render();
   }
 }
@@ -2512,107 +2519,26 @@ async function pinSubmit(){
 // هو السلوك القديم عبر merchant_reset_pin، وهو ثغرة تسمح لأي طرف يعرف رقم هاتف التاجر فقط بالاستيلاء
 // الكامل على حسابه، بدون أي تحقق من الهوية). استرجاع رمز التاجر الآن يتم فقط عبر فريق الدعم، الذي يتحقق
 // من هوية التاجر يدوياً (كمستند تسجيل المحل) قبل أن يطلب من الأدمن الأساسي إعادة تعيين الرمز من لوحة التحكم.
-// بالنسبة للزبون، لم يُطلب تغيير هذا السلوك في هذه المهمة (الخطر أقل: لا أموال أو بيانات تجارية مرتبطة
-// بحساب الزبون بالطريقة نفسها) فتُركت آلية الاسترجاع الذاتي كما كانت — هذا موضّح في تقرير الأمان المرفق.
-function forgotPin(){
-  if(S.loginRole==='merchant'){S.screen='mforgotpin';return render()}
-  S.resetRole=S.loginRole;S.pinMode='set';S.code='';S.pin1='';toast('أدخل رمزاً جديداً لإعادة تعيين رمز الحماية');render()}
-function mForgotPinView(){return `<div class="scr">${backBtn('pin')}<h1>نسيت رمز الحماية؟</h1>
-  <p class="sub">لحماية حساب محلك، لا يمكن تعيين رمز جديد تلقائياً بمعرفة رقم الهاتف فقط.</p>
-  <div class="card"><p class="muted" style="margin:0">تواصل مع فريق الدعم عبر واتساب وزوّدهم برقم هاتف محلك المسجّل. سيتحقق الفريق من هويتك، ثم يعيد لك الإدارة تعيين رمز حماية جديد من لوحة التحكم.</p></div>
+// Rev 5: the same applies to customers. customer_reset_pin let anyone who knows a phone number set a new PIN and take
+// over the account and its points, so the app no longer offers it. Until a verified recovery (Gmail) exists, customers
+// also go through support. The server function itself is unchanged; closing it is part of the security plan.
+function forgotPin(){S.resetRole=null;S.forgotRole=S.loginRole==='merchant'?'merchant':'customer';S.screen='mforgotpin';render()}
+function mForgotPinView(){const cust=S.forgotRole==='customer';return `<div class="scr">${backBtn('pin')}<h1>نسيت رمز الحماية؟</h1>
+  <p class="sub">${cust?'لحماية حسابك ونقاطك، لا يمكن تعيين رمز جديد بمعرفة رقم الهاتف فقط.':'لحماية حساب محلك، لا يمكن تعيين رمز جديد تلقائياً بمعرفة رقم الهاتف فقط.'}</p>
+  <div class="card"><p class="muted" style="margin:0">${cust?'تواصل مع فريق الدعم عبر واتساب من رقم هاتفك المسجّل. سيتحقق الفريق من هويتك ثم يساعدك على تعيين رمز جديد. لا ترسل رمز الحماية الحالي أو الجديد في الرسائل.':'تواصل مع فريق الدعم عبر واتساب وزوّدهم برقم هاتف محلك المسجّل. سيتحقق الفريق من هويتك، ثم يعيد لك الإدارة تعيين رمز حماية جديد من لوحة التحكم.'}</p></div>
   <a class="btn blue" style="display:block;text-align:center;text-decoration:none;margin-top:14px" target="_blank" href="https://wa.me/${SUPPORT_WA}">تواصل مع الدعم عبر واتساب</a>
   <button class="btn ghost" style="margin-top:10px" onclick="go('pin')">رجوع</button></div>`}
 async function completeLogin(){
   const p=S.phone,m=S.merchants.find(x=>x.phone===p);
   if(m){S.merchantId=m.id;if(m.status==='active'){if(!m.photo&&!m.photoPending){addMNote(m.id,'photo','لم تُضف صورة لمحلك بعد','أضف صورة واجهة محلك ليراها الزبائن بدل الصورة الافتراضية، وسترسل للإدارة للموافقة عليها.','info');S.mPhotoNag=true}S.mode='merchant';S.tab='mhome';S.screen='app';syncMerchantData(m.id)}else S.screen='mpending';return render()}
-  if(S.customers[p]){if(S.customers[p].status!=='active'){toast('هذا الحساب مجمّد');return go('login')}TPP.mark('login');S.mode='customer';S.tab='home';S.screen='app';smartNotes(p);syncDirectory().then(()=>{syncCustomerData(p);enterQrIfPending()});if(enterQrIfPending())return;return render()}
+  if(S.customers[p]){if(S.customers[p].status!=='active'){toast('هذا الحساب مجمّد');return go('login')}TPP.mark('login');S.mode='customer';S.tab='home';S.screen='app';smartNotes(p);syncDirectory().then(()=>syncCustomerData(p));if(enterQrIfPending())return;return render()}
   S.screen='welcome';render();
 }
 
-// Customer QR scanner: the merchant poster links to #q-<merchantId>. This scans only;
-// it never authorizes a purchase or creates a transaction.
-let _custQrSession=null;
-function closeCustomerQrScanner(){
-  const q=_custQrSession;if(!q)return;
-  _custQrSession=null;
-  if(q.raf)cancelAnimationFrame(q.raf);
-  if(q.stream)q.stream.getTracks().forEach(t=>t.stop());
-  if(q.root&&q.root.isConnected)q.root.remove();
-}
-function parseMerchantQr(raw){
-  try{
-    const u=new URL(String(raw||'').trim(),location.href);
-    if(!/^https?:$/.test(u.protocol))return null;
-    const match=/^#q-([A-Za-z0-9_-]{1,128})$/.exec(u.hash);
-    return match?match[1]:null;
-  }catch(_){return null}
-}
-function customerQrFound(raw){
-  const id=parseMerchantQr(raw);
-  if(!id){const q=_custQrSession;if(q&&q.status)q.status.textContent='هذا الرمز مش خاص بـ Tripoli Points';return}
-  closeCustomerQrScanner();
-  S.qrMid=id;
-  syncDirectory().then(()=>{
-    if(!enterQrIfPending())toast('ما قدرنا نلاقي هالمحل. تأكّد إنّه مشارك وفعّال')
-  }).catch(()=>toast('تعذّر تحميل بيانات المحلات. حاول مجدداً'));
-}
-function loadCustomerQrDecoder(){
-  if(typeof jsQR==='function')return Promise.resolve();
-  if(window._customerQrDecoderPromise)return window._customerQrDecoderPromise;
-  window._customerQrDecoderPromise=new Promise((resolve,reject)=>{
-    const sc=document.createElement('script');
-    sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-    sc.onload=()=>typeof jsQR==='function'?resolve():reject(new Error('QR decoder unavailable'));
-    sc.onerror=()=>reject(new Error('QR decoder failed to load'));
-    document.head.appendChild(sc);
-  }).catch(err=>{window._customerQrDecoderPromise=null;throw err});
-  return window._customerQrDecoderPromise;
-}
-async function openCustomerQrScanner(){
-  if(S.screen!=='app'||S.mode!=='customer'||_custQrSession)return;
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return toast('المسح بالكاميرا بحاجة HTTPS ومتصفح بيدعم الكاميرا');
-  const root=document.createElement('div');
-  root.style.cssText='position:fixed;inset:0;z-index:100002;background:#06142deF;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;color:white;direction:rtl';
-  root.innerHTML='<div style="width:min(100%,430px);display:flex;flex-direction:column;gap:14px;align-items:stretch"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:20px">مسح QR المحل</b><button type="button" id="custQrClose" style="color:white;background:#ffffff24;border:0;border-radius:10px;padding:8px 14px;font:inherit">إغلاق ✕</button></div><video id="custQrVideo" autoplay muted playsinline style="width:100%;max-height:65vh;aspect-ratio:3/4;object-fit:cover;background:#111;border:2px solid #ffc20e;border-radius:16px"></video><p id="custQrStatus" role="status" style="text-align:center;margin:0">عم نفتح الكاميرا…</p><p style="font-size:12px;opacity:.8;text-align:center;margin:0">وجّه الكاميرا نحو QR الموجود عند التاجر</p></div>';
-  document.body.appendChild(root);
-  const q={root,stream:null,raf:0,status:root.querySelector('#custQrStatus')};
-  _custQrSession=q;
-  root.querySelector('#custQrClose').onclick=closeCustomerQrScanner;
-  const video=root.querySelector('#custQrVideo');
-  try{
-    // Prefer the rear camera. jsQR is loaded only on demand, not on every app visit.
-    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'}}});
-    if(_custQrSession!==q){stream.getTracks().forEach(t=>t.stop());return}
-    q.stream=stream;video.srcObject=stream;
-    await Promise.all([video.play(),loadCustomerQrDecoder()]);
-    if(_custQrSession!==q)return;
-    const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
-    if(!ctx)throw new Error('no canvas');
-    let last=0;
-    const tick=ts=>{
-      if(_custQrSession!==q)return;
-      if(video.readyState>=2&&ts-last>160){
-        last=ts;const w=video.videoWidth,h=video.videoHeight;
-        if(w&&h){
-          const scale=Math.min(1,560/Math.max(w,h));canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
-          ctx.drawImage(video,0,0,canvas.width,canvas.height);
-          const data=ctx.getImageData(0,0,canvas.width,canvas.height);
-          const decoded=jsQR(data.data,data.width,data.height,{inversionAttempts:'dontInvert'});
-          if(decoded&&decoded.data){customerQrFound(decoded.data);if(_custQrSession!==q)return}
-        }
-      }
-      q.raf=requestAnimationFrame(tick)
-    };
-    q.status.textContent='وجّه الكاميرا نحو الرمز';
-    q.raf=requestAnimationFrame(tick);
-  }catch(err){
-    if(_custQrSession!==q)return;
-    if(q.stream){q.stream.getTracks().forEach(t=>t.stop());q.stream=null}
-    q.status.textContent=err&&err.name==='NotAllowedError'?'يرجى السماح باستخدام الكاميرا من إعدادات المتصفح':'ما قدرنا نشغّل المسح. فيك تستخدم كاميرا الهاتف العادية';
-  }
-}
-
-function enterQrIfPending(){if(!S.qrMid)return false;const id=S.qrMid;const mm=M(id);if(mm&&mm.status==='active'){S.qrMid=null;openCalc(id);return true}return false}
+// Rev 5: a shop QR (#q-<id>) opens that shop's purchase screen once the customer is in the app and the shop list has the shop.
+// The id is kept until then (it used to be dropped at login, before the live shop list had loaded). It only opens the screen.
+function enterQrIfPending(){if(!S.qrMid||S.mode!=='customer'||S.screen!=='app')return false;const id=S.qrMid,mm=M(id);
+  if(!mm)return false;S.qrMid=null;if(mm.status==='active'&&isLiveMerchant(mm)){openCalc(id);return true}toast('هذا المحل غير متاح حالياً');return false}
 function welcomeView(){return `<div class="scr">${backBtn('login')}<div style="display:flex;justify-content:center">${logo()}</div>
  <h1 style="margin-top:18px;text-align:center">أهلاً بك في Tripoli Points</h1>
  <p class="sub" style="text-align:center;font-weight:700;color:var(--ink);margin-top:-4px">كل نقطة.. بتدعم مدينتك</p>
@@ -4103,10 +4029,9 @@ function tripoliOffersV(){
   ${!promoActive()&&collectedCount(S.phone)>=S.collectPics.length?'<p class="muted">لا توجد عروض إضافية حالياً. تابعنا لمعرفة العروض القادمة!</p>':''}`}
 function homeV(c){const u=unread();
   // تمت إزالة شريط البحث الأبيض المستقل أسفل البانر مباشرة (كان مكرِّراً لوظيفة البحث الموجودة أصلاً ضمن زر "بحث وفئات" الذهبي)؛ البحث عن محل بالاسم ما زال متاحاً بالكامل من خلال "بحث وفئات" ← "حسب الفئة التجارية" (catSearchInput يطابق أسماء المحلات أيضاً، وليس الفئات فقط)
-  return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button></div>
+  return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button><button type="button" class="qrsHero" onclick="qrsOpen()" aria-label="امسح QR المحل">${QRS_IC}<span>امسح QR</span></button></div>
   <button class="bal2" onclick="S.tab='wallet';render()"><div class="g"><span class="bag">🛍️</span><div style="font-size:12.5px;line-height:1.3;font-weight:700">استخدم نقاطك في<br>المحلات المشاركة</div></div><div class="sep"></div>
   <div class="g" style="flex:none"><div><div style="font-size:10.5px;opacity:.9">رصيدك من النقاط</div><div class="n">${fmt(c.points)} <span style="font-size:11.5px;color:var(--yellow)">نقطة</span></div></div><div class="wr">${ic('wallet',18)}</div></div></button>
-  <button class="btn blue" style="display:flex;align-items:center;justify-content:center;gap:9px;margin:0 0 12px" onclick="openCustomerQrScanner()">▦ مسح QR المحل</button>
   <div class="cats2" id="catrow">${catsHtml()}</div>
   ${mapBlock()}
   <div class="promoSlot" id="promoSlot">${promoSlotHtml()}</div>`}
@@ -4665,6 +4590,62 @@ async function saveAddr(){const m=M(S.merchantId),addr=$('#in2').value.trim();
 function saveHours(){const m=M(S.merchantId);const h=$('#in3').value.trim();
   if(h===hrs(m)){toast('لم تغيّر أوقات العمل');return}
   m.hours=h;toast('تم حفظ أوقات العمل');render()}
+
+// ===== Rev 5: «امسح QR المحل» — in-app scanner for the shop QR posters (#q-<shop id>) =====
+// It only opens that shop's purchase screen, exactly like scanning the poster with the phone camera: no request is sent,
+// no points move. Decoding uses jsQR 1.4.0 (Apache-2.0), bundled in assets/js and loaded on first use, never from a CDN;
+// the browser's BarcodeDetector is the fallback. The camera needs HTTPS (Netlify / GitHub Pages) and is released on close.
+const QRS_LIB='assets/js/jsqr-1.4.0.bc40c8a151.js';
+let qrsStream=null,qrsTimer=null,qrsBusy=false,qrsLib=null;
+function qrsShopId(raw){const v=String(raw||'').trim();if(!v)return null;
+  const m=/#q-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/i.exec(v);if(m)return m[1].toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)?v.toLowerCase():null}
+function qrsLoadLib(){if(window.jsQR)return Promise.resolve(true);if(qrsLib)return qrsLib;
+  qrsLib=new Promise(res=>{const s=document.createElement('script');s.src=QRS_LIB;s.async=true;s.onload=()=>res(typeof window.jsQR==='function');s.onerror=()=>{qrsLib=null;res(false)};document.head.appendChild(s)});return qrsLib}
+function qrsMsg(t,bad){const n=document.getElementById('qrsMsg');if(n){n.textContent=t;n.classList.toggle('bad',!!bad)}}
+function qrsStop(){if(qrsTimer){clearInterval(qrsTimer);qrsTimer=null}if(qrsStream){qrsStream.getTracks().forEach(t=>t.stop());qrsStream=null}
+  const v=document.getElementById('qrsVideo');if(v){try{v.pause()}catch(e){}v.srcObject=null}const bx=document.getElementById('qrsBox');if(bx)bx.hidden=true;const cb=document.getElementById('qrsCam');if(cb)cb.hidden=false;qrsBusy=false}
+function qrsClose(){qrsStop();const md=document.getElementById('qrsModal');if(md)md.remove()}
+async function qrsRoute(raw){const id=qrsShopId(raw);
+  if(!id){qrsMsg('هذا ليس رمز QR لمحل في Tripoli Points. امسح الملصق الموجود عند مكتب الدفع.',true);return false}
+  qrsClose();S.qrMid=id;if(enterQrIfPending())return true;
+  if(!M(id)){toast('جارٍ تحميل بيانات المحل…');try{await syncDirectory()}catch(e){}}
+  if(S.qrMid===id){if(enterQrIfPending())return true;if(S.qrMid===id&&M(id)===undefined&&S.dirState==='ok'){S.qrMid=null;toast('لم نجد هذا المحل في Tripoli Points')}}
+  return true}
+async function qrsCamera(){const btn=document.getElementById('qrsCam');
+  if(!window.isSecureContext||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){qrsMsg('الكاميرا تعمل فقط عند فتح التطبيق عبر رابط https. يمكنك استخدام كاميرا الهاتف أو لصق رابط الرمز.',true);return}
+  if(btn)btn.disabled=true;qrsMsg('جارٍ تشغيل الكاميرا…');
+  try{const lib=await qrsLoadLib(),det=!lib&&'BarcodeDetector'in window?new BarcodeDetector({formats:['qr_code']}):null;
+    if(!lib&&!det){qrsMsg('تعذّر تحميل قارئ الرمز. تحقّق من الاتصال وحاول مجدداً، أو استخدم كاميرا الهاتف.',true);return}
+    qrsStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    const v=document.getElementById('qrsVideo');if(!v){qrsStop();return}
+    v.setAttribute('playsinline','');v.muted=true;v.srcObject=qrsStream;const bx=document.getElementById('qrsBox');if(bx)bx.hidden=false;await v.play();if(btn)btn.hidden=true;
+    qrsMsg('وجّه الكاميرا نحو رمز QR الخاص بالمحل.');
+    const cv=document.createElement('canvas'),ctx=cv.getContext('2d',{willReadFrequently:true});
+    qrsTimer=setInterval(async()=>{
+      if(!document.getElementById('qrsModal')||document.hidden){qrsClose();return} // closed by Back or the app went to the background
+      if(qrsBusy||v.readyState<2||!v.videoWidth)return;qrsBusy=true;
+      try{let raw=null;
+        if(lib){const w=Math.min(v.videoWidth,640),hh=Math.round(v.videoHeight*w/v.videoWidth);cv.width=w;cv.height=hh;ctx.drawImage(v,0,0,w,hh);
+          const r=window.jsQR(ctx.getImageData(0,0,w,hh).data,w,hh,{inversionAttempts:'attemptBoth'});raw=r&&r.data}
+        else{const r=await det.detect(v);raw=r[0]&&r[0].rawValue}
+        if(raw){if(qrsShopId(raw)){if(navigator.vibrate)try{navigator.vibrate(40)}catch(e){}await qrsRoute(raw);return}qrsMsg('هذا ليس رمز QR لمحل في Tripoli Points. امسح الملصق الموجود عند مكتب الدفع.',true)}
+      }catch(e){}finally{qrsBusy=false}},300);
+  }catch(e){qrsStop();qrsMsg(e&&e.name==='NotAllowedError'?'لم يُسمح باستخدام الكاميرا. اسمح بها من إعدادات المتصفح ثم حاول مجدداً.':'تعذّر فتح الكاميرا. حاول مجدداً أو استخدم كاميرا الهاتف.',true)}
+  finally{if(btn)btn.disabled=false}}
+function qrsOpen(){qrsClose();const md=document.createElement('div');md.className='modal';md.id='qrsModal';md.setAttribute('role','dialog');md.setAttribute('aria-modal','true');md.setAttribute('aria-label','امسح QR المحل');
+  md.onclick=e=>{if(e.target===md)qrsClose()};
+  md.innerHTML=`<div class="sheet qrsSheet"><h3>امسح QR المحل</h3><p class="muted">امسح الملصق الموجود عند مكتب الدفع لتفتح صفحة المحل وتستخدم نقاطك.</p>
+   <div class="qrsCam" id="qrsBox" hidden><video id="qrsVideo" playsinline muted></video><span class="qrsFrame"></span></div>
+   <div id="qrsMsg" class="qrsMsg" role="status" aria-live="polite"></div>
+   <button type="button" id="qrsCam" class="btn blue" onclick="qrsCamera()">${QRS_IC} فتح الكاميرا</button>
+   <label class="muted qrsL" for="qrsVal">أو الصق رابط الرمز</label>
+   <div class="qrsRow"><input id="qrsVal" dir="ltr" inputmode="url" autocomplete="off" placeholder="https://…#q-…"><button type="button" class="btn ghost" onclick="qrsRoute(document.getElementById('qrsVal').value)">فتح</button></div>
+   <button type="button" class="btn ghost" onclick="qrsClose()">إغلاق</button>
+   <p class="small qrsNote">المسح يفتح صفحة المحل فقط، ولا يرسل أي طلب ولا يغيّر نقاطك.</p></div>`;
+  document.body.appendChild(md);qrsLoadLib()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&qrsStream)qrsStop()});
+const QRS_IC='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 9h2v2H9zM13 13h2v2h-2zM13 9h2M9 13v2"/></svg>';
 const qrUrl=mid=>location.href.split('#')[0]+'#q-'+mid;
 function copyQrLink(mid){const u=qrUrl(mid);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(()=>toast('تم نسخ الرابط')).catch(()=>toast(u));else toast(u)}
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -5558,7 +5539,6 @@ function navFallback(){
   render()}
 // نوافذ منبثقة فوق الصفحة: رجوع المتصفح يغلقها أولاً
 function navCloseOverlay(){
-  if(_custQrSession){closeCustomerQrScanner();return true}
   // Offers page: an open filter panel is closed by Back first (filters, search and sort are kept)
   if(typeof ofvSheetEl!=='undefined'&&ofvSheetEl&&ofvSheetEl.isConnected){ofvSheetClose();return true}
   if(S.screen==='app'&&S.mode==='customer'&&S.tab==='offers'&&!S.sub&&S.ofv&&S.ofv.open&&document.getElementById('ofvPanel')){ofvToggle(false);return true}
@@ -5681,7 +5661,7 @@ if(/[?&#]admin\b/.test(location.search+location.hash))S.screen='adminlogin';
 })();
 (function(){if(!TPP.on)return; // (لا تظهر إلا مع ?perf=1) علامة نسخة واضحة وثابتة بزاوية الشاشة، فقط للتأكد أثناء الاختبار إننا نشوف آخر نسخة منشورة فعلاً (مش نسخة قديمة محفوظة بالمتصفح أو الـCDN) — لا تؤثر على أي منطق آخر في التطبيق
   const b=document.createElement('div');
-  b.textContent='Tripoli Points v31.1 · build 20261030-pr7h';
+  b.textContent='Tripoli Points v31.1 · build 2026110209-pr7-rev5';
   b.style.cssText='position:fixed;bottom:2px;left:4px;z-index:99999;font:10px monospace;color:#fff;background:#000a;padding:2px 6px;border-radius:4px;pointer-events:none;direction:ltr';
   document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(b));
   if(document.readyState!=='loading')document.body.appendChild(b);
