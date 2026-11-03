@@ -1,0 +1,4 @@
+Poppins (subset: Latin letters, Bold) — Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The license is available with a FAQ at: https://scripts.sil.org/OFL
+Used only for the «Scan» and «Tripoli» button labels on the Staging home screen.
