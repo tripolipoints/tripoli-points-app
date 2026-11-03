@@ -2167,6 +2167,12 @@ function qrSvg(text,px){
 }
 const reserved=p=>S.tx.filter(t=>t.phone===p&&t.status==='PENDING').reduce((a,t)=>a+t.redeemPts,0);
 const avail=p=>Math.max(0,S.customers[p].points-reserved(p));
+// Staging fix: on a merchant's device the local S.customers list only ever holds built-in sample data (it is never loaded from
+// the server for merchants). So in merchant mode a local record is trusted only for a demo merchant; for a real merchant the
+// customer's existence, status and balance are unknown here and are validated by create_transaction on the server.
+// Names from merchant_requests / merchant_transactions (cname) are for display only, never proof of anything.
+const custKnown=p=>{const c=p&&S.customers[p];if(!c)return null;if(S.mode!=='merchant')return c;const m=M(S.merchantId);return m&&m.demo?c:null};
+const custName=p=>{const c=custKnown(p);if(c&&c.name)return c.name;const pick=l=>l.filter(x=>x.phone===p&&x.cname).sort((a,b)=>b.at-a.at)[0];const r=pick(S.custReq)||pick(S.tx);return r?r.cname:''};
 const maxRedeem=p=>Math.floor(avail(p)*CAP);
 // ===== العروض: الأنواع والأهلية والحساب =====
 const OTL={discount:'خصم مباشر',gift:'هدية مجانية',bonus:'نقاط إضافية',product:'عرض خاص'};
@@ -2201,7 +2207,7 @@ function clearVip(p){const m=M(S.merchantId);if(m.vips)delete m.vips[p];toast('�
 function calc(inv,pct,on,p,m,o){const tl=TIERS[(m&&m.tier)||'large'],rp2=m?rdPct(m,p)/100:0;
   const disc=o&&o.type==='discount'?+(inv*o.val/100).toFixed(2):0, base=+(inv-disc).toFixed(2);
   const vc=m&&p&&isVip(m,p)?Math.min(vipCap(m,p),Math.floor(base*RATE)):0;
-  const cap=p&&S.customers[p]?(vc>0?Math.min(maxRedeem(p),vc):Math.min(maxRedeem(p),Math.floor(base*RATE*rp2),tl.maxPts)):0, rp=on?cap:0, rv=rp/RATE, net=+(base-rv).toFixed(2);
+  const cap=p&&custKnown(p)?(vc>0?Math.min(maxRedeem(p),vc):Math.min(maxRedeem(p),Math.floor(base*RATE*rp2),tl.maxPts)):0, rp=on?cap:0, rv=rp/RATE, net=+(base-rv).toFixed(2);
   const bonus=o&&o.type==='bonus'&&o.per>0?Math.floor(net/o.per)*o.pts:0;
   return {disc,base,redeemPts:rp,redeemVal:rv,net,bonus,gift:o&&o.type==='gift'?o.gift:'',earn:Math.floor(net*pct/100*RATE)+bonus};
 }
@@ -2214,12 +2220,11 @@ function sweep(){let c=false;S.tx.forEach(t=>{if(t.status==='PENDING'&&Date.now(
  if(S.mode==='customer'&&S.phone&&S.customers[S.phone]){const w=S.customers[S.phone].welcome;if(w&&w.remain>0&&Date.now()>w.exp){syncCustomerData(S.phone)}}
  return c}
 async function createTx(mid,p,inv,on,items,offerId){
-  const m=M(mid),c=S.customers[p];
+  const m=M(mid),c=custKnown(p);
   if(m.status!=='active')return'حساب المحل غير فعّال';
   if(!/^\d{7,8}$/.test(p))return'رقم الهاتف غير صحيح';
   if(p===m.phone)return'لا يمكن تسجيل عملية على رقم المحل نفسه';
-  if(!c)return'هذا الرقم غير مسجّل في التطبيق';
-  if(c.status!=='active')return'حساب الزبون مجمّد';
+  if(c&&c.status!=='active')return'حساب الزبون مجمّد'; // unknown here = not rejected locally: create_transaction checks the customer exists and is active
   if(!(inv>0))return'أدخل قيمة الفاتورة';
   if(reserved(p)>0)return'لدى الزبون عملية قيد التأكيد';
   const res=await sbRpc('create_transaction',{p_merchant_id:mid,p_customer_phone:p,p_invoice:inv,p_redeem:!!on,p_offer_id:offerId||null,p_items:items||[]});
@@ -2480,7 +2485,7 @@ async function syncCustomerData(p){
   render({bg:true});txBannerCheck();
 }
 function mapOfferRow(o){return{id:o.id,mid:o.mid,title:o.title,badge:o.badge,at:o.at,days:o.days,active:o.active,type:o.type,val:o.val,gift:o.gift_text,pts:o.pts,per:o.per,oldPrice:o.old_price,newPrice:o.new_price,img:o.img_url,specs:o.specs,min:o.min,first:o.first,db:true}}
-function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
+function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,cname:r.cname||'',invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
 async function syncMerchantData(mid){
   const[tx,notes,wallet,offs,reqs]=await Promise.all([sbRpc('merchant_transactions',{p_merchant_id:mid}),sbRpc('merchant_notes_list',{p_merchant_id:mid}),sbRpc('merchant_wallet',{p_merchant_id:mid}),sbRpc('merchant_offers',{p_merchant_id:mid}),sbRpc('merchant_requests',{p_merchant_id:mid})]);
   if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.mid===mid));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid,phone:r.phone,cname:r.cname})))}
@@ -4513,7 +4518,7 @@ function mfDupReqIds(id){const r=S.custReq.find(x=>x.id===id);if(!r)return[id];c
 function useCustReq(id){const r=S.custReq.find(x=>x.id===id);if(!r||r.used)return;
  mfReset();S.mf.phone=r.phone;S.mf.items=[{n:'فاتورة الزبون',p:String(r.invoice),q:1}];if(r.offer)S.mf.offer=r.offer;S.mf.reqId=id;
  S.sub='new';render()}
-function reqRow(r){const c=S.customers[r.phone];return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:'زبون'}</b>${r.dupN>1?` <span style="display:inline-block;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap" title="أرسل الزبون نفس الطلب أكثر من مرة، ويُعالَج مرة واحدة">${r.dupN===2?'أُرسل مرتين':`أُرسل ${numIso(String(r.dupN))} مرات`}</span>`:''}<div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
+function reqRow(r){const c=custKnown(r.phone);return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:(esc(custName(r.phone))||'زبون')}</b>${r.dupN>1?` <span style="display:inline-block;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap" title="أرسل الزبون نفس الطلب أكثر من مرة، ويُعالَج مرة واحدة">${r.dupN===2?'أُرسل مرتين':`أُرسل ${numIso(String(r.dupN))} مرات`}</span>`:''}<div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
 const reqGrouped=m=>custReqGroups(m.id).map(g=>Object.assign({},g.first,{dupN:g.ids.length}));
 function reqBanner(m){const l=reqGrouped(m);if(!l.length)return'';
  return `<div class="card" style="border-right:4px solid var(--ok)">${l.map(reqRow).join('<div style="border-top:1px solid var(--line)"></div>')}</div>`}
@@ -4543,7 +4548,7 @@ function mopsV(m){const f=S.mopf,all=S.tx.filter(t=>t.mid===m.id&&(S.mper==='all
   return topbar('العمليات')+`<button class="btn blue" style="margin-bottom:12px" onclick="startNew()">+ عملية جديدة</button>`+reqSectionV(m)+chips([['all','الكل'],['PENDING','بانتظار التأكيد'],['DONE','مكتملة'],['BAD','ملغاة']],f,'setMopf')+chips([['all','كل الفترات'],['day','اليوم'],['week','الأسبوع']],S.mper,'setMper')+`<div class="card">${l.length?l.map(opRow).join(''):'<p class="muted">لا توجد عمليات في هذا القسم.</p>'}</div>`}
 
 function mdetailV(m){const t=S.tx.find(x=>x.id===S.detailId);if(!t)return subHead('تفاصيل العملية');
-  const c=S.customers[t.phone]||{name:t.phone},st=t.status,left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000)),ln='padding:8px 0;border-bottom:1px solid var(--line)';
+  const c=custKnown(t.phone)||{name:esc(custName(t.phone))||t.phone},st=t.status,left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000)),ln='padding:8px 0;border-bottom:1px solid var(--line)';
   const items=(t.items||[]).length?`<div class="card"><h3>الأصناف</h3>${t.items.map(i=>`<div class="row" style="padding:3px 0"><span>${i.n} × ${i.q}</span><b>${usd(i.p*i.q)}</b></div>`).join('')}</div>`:'';
   const banner=st==='PENDING'?`<div class="prev"><b>العملية بانتظار تأكيد الزبون</b><div>سيصل الزبون إشعار للتأكيد · تنتهي المهلة خلال ${left} د</div></div>`:st==='CONFIRMED'?`<div class="prev" style="background:#d9f3e5"><b>أكّد الزبون العملية</b></div>`:`<div class="alert">${st==='EXPIRED'?'انتهت مهلة تأكيد الزبون':'العملية ملغاة'}</div>`;
   return subHead('تفاصيل العملية')+`<div class="card row" style="justify-content:flex-start;gap:12px"><span class="avatar" style="width:46px;height:46px;flex:none">${ic('user',22)}</span><div><b>${c.name}</b><div class="ltr muted">+961 ${t.phone}</div><div class="muted">${dtm(t.at)}</div></div></div>
@@ -4851,20 +4856,20 @@ async function delOffer(id){const res=await sbRpc('merchant_delete_offer',{p_off
 function mfReset(){S.mf={step:1,phone:'',items:[{n:'',p:'',q:1}],redeem:false,txId:null,offer:null,reqId:null}}
 mfReset();
 const mfTotal=()=>+S.mf.items.reduce((a,i)=>a+(parseFloat(i.p)||0)*(parseInt(i.q)||0),0).toFixed(2);
-const ciText=v=>{const p=norm(v);if(p.length<7)return'';const c=S.customers[p];return c?`${c.name} · متاح ${fmt(avail(p))} نقطة`:'رقم غير مسجّل'};
+const ciText=v=>{const p=norm(v);if(p.length<7)return'';const c=custKnown(p);if(c)return `${c.name} · متاح ${fmt(avail(p))} نقطة`;const n=custName(p);return n?`${n} · يتحقق الخادم من الحساب والرصيد عند الإرسال`:'يتحقق الخادم من الرقم عند إرسال العملية'};
 function opickHtml(){const m=M(S.merchantId),f=S.mf,p=norm(f.phone),offs=liveOffers().filter(o=>o.mid===m.id&&o.type!=='product');
   if(!offs.length)return'<p class="muted" style="margin:0">لا توجد عروض فعّالة لدى المحل. يمكنك نشر عرض من تبويب «العروض».</p>';
   return [null,...offs].map(o=>{const on=(f.offer||null)===(o?o.id:null),cl=o&&S.claims.some(c=>c.phone===p&&c.oid===o.id);
    return `<div class="oc ${on?'on':''}" onclick="pickOffer(${o?`'${o.id}'`:'null'})"><div><b>${o?o.title:'بدون عرض'}</b>${o?`<div class="muted">${OTL[o.type]||''}${o.min?` · حد أدنى $${o.min}`:''}${o.first?' · للزائر الجديد':''}</div>`:''}</div>${cl?'<span class="badge b3">فعّله الزبون</span>':''}</div>`}).join('')}
 function pickOffer(id){S.mf.offer=id;const e=$('#opick');if(e)e.innerHTML=opickHtml()}
-function vipBox(p){const m=M(S.merchantId);if(!/^\d{7,8}$/.test(p)||!S.customers[p])return'';const on=isVip(m,p);
+function vipBox(p){const m=M(S.merchantId);if(!/^\d{7,8}$/.test(p)||!custKnown(p))return'';const on=isVip(m,p);
  if(on)return `<div class="row" style="padding-top:8px;border-top:1px solid var(--line);margin-top:6px"><div><b>👑 زبون VIP</b><div class="muted">تقبل منه حتى ${fmt(vipCap(m,p))} نقطة في العملية (بدل ${m.redeemPct||5}% عادة)</div></div><button class="btn sm ghost" style="color:var(--bad)" onclick="clearVip('${p}')">إلغاء VIP</button></div>`;
  return `<div style="padding-top:8px;border-top:1px solid var(--line);margin-top:6px"><div class="muted" style="margin-bottom:6px">👑 اجعله VIP واكتب عدد النقاط التي تريد قبولها منه في العملية</div><div style="display:flex;gap:8px"><div class="field" style="flex:1;margin:0"><input id="vipn" type="number" min="1" inputmode="numeric" dir="ltr" placeholder="مثال: 2000"></div><button class="btn sm" onclick="setVip('${p}')">تفعيل VIP</button></div></div>`}
 function mfPhone(v){S.mf.phone=v;const e=$('#ci');if(e)e.textContent=ciText(v);const k=$('#opick');if(k)k.innerHTML=opickHtml();const vb=$('#vipbox');if(vb)vb.innerHTML=vipBox(norm(v))}
 function mfTot(){$('#tot').textContent=usd(mfTotal())}
 function mfNext(){const p=norm(S.mf.phone),m=M(S.merchantId);
   if(!phoneOk(S.mf.phone))return toast('رقم الهاتف غير صحيح');if(p===m.phone)return toast('لا يمكن تسجيل عملية على رقم المحل نفسه');
-  if(!S.customers[p])return toast('هذا الرقم غير مسجّل في التطبيق');if(S.customers[p].status!=='active')return toast('حساب الزبون مجمّد');
+  {const c=custKnown(p);if(c&&c.status!=='active')return toast('حساب الزبون مجمّد')} // unknown here: create_transaction validates the customer
   if(!S.mf.items.every(i=>i.n.trim()&&parseFloat(i.p)>0&&parseInt(i.q)>0))return toast('أكمل اسم الصنف والسعر والكمية لكل صنف قبل المتابعة');
   if(!(mfTotal()>0))return toast('أدخل سعر صنف واحد على الأقل');
   if(reserved(p)>0)return toast('لدى الزبون عملية قيد التأكيد');
@@ -4888,7 +4893,9 @@ async function mfSend(){const f=S.mf;if(f.sending)return;
   // the other copies of the same customer request (same phone, amount and offer) are closed too, with the existing merchant RPC
   for(const rid of reqIds){if(rid===orig&&!f.reqId)continue; // createTx already closed the request it started from
    const r=await sbRpc('merchant_close_request',{p_request_id:rid,p_merchant_id:mid});const x=S.custReq.find(q=>q.id===rid);if(r&&x)x.used=true}
-  mfReset();S.sub=null;S.tab='mops';S.mopf='PENDING';render();window.scrollTo(0,0);toast('تم إرسال العملية إلى الزبون، بانتظار تأكيده')}
+  const exact=!!custKnown(p)||!f.redeem,sent=exact?null:S.tx.find(t=>t.id===f.txId);
+  mfReset();S.sub=null;S.tab='mops';S.mopf='PENDING';render();window.scrollTo(0,0);
+  toast(sent?`تم إرسال العملية بانتظار تأكيد الزبون · نقاط مستخدمة ${fmt(sent.redeemPts)} · المطلوب نقداً ${usd(sent.net)}`:'تم إرسال العملية إلى الزبون، بانتظار تأكيده')}
 function mnewView(m){const f=S.mf,k=CAT(m.cat);
   if(f.step===3){const t=S.tx.find(x=>x.id===f.txId);if(!t||t.mid!==m.id){mfReset();return mnewView(m)}}
   const bar=`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:48px;height:48px;font-size:22px;background:${k[3]}22">${k[2]}</span><div><b>${m.name}</b><div><span class="badge b1">نسبة الحسم ${rdPct(m)}%</span></div></div></div>`;
@@ -4902,13 +4909,14 @@ function mnewView(m){const f=S.mf,k=CAT(m.cat);
   <button class="btn ghost sm" onclick="S.mf.items.push({n:'',p:'',q:1});render()">+ إضافة صنف</button>
   <div class="row" style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px"><b>إجمالي الفاتورة</b><b id="tot" style="font-size:20px;color:var(--navy)">${usd(mfTotal())}</b></div></div>
   <button class="btn blue" onclick="mfNext()">متابعة</button>`;
-  if(f.step===2){const p=norm(f.phone),c=S.customers[p],inv=mfTotal(),o=f.offer?S.offers.find(x=>x.id===f.offer):null,r=calc(inv,m.pct,f.redeem,p,m,o),ln='padding:9px 0;border-bottom:1px solid var(--line)';
+  if(f.step===2){const p=norm(f.phone),c=custKnown(p),inv=mfTotal(),o=f.offer?S.offers.find(x=>x.id===f.offer):null,r=calc(inv,m.pct,f.redeem,p,m,o),ln='padding:9px 0;border-bottom:1px solid var(--line)',ex=!!c||!f.redeem; // ex: preview exact (no customer balance needed, or a trusted one is known)
    return `<div class="top"><button class="back" style="margin:0" onclick="if(!S.mf.sending){S.mf.step=1;render()}">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">تفاصيل النقاط</h3><div style="width:34px"></div></div>
-   <div class="muted" style="margin-bottom:8px">${c.name} · <span class="ltr">+961 ${p}</span> · متاح ${fmt(avail(p))} نقطة</div>
+   <div class="muted" style="margin-bottom:8px">${c?c.name:(esc(custName(p))||'زبون')} · <span class="ltr">+961 ${p}</span> · ${c?`متاح ${fmt(avail(p))} نقطة`:'الرصيد يتحقق منه الخادم'}</div>
    <div class="card"><div class="row" style="${ln}"><span>قيمة الفاتورة</span><b style="font-size:20px">${usd(inv)}</b></div>${offerRows(o,r,ln)}
-   <div class="row" style="${ln}"><div><div>النقاط المستخدمة (من رصيد الزبون)</div><div class="muted">${isVip(m,p)?`زبون VIP · حتى ${fmt(vipCap(m,p))} نقطة 👑`:`سقف المحل للدفع بالنقاط: حتى ${rdPct(m,p)}% من قيمة الفاتورة (هذا منفصل عن أي عرض خصم نقدي مُطبّق أعلاه)`}</div></div><div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue)">${fmt(r.redeemPts)} نقطة</b><button class="sw ${f.redeem?'on':''}" aria-label="استخدام النقاط" onclick="S.mf.redeem=!S.mf.redeem;render()"></button></div></div>
-   <div class="row" style="${ln}"><span>المبلغ المطلوب دفعه</span><b style="font-size:20px">${usd(r.net)}</b></div>${r.earn/RATE>wallet(m.id).avail?`<div class="alert" style="margin-top:10px"><b>⚠️ رصيد غير كافٍ</b><div>محفظتك التشغيلية لا تكفي لمنح ${fmt(r.earn)} نقطة لهذا الزبون (المتاح ${mpt(wallet(m.id).avail)}).</div><button class="btn sm" style="margin-top:8px" onclick="S.resumeTx=1;openBuy(1)">اشترِ نقاطاً لإتمام العملية</button></div>`:''}
-   <div class="row" style="padding:9px 0"><div><div>النقاط الجديدة</div><div class="muted">تُحسب على المبلغ النقدي فقط${r.bonus?` · منها ${fmt(r.bonus)} من العرض`:''}</div></div><b style="font-size:19px;color:var(--ok)">${fmt(r.earn)} نقطة</b></div></div>
+   <div class="row" style="${ln}"><div><div>النقاط المستخدمة (من رصيد الزبون)</div><div class="muted">${isVip(m,p)?`زبون VIP · حتى ${fmt(vipCap(m,p))} نقطة 👑`:`سقف المحل للدفع بالنقاط: حتى ${rdPct(m,p)}% من قيمة الفاتورة (هذا منفصل عن أي عرض خصم نقدي مُطبّق أعلاه)`}</div></div><div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue)">${ex?`${fmt(r.redeemPts)} نقطة`:'تُحسب عند الإرسال'}</b><button class="sw ${f.redeem?'on':''}" aria-label="استخدام النقاط" onclick="S.mf.redeem=!S.mf.redeem;render()"></button></div></div>
+   <div class="row" style="${ln}"><span>المبلغ المطلوب دفعه</span><b style="font-size:20px">${ex?usd(r.net):`حتى ${usd(r.net)}`}</b></div>${r.earn/RATE>wallet(m.id).avail?`<div class="alert" style="margin-top:10px"><b>⚠️ رصيد غير كافٍ</b><div>محفظتك التشغيلية لا تكفي لمنح ${fmt(r.earn)} نقطة لهذا الزبون (المتاح ${mpt(wallet(m.id).avail)}).</div><button class="btn sm" style="margin-top:8px" onclick="S.resumeTx=1;openBuy(1)">اشترِ نقاطاً لإتمام العملية</button></div>`:''}
+   <div class="row" style="padding:9px 0"><div><div>النقاط الجديدة</div><div class="muted">تُحسب على المبلغ النقدي فقط${r.bonus?` · منها ${fmt(r.bonus)} من العرض`:''}</div></div><b style="font-size:19px;color:var(--ok)">${ex?'':'حتى '}${fmt(r.earn)} نقطة</b></div></div>
+   ${ex?'':'<div class="prev" style="font-size:13px;margin-bottom:6px">رصيد الزبون غير متوفر على جهاز المحل. يحسب الخادم النقاط المستخدمة بدقة عند الإرسال، وتظهر لك القيم الفعلية، ولا تُعتمد العملية إلا بعد تأكيد الزبون.</div>'}
    <div class="prev" style="font-size:13px">سيتم خصم النقاط من رصيد الزبون، مع إضافة النقاط الجديدة بعد تأكيده العملية.</div>
    ${f.sendErr?`<div class="alert" style="margin:10px 0">${esc(f.sendErr)}</div>`:''}<button class="btn blue" ${f.sending?'disabled aria-busy="true"':''} onclick="mfSend()">${f.sending?'جارٍ الإرسال…':f.sendErr?'إعادة المحاولة':'تأكيد العملية'}</button>`}
   const t=S.tx.find(x=>x.id===f.txId),st=t.status,done=st==='CONFIRMED',bad=st==='CANCELLED'||st==='EXPIRED',left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000));
