@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Tripoli Points: STAGING build for Netlify.                                   Version 1, 3 Nov 2026
+// Tripoli Points: STAGING build for Netlify.                                   Version 2, 3 Nov 2026
+// v2: badge reports the QR button's state on the device; staging-only hero/QR style safeguard for iPhone Safari.
 //
 // Builds dist-staging/ from this branch's index.html (= GitHub main) for the STAGING Supabase project only.
 // No dependencies (Node 18+). It never edits index.html in place; main and the live site are untouched.
@@ -69,6 +70,11 @@ html = html.replace(urlRe, `const SB_URL='${STAGING_URL}';`)
 const commit = env('COMMIT_REF').slice(0, 7) || 'local';
 const builtAt = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const guard = `<meta name="robots" content="noindex,nofollow">
+<style id="tpStagingQrFix">/* STAGING ONLY: keep the hero QR pill above the banner on iPhone Safari */
+.hero2{isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black)}
+.hero2 .qrsHero{z-index:3;-webkit-transform:translateZ(0);transform:translateZ(0)}
+@supports not (aspect-ratio:1/1){.hero2{height:42vw!important;min-height:122px}}
+</style>
 <script>/* Tripoli Points STAGING network guard (build ${commit}, ${builtAt}) */
 (function(){var OK='${STAGING_REF}.supabase.co',BAD='${PROD_REF}',st={db:0,blocked:0,log:[],ref:'${STAGING_REF}',commit:'${commit}',built:'${builtAt}'};
 window.__TP_STAGING=st;
@@ -80,9 +86,16 @@ var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u)
 if(window.WebSocket){var W=window.WebSocket;window.WebSocket=function(u,p){if(!allowed(u)){note(u,'ws');throw new TypeError('Blocked by STAGING guard')}return p===undefined?new W(u):new W(u,p)};window.WebSocket.prototype=W.prototype}
 if(navigator.sendBeacon){var b=navigator.sendBeacon.bind(navigator);navigator.sendBeacon=function(u,d){if(!allowed(u)){note(u,'beacon');return false}return b(u,d)}}
 document.addEventListener('securitypolicyviolation',function(e){note(e.blockedURI,'csp')});
+function qrInfo(){var ua=navigator.userAgent,ios=(ua.match(/OS (\\d+[_\\d]*) like Mac/)||[])[1],sv=(ua.match(/Version\\/([\\d.]+)/)||[])[1];
+var dev='Device: '+(ios?'iOS '+ios.replace(/_/g,'.'):'not iOS')+(sv?', Safari '+sv:'')+', viewport '+innerWidth+'x'+innerHeight;
+var scr='';try{scr=', screen '+S.screen+'/'+S.mode+'/'+S.tab+(S.sub?'/'+S.sub:'')}catch(e){}
+var b=document.querySelector('.qrsHero'),h=document.querySelector('.hero2');
+if(!b)return 'QR button: NOT in page'+scr+(h?' (banner present)':' (no home banner on this screen)')+'\\nPR #7 scanner code in build: '+(typeof qrsOpen==='function'?'yes':'NO')+'\\n'+dev;
+var r=b.getBoundingClientRect(),cs=getComputedStyle(b),t=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2),hr=h?h.getBoundingClientRect():null;
+return 'QR button: in page'+scr+'\\n display '+cs.display+', visibility '+cs.visibility+', opacity '+cs.opacity+'\\n box '+[r.left,r.top,r.width,r.height].map(Math.round).join(',')+(hr?' in banner '+[hr.width,hr.height].map(Math.round).join('x'):'')+'\\n on top: '+(t&&(t===b||b.contains(t))?'yes':'NO ('+(t?(t.className||t.tagName):'none')+')')+'\\n'+dev}
 var el;function draw(){if(!el){if(!document.body)return;el=document.createElement('div');el.id='tpStagingBadge';
 el.style.cssText='position:fixed;z-index:2147483647;left:6px;top:calc(env(safe-area-inset-top,0px) + 4px);padding:2px 7px;border-radius:9px;font:600 10px/1.5 -apple-system,system-ui,sans-serif;color:#fff;direction:ltr;opacity:.92;cursor:pointer;pointer-events:auto';
-el.onclick=function(){alert('STAGING build\\nSupabase: '+OK+'\\nCommit: '+st.commit+'\\nBuilt: '+st.built+'\\nRequests to Staging DB: '+st.db+'\\nBlocked: '+st.blocked+(st.log.length?'\\n\\n'+st.log.slice(-8).join('\\n'):''))};
+el.onclick=function(){alert('STAGING build\\nSupabase: '+OK+'\\nCommit: '+st.commit+'\\nBuilt: '+st.built+'\\nRequests to Staging DB: '+st.db+'\\nBlocked: '+st.blocked+'\\n\\n'+qrInfo()+(st.log.length?'\\n\\n'+st.log.slice(-8).join('\\n'):''))};
 document.body.appendChild(el)}
 el.style.background=st.blocked?'#c62828':'#6a1b9a';el.textContent='STAGING \\u00b7 DB '+st.db+(st.blocked?' \\u00b7 BLOCKED '+st.blocked:'')}
 document.addEventListener('DOMContentLoaded',function(){draw();document.title='[STAGING] '+document.title});setInterval(draw,2000)})();
