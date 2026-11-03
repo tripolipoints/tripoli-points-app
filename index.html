@@ -216,13 +216,16 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .offBanner .obSub{margin:0;font-size:12.5px;color:#ffffffd0}
 .hero2 .bell{position:absolute;left:92.7%;top:42.2%;width:8.2%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:0;display:flex;align-items:center;justify-content:center;color:var(--navy);box-shadow:0 2px 8px #0003;padding:0}
 /* staging-netlify: QR pill sits in its own row below the home banner (no overlap with the image or the bell) */
-.qrsRowHome{display:flex;justify-content:center;margin:7px 0 6px;flex:none}
-/* staging-netlify v4: compact white «Scan» pill, thin gold outline, soft raised shadow; text + icon centred */
-.qrsHero{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;direction:ltr;box-sizing:border-box;width:clamp(150px,50%,212px);height:clamp(29px,8.6vw,35px);padding:0 16px;margin:0;border-radius:999px;border:1.5px solid #f2bd1d;background:linear-gradient(180deg,#fff 0%,#fbfbfd 100%);color:var(--navy);font-family:inherit;font-weight:800;font-size:clamp(14.5px,4.3vw,17px);line-height:1;letter-spacing:.2px;box-shadow:0 4px 10px rgba(12,42,107,.16),0 1px 2px rgba(12,42,107,.12),inset 0 1px 0 #fff;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,box-shadow .12s ease}
-.qrsHero:active{transform:translateY(1px);box-shadow:0 2px 5px rgba(12,42,107,.16),inset 0 1px 0 #fff}
-.qrsHero:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
-.qrsHero span{display:block;line-height:1}
-.qrsHero .ic{display:block;flex:none;width:clamp(18px,5.2vw,21px);height:clamp(18px,5.2vw,21px);color:var(--navy)}
+.qrsRowHome{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,2.6vw,11px);margin:8px 0 7px;flex:none}
+/* staging-netlify v5: Scan (navy, right in RTL) + Tripoli (gold, left) — equal pills in one row below the banner */
+.qrsHero,.tpCityBtn{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(8px,2.6vw,11px);direction:ltr;box-sizing:border-box;width:100%;min-width:0;height:clamp(32px,9.2vw,38px);padding:0 10px;margin:0;border-radius:999px;font-family:inherit;font-weight:800;font-size:clamp(15px,4.5vw,18px);line-height:1;letter-spacing:.2px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;white-space:nowrap}
+.qrsHero{border:1px solid #0a2459;background:linear-gradient(180deg,#143f94 0%,#0c2a6b 100%);color:#fff;box-shadow:0 4px 10px rgba(12,42,107,.28),inset 0 1px 0 rgba(255,255,255,.14)}
+.tpCityBtn{border:1px solid #e9a900;background:linear-gradient(180deg,#ffd23f 0%,#ffbf0b 100%);color:var(--navy);box-shadow:0 4px 10px rgba(201,145,0,.30),inset 0 1px 0 rgba(255,255,255,.45)}
+.qrsHero::after,.tpCityBtn::after{content:'';position:absolute;inset:-5px -3px -7px}/* invisible: touch area ≥ 42px tall without changing the look */
+.qrsHero:active,.tpCityBtn:active{transform:translateY(1px);filter:brightness(.97)}
+.qrsHero:focus-visible,.tpCityBtn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.qrsHero span,.tpCityBtn span{display:block;line-height:1;min-width:0}
+.qrsHero .ic,.tpCityBtn .ic{display:block;flex:none;width:clamp(19px,5.6vw,23px);height:clamp(19px,5.6vw,23px);color:currentColor}
 .qrsSheet{text-align:center}.qrsSheet h3{margin:0 0 4px;color:var(--navy)}.qrsSheet>p.muted{margin:0 0 10px}
 .qrsCam[hidden],.qrsSheet .btn[hidden]{display:none}.qrsCam{position:relative;border-radius:14px;overflow:hidden;background:#0b1730;margin:0 auto 6px;max-width:100%}
 .qrsCam video{display:block;width:100%;max-height:min(46vh,300px);object-fit:cover}
@@ -537,10 +540,6 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 }
 .scr:has(> .hero2) .rmap .mchip{box-shadow:0 3px 12px rgba(12,42,107,.24)}
 .scr:has(> .hero2) .rmap .zb{border-radius:13px;box-shadow:0 3px 9px rgba(11,39,79,.25)}
-/* staging-netlify v4: «Tripoli» map chip, gold lettering beside the coloured map icon, white pill + soft shadow */
-.rmap .mchip.tpCityChip{direction:ltr;gap:7px;height:34px;padding:0 11px 0 14px;background:#fff;border:1px solid rgba(12,42,107,.06);box-shadow:0 3px 12px rgba(12,42,107,.22),0 1px 2px rgba(12,42,107,.1)}
-.rmap .mchip.tpCityChip .tpCityTx{font-family:inherit;font-weight:800;font-size:15px;line-height:1;letter-spacing:.2px;color:#a87a06;background:linear-gradient(180deg,#c99a12 0%,#9c7004 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.rmap .mchip.tpCityChip .tpCityIc{font-size:16px;line-height:1;display:block}
 /* staging-netlify v4: «+» drawn as a centred SVG so it sits exactly in the middle of its square */
 .rmap .zb{display:flex;align-items:center;justify-content:center}
 .rmap .zb.zbIn svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;pointer-events:none}
@@ -2866,7 +2865,7 @@ function mapDirStateHtml(){if(allActiveMerchants().length)return'';
   if(S.dirState==='ok')return`<div class="mapDirState empty" role="status">لا توجد محلات متاحة حالياً. ترقّبوا انضمام محلات جديدة قريباً!</div>`;
   return S.dirState==='error'?`<div class="mapDirState err" role="alert">تعذّر تحميل المحلات. تحقّق من الاتصال<button type="button" onclick="S.dirState='loading';render();syncDirectory()">إعادة المحاولة</button></div>`:`<div class="mapDirState" role="status">جارٍ تحميل المحلات…</div>`}
 function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>${mapDirStateHtml()}
- ${tp30GoogleNavButton()}${tall?'':`<button class="mchip tpCityChip" style="top:12px;left:12px" onclick="resetMapFilter()" aria-label="Tripoli"><span class="tpCityTx">Tripoli</span><span class="tpCityIc" aria-hidden="true">🗺️</span></button>`}
+ ${tp30GoogleNavButton()}
  <button class="tp23-fullscreen-btn" type="button" onclick="toggleMapFullscreen()" aria-label="عرض الخريطة بملء الشاشة" title="ملء الشاشة">⛶</button>
  <button class="zb zbIn" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
  <button class="mchip mround" style="bottom:10px;right:10px" onclick="locateMe()" aria-label="موقعي">${SVG_TGT}</button>
@@ -4043,7 +4042,7 @@ function tripoliOffersV(){
 function homeV(c){const u=unread();
   // تمت إزالة شريط البحث الأبيض المستقل أسفل البانر مباشرة (كان مكرِّراً لوظيفة البحث الموجودة أصلاً ضمن زر "بحث وفئات" الذهبي)؛ البحث عن محل بالاسم ما زال متاحاً بالكامل من خلال "بحث وفئات" ← "حسب الفئة التجارية" (catSearchInput يطابق أسماء المحلات أيضاً، وليس الفئات فقط)
   return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button></div>
-  <div class="qrsRowHome"><button type="button" class="qrsHero" onclick="qrsOpen()" aria-label="Scan QR"><span>Scan</span>${QRS_IC}</button></div>
+  <div class="qrsRowHome"><button type="button" class="qrsHero" onclick="qrsOpen()" aria-label="Scan QR"><span>Scan</span>${QRS_IC}</button><button type="button" class="tpCityBtn" onclick="resetMapFilter()" aria-label="Tripoli"><span>Tripoli</span>${TRIPOLI_MAP_IC}</button></div>
   <button class="bal2" onclick="S.tab='wallet';render()"><div class="g"><span class="bag">🛍️</span><div style="font-size:12.5px;line-height:1.3;font-weight:700">استخدم نقاطك في<br>المحلات المشاركة</div></div><div class="sep"></div>
   <div class="g" style="flex:none"><div><div style="font-size:10.5px;opacity:.9">رصيدك من النقاط</div><div class="n">${fmt(c.points)} <span style="font-size:11.5px;color:var(--yellow)">نقطة</span></div></div><div class="wr">${ic('wallet',18)}</div></div></button>
   <div class="cats2" id="catrow">${catsHtml()}</div>
@@ -4659,6 +4658,7 @@ function qrsOpen(){qrsClose();const md=document.createElement('div');md.classNam
    <p class="small qrsNote">المسح يفتح صفحة المحل فقط، ولا يرسل أي طلب ولا يغيّر نقاطك.</p></div>`;
   document.body.appendChild(md);qrsLoadLib()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&qrsStream)qrsStop()});
+const TRIPOLI_MAP_IC='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 4.5 3.5 6.6v13l5.5-2.1 6 2.1 5.5-2.1V9.2"/><path d="M9 4.5v13M15 13v6.6"/><path d="M17.6 2.6a3.1 3.1 0 0 0-3.1 3.1c0 2.3 3.1 5.4 3.1 5.4s3.1-3.1 3.1-5.4a3.1 3.1 0 0 0-3.1-3.1z"/><circle cx="17.6" cy="5.7" r="1"/></svg>';
 const QRS_IC='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 9h2v2H9zM13 13h2v2h-2zM13 9h2M9 13v2"/></svg>';
 const qrUrl=mid=>location.href.split('#')[0]+'#q-'+mid;
 function copyQrLink(mid){const u=qrUrl(mid);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(()=>toast('تم نسخ الرابط')).catch(()=>toast(u));else toast(u)}
