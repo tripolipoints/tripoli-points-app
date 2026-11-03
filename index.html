@@ -541,9 +541,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 }
 .scr:has(> .hero2) .rmap .mchip{box-shadow:0 3px 12px rgba(12,42,107,.24)}
 .scr:has(> .hero2) .rmap .zb{border-radius:13px;box-shadow:0 3px 9px rgba(11,39,79,.25)}
-/* staging-netlify v6: floating map controls — soft elevation + subtle pressed state (colours, sizes, positions unchanged) */
-.rmap .zb,.rmap .tp23-fullscreen-btn,.rmap .mchip.mround{box-shadow:0 6px 14px -3px rgba(9,31,77,.34),0 2px 4px rgba(9,31,77,.20),inset 0 1px 0 rgba(255,255,255,.55)!important;transition:transform .1s ease,box-shadow .1s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .mchip.mround:active{transform:translateY(1px) scale(.97);box-shadow:0 2px 5px -1px rgba(9,31,77,.30),0 1px 2px rgba(9,31,77,.18),inset 0 1px 0 rgba(255,255,255,.4)!important}
+/* staging-netlify v7: floating map controls — clearly visible soft drop shadow + hairline ring (reads on light tiles and on blue sea),
+   subtle pressed state. Colours, sizes, positions, icons and actions unchanged. */
+.rmap .zb,.rmap .tp23-fullscreen-btn,.rmap .mchip.mround{box-shadow:0 4px 12px rgba(0,25,65,.32),0 2px 4px rgba(0,25,65,.22),0 0 0 1px rgba(0,25,65,.08)!important;transition:transform .1s ease,box-shadow .1s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .mchip.mround:active{transform:translateY(1px);box-shadow:0 1px 4px rgba(0,25,65,.26),0 1px 2px rgba(0,25,65,.18),0 0 0 1px rgba(0,25,65,.08)!important}
 /* staging-netlify v4: «+» drawn as a centred SVG so it sits exactly in the middle of its square */
 .rmap .zb{display:flex;align-items:center;justify-content:center}
 .rmap .zb.zbIn svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;pointer-events:none}
