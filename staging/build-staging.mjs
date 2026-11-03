@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Tripoli Points: STAGING build for Netlify.                                   Version 2, 3 Nov 2026
-// v2: badge reports the QR button's state on the device; staging-only hero/QR style safeguard for iPhone Safari.
+// v2: badge reports the QR button's state on the device.
+// v3: the QR pill now sits below the banner in index.html (this branch only), so the banner QR safeguard is removed.
 //
 // Builds dist-staging/ from this branch's index.html (= GitHub main) for the STAGING Supabase project only.
 // No dependencies (Node 18+). It never edits index.html in place; main and the live site are untouched.
@@ -70,9 +71,7 @@ html = html.replace(urlRe, `const SB_URL='${STAGING_URL}';`)
 const commit = env('COMMIT_REF').slice(0, 7) || 'local';
 const builtAt = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const guard = `<meta name="robots" content="noindex,nofollow">
-<style id="tpStagingQrFix">/* STAGING ONLY: keep the hero QR pill above the banner on iPhone Safari */
-.hero2{isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black)}
-.hero2 .qrsHero{z-index:3;-webkit-transform:translateZ(0);transform:translateZ(0)}
+<style id="tpStagingHeroFix">/* STAGING ONLY: banner keeps its height where aspect-ratio is unsupported */
 @supports not (aspect-ratio:1/1){.hero2{height:42vw!important;min-height:122px}}
 </style>
 <script>/* Tripoli Points STAGING network guard (build ${commit}, ${builtAt}) */
@@ -92,7 +91,7 @@ var scr='';try{scr=', screen '+S.screen+'/'+S.mode+'/'+S.tab+(S.sub?'/'+S.sub:''
 var b=document.querySelector('.qrsHero'),h=document.querySelector('.hero2');
 if(!b)return 'QR button: NOT in page'+scr+(h?' (banner present)':' (no home banner on this screen)')+'\\nPR #7 scanner code in build: '+(typeof qrsOpen==='function'?'yes':'NO')+'\\n'+dev;
 var r=b.getBoundingClientRect(),cs=getComputedStyle(b),t=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2),hr=h?h.getBoundingClientRect():null;
-return 'QR button: in page'+scr+'\\n display '+cs.display+', visibility '+cs.visibility+', opacity '+cs.opacity+'\\n box '+[r.left,r.top,r.width,r.height].map(Math.round).join(',')+(hr?' in banner '+[hr.width,hr.height].map(Math.round).join('x'):'')+'\\n on top: '+(t&&(t===b||b.contains(t))?'yes':'NO ('+(t?(t.className||t.tagName):'none')+')')+'\\n'+dev}
+return 'QR button: in page'+scr+'\\n display '+cs.display+', visibility '+cs.visibility+', opacity '+cs.opacity+'\\n box '+[r.left,r.top,r.width,r.height].map(Math.round).join(',')+(hr?', banner '+[hr.width,hr.height].map(Math.round).join('x'):'')+'\\n on top: '+(t&&(t===b||b.contains(t))?'yes':'NO ('+(t?(t.className||t.tagName):'none')+')')+'\\n'+dev}
 var el;function draw(){if(!el){if(!document.body)return;el=document.createElement('div');el.id='tpStagingBadge';
 el.style.cssText='position:fixed;z-index:2147483647;left:6px;top:calc(env(safe-area-inset-top,0px) + 4px);padding:2px 7px;border-radius:9px;font:600 10px/1.5 -apple-system,system-ui,sans-serif;color:#fff;direction:ltr;opacity:.92;cursor:pointer;pointer-events:auto';
 el.onclick=function(){alert('STAGING build\\nSupabase: '+OK+'\\nCommit: '+st.commit+'\\nBuilt: '+st.built+'\\nRequests to Staging DB: '+st.db+'\\nBlocked: '+st.blocked+'\\n\\n'+qrInfo()+(st.log.length?'\\n\\n'+st.log.slice(-8).join('\\n'):''))};
