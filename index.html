@@ -1896,6 +1896,75 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
   }
 }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap">
+<style>/* Tripoli Points map: zoom 19–20 shared-spot list */
+.pn .tpCount,.pn .tpCount *{all:unset}
+.pn .tpCount{position:absolute;z-index:3;top:-2px;left:calc(50% + 8px);min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#0b2d6b;color:#fff;border:2px solid #ffc20e;font:800 11px/14px -apple-system,system-ui,sans-serif;text-align:center;box-shadow:0 2px 5px rgba(0,25,65,.35);pointer-events:none}
+.tpPick{position:fixed;inset:0;z-index:2147483600;background:rgba(6,20,52,.42);display:flex;align-items:flex-end;justify-content:center;direction:rtl}
+.tpPickSheet{width:min(480px,100%);background:#fff;border-radius:22px 22px 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,25,65,.3);
+ font-family:-apple-system,'SF Arabic','Tajawal',system-ui,sans-serif;animation:tpUp .18s ease-out}
+@keyframes tpUp{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.tpPickHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;color:#0b2d6b;font-size:16px}
+.tpPickX{width:36px;height:36px;border-radius:12px;border:0;background:#eef2f8;color:#0b2d6b;font-size:16px}
+.tpPickList{display:grid;gap:8px;max-height:52vh;overflow:auto}
+.tpPickRow{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 10px;border:1px solid #e3e9f3;border-radius:16px;background:#f8faff;text-align:right;cursor:pointer}
+.tpPickRow:active{background:#fff6d6;border-color:#ffc20e}
+.tpPickDot{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#fff;font-size:18px;box-shadow:inset 0 0 0 3px #fff,0 0 0 1px #d7e0ec}
+.tpPickTxt{flex:1;min-width:0;display:grid}.tpPickTxt b{color:#0b2d6b;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpPickTxt small{color:#6b7a93;font-size:12px}
+.tpPickGo{color:#9aa8bf;font-size:22px}
+</style>
+<style>/* PREVIEW v8: one gold pin family — regional (zoom 13) → cluster → miniature shop pin. Images are pre-rendered (no SVG
+   references), every name/count/icon is live HTML text, so nothing can render empty on iPhone Safari. */
+.rmap #rtl img#tpArt{position:absolute;left:0;top:0;transform-origin:0 0;z-index:60;pointer-events:none;max-width:none;will-change:transform,opacity;transition:none}
+:root{--gpTipX:48.04%;--gpTipY:92.23%;--gpFont:'Amiri','Geeza Pro','Noto Naskh Arabic','Times New Roman',serif}
+
+/* 1) regional pins: per-area engraved image + live name and count, centred in the medallion */
+.gp{position:relative;display:block;width:var(--w);height:calc(var(--w) * 1.0943);filter:drop-shadow(0 5px 6px rgba(60,35,0,.30))}
+.gp img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.gp .gpN{position:absolute;left:15%;width:68.4%;top:19.6%;height:11.4%;display:flex;align-items:center;justify-content:center;white-space:nowrap;
+ font:700 calc(var(--w) * .092)/1 var(--gpFont);color:#341802;text-shadow:0 1px 0 rgba(255,246,222,.95),0 -1px 1px rgba(90,54,8,.25);direction:rtl}
+.gp .gpK{position:absolute;left:34%;width:30.4%;top:36.6%;height:7.4%;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-style:normal;
+ font:700 calc(var(--w) * .07)/1 var(--gpFont);color:#fff3d6;direction:rtl}
+.gp .gpK.two{font-size:calc(var(--w) * .062)}
+#tpBig{position:absolute;inset:0;z-index:20;pointer-events:none}
+#tpBig .tpBigPin{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
+#tpBig .tpBigBtn{position:absolute;left:calc(-104px * .4804);top:calc(-104px * 1.0092);width:104px;padding:0;margin:0;border:0;background:none;cursor:pointer;
+ pointer-events:auto;-webkit-tap-highlight-color:transparent}
+#tpBig.off .tpBigBtn{pointer-events:none}
+#tpBig .tpBigBtn:active{transform:scale(.96)}
+
+/* 2) cluster pins (the app's own elements): same gold pin, ornament baked in, the app's own count restyled as the hero */
+.rmap.tpv6 .pn.cluster{width:74px;height:81px;left:calc(-74px * .4804);top:calc(-74px * 1.0092);transform-origin:var(--gpTipX) var(--gpTipY);transform:scale(var(--tpcs,1));
+ background:url('assets/map/pins/c.webp') center/100% 100% no-repeat;filter:drop-shadow(0 4px 5px rgba(60,35,0,.32))}
+.rmap.tpv6 .pn.cluster .pnbody,.rmap.tpv6 .pn.cluster .pnring{display:none}
+.rmap.tpv6 .pn.cluster > b{inset:auto;left:34.2%;width:30%;top:29.6%;height:12%;display:flex;align-items:center;justify-content:center;
+ font:700 25px/1 var(--gpFont);color:#3a1c04;text-shadow:0 1px 0 rgba(255,246,222,.95)}
+.rmap.tpv6 .pn.cluster::before{content:attr(data-area);position:absolute;left:var(--gpTipX);top:calc(100% + 2px);transform:translateX(-50%);display:none;white-space:nowrap;
+ padding:2px 8px;border-radius:9px;background:#5a2e0c;border:1.5px solid #d9a63a;color:#fff3d6;font:700 11px/1.3 var(--gpFont);box-shadow:0 1px 3px rgba(60,40,0,.3);pointer-events:none}
+.rmap.tpv6 .pn.cluster.tpNamed::before{display:block}
+.rmap.tpv6 .pn.cluster::after{content:'';position:absolute;inset:4% 12% 10% 12%}
+.rmap.tpv6 .pn.cluster.open{display:none}
+
+/* 3) shop pins: miniature of the same gold pin; area colour as a ring around the category icon / logo */
+.rmap.tpv6 .pn:not(.cluster):not(.ref){width:38px;height:41.6px;left:calc(-38px * .4804);top:calc(-38px * 1.0092);transform-origin:var(--gpTipX) var(--gpTipY);
+ background:url('assets/map/pins/m2.webp') center/100% 100% no-repeat;filter:drop-shadow(0 2px 3px rgba(50,30,0,.38))}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnbody{display:none}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnring,.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnimg{inset:auto;left:9.2px;top:5.3px;width:19.4px;height:19.4px;border-radius:50%;box-sizing:border-box}
+/* v10: gold first, colour second — warm gold-cream disc, the area colour only as a soft thin ring */
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnring{background:radial-gradient(circle at 40% 32%,#fff6dc 0%,#f6dfa2 55%,#e6c172 100%);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e),inset 0 1px 1.5px rgba(120,80,10,.25)}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnimg{background:#fff8e6;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e)}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) > b{inset:auto;left:9.2px;top:5.3px;width:19.4px;height:19.4px;font-size:11.5px;line-height:1}
+.rmap.tpv6 .pn:not(.cluster):not(.ref)::after{content:'';position:absolute;inset:-5px -4px 0 -4px}
+/* selected / route: the app's highlight (gold glow) on the same miniature pin */
+.rmap.tpv6 .pn.sel,.rmap.tpv6 .pn.route{filter:drop-shadow(0 0 3px #ffc20e) drop-shadow(0 0 6px rgba(255,194,14,.8)) drop-shadow(0 2px 3px rgba(50,30,0,.4))}
+.rmap.tpv6 .pn.sel .pnring,.rmap.tpv6 .pn.route .pnring{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 65%,#e8c66e),0 0 0 3.4px #ffd23f}
+/* shop names */
+.rmap.tpv6 .pnname{top:3px;background:#5a2e0c;border:1.5px solid #d9a63a;color:#fff3d6;font:700 11.5px/1.3 'Amiri','Geeza Pro','Tajawal','SF Arabic',-apple-system,system-ui,sans-serif;max-width:140px;padding:2px 9px;border-radius:9px;box-shadow:0 1px 3px rgba(60,40,0,.3)}
+.rmap.tpv6 .pnname.hi{background:#5a2e0c;border-color:#ffd23f;color:#fff3d6;font-weight:700;box-shadow:0 0 0 1.5px rgba(255,210,63,.55),0 1px 4px rgba(60,40,0,.35);z-index:3}
+
+/* v9: leader lines from fanned-out shop pins to their true GPS point */
+.rmap .pinLayer svg.tpLeads{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;z-index:6;pointer-events:none}
+</style>
 </head>
 <body>
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
@@ -1904,6 +1973,8 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
 <div id="subBarSlot"></div>
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>/* Tripoli Points artistic map: artwork (copy of the approved Treasures of Tripoli map) and gold pins */
+const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 1036], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.webp", "التل": "assets/map/pins/r1.webp", "عزمي بك": "assets/map/pins/r2.webp", "القبة": "assets/map/pins/r3.webp", "ضم والفرز": "assets/map/pins/r4.webp", "أبو سمراء": "assets/map/pins/r5.webp"};</script>
 <script>
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 // هذه مفاتيح عامة (anon) مخصصة للاستخدام من المتصفح؛ الحماية الحقيقية هي قفل الجداول (RLS) وبوابات RPC بقاعدة البيانات، وليست سرّية هذه المفاتيح.
@@ -2654,7 +2725,7 @@ function mregView(){const r=S.reg,st=r.step||1,cx=Math.min(84,Math.max(16,r.x||5
   <div class="cpin"><svg viewBox="0 0 40 50" width="40" height="50"><path d="M20 49C20 49 4 31 4 19a16 16 0 0 1 32 0c0 12-16 30-16 30z" fill="#ffc20e" stroke="#0c2a6b" stroke-width="3"/><circle cx="20" cy="19" r="6" fill="#0c2a6b"/></svg></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
   <button class="mchip" style="bottom:12px;left:12px" onclick="locateMe()">موقعي الحالي${ic('pin')}</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
   <div class="field">${ic('pin')}<span style="flex:1" id="regloc">${locTxt(r.lat,r.lng)}</span></div>
   <button class="btn" onclick="regNext()">تأكيد الموقع</button></div>`;
   if(st===3)return `<div class="scr">${back}${dots}<h1 style="font-size:22px">نسبة النقاط</h1><p class="sub">اختر النسبة التي تريد تقديمها من قيمة المشتريات</p>
@@ -2887,7 +2958,7 @@ function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.
  <button class="tp23-fullscreen-btn" type="button" onclick="toggleMapFullscreen()" aria-label="عرض الخريطة بملء الشاشة" title="ملء الشاشة">⛶</button>
  <button class="zb zbIn" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
  <button class="mchip mround" style="bottom:10px;right:10px" onclick="locateMe()" aria-label="موقعي">${SVG_TGT}</button>
- <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div><div id="mapcard">${tall?cardHtml():''}</div>`}
+ <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div><div id="mapcard">${tall?cardHtml():''}</div>`}
 let tp24MapHome=null,tp24MapPlaceholder=null;
 function toggleMapFullscreen(force){
  const rm=document.getElementById('rmap');if(!rm)return;
@@ -2918,7 +2989,7 @@ function toggleMapFullscreen(force){
  refreshGoogleNavButton();placeLocateBtn();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('rmap')?.classList.contains('tp23-fullscreen'))toggleMapFullscreen(false)});
-function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
+function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,zBoost===TRIPOLI_ZOOM_BOOST?TP_ZMIN:v.z+(zBoost||0),600)}}}}
 function setMapBig(on){const rm=$('#rmap');if(!rm)return;const was=rm.classList.contains('big');if(was===on)return;rm.classList.toggle('big',on);
   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h}
   requestAnimationFrame(()=>{if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize');const ll=S.sel&&M(S.sel)&&llOf(M(S.sel));if(ll)GM.map.panTo(ll)}if(TM)drawMap()})}
@@ -3196,9 +3267,31 @@ const dist=m=>Math.max(10,Math.round(hav(S.userLL,llOf(m))/10)*10);
 // ===== الخريطة الواقعية (محرك خرائط مبلّطة بلا مكتبات) =====
 const TS=256,BB={w:35.805,e:35.865,n:34.460,s:34.425},PORT={lat:34.4535,lng:35.8165};
 const T_IMG='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-const T_STREET=['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}','https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
+const T_STREET=['tp://{z}/{x}/{y}']; /* Tripoli Points painted map (OpenStreetMap data) — assets/map/tiles */
 S.mapStyle='street';
-const tileUrl=(u,z,x,y,n)=>u.replace('{s}','abcd'[(x+y)&3]).replace('{z}',z).replace('{x}',((x%n)+n)%n).replace('{y}',y);
+/* ===== Tripoli Points painted map tiles (static files assets/map/tiles/z/x/y.webp; © OpenStreetMap contributors, ODbL) ===== */
+const TP_TILE_BASE='assets/map/tiles/',TP_COV={"13":{"4912":[[3257,3263]],"4910":[[3257,3263]],"4913":[[3257,3263]],"4914":[[3257,3263]],"4911":[[3257,3263]],"4908":[[3257,3263]],"4909":[[3257,3263]]},"14":{"9819":[[6516,6525]],"9818":[[6516,6525]],"9821":[[6516,6525]],"9823":[[6516,6525]],"9826":[[6516,6525]],"9825":[[6516,6525]],"9824":[[6516,6525]],"9820":[[6516,6525]],"9822":[[6516,6525]]},"15":{"19645":[[13034,13047]],"19641":[[13034,13047]],"19638":[[13034,13047]],"19642":[[13034,13047]],"19651":[[13034,13047]],"19644":[[13034,13047]],"19649":[[13034,13047]],"19640":[[13034,13047]],"19643":[[13034,13047]],"19650":[[13034,13047]],"19648":[[13034,13047]],"19639":[[13034,13047]],"19647":[[13034,13047]],"19646":[[13034,13047]]},"16":{"39292":[[26076,26090]],"39294":[[26076,26090]],"39297":[[26076,26090]],"39285":[[26076,26090]],"39287":[[26076,26090]],"39291":[[26076,26090]],"39293":[[26076,26090]],"39289":[[26076,26090]],"39284":[[26076,26090]],"39286":[[26076,26090]],"39290":[[26076,26090]],"39296":[[26076,26090]],"39283":[[26076,26090]],"39288":[[26076,26090]],"39295":[[26076,26090]]},"17":{"78586":[[52159,52169]],"78581":[[52159,52169]],"78579":[[52159,52169]],"78587":[[52159,52169]],"78575":[[52158,52162]],"78582":[[52159,52169]],"78585":[[52159,52169]],"78576":[[52158,52162]],"78577":[[52158,52169]],"78578":[[52158,52169]],"78574":[[52158,52162]],"78583":[[52159,52169]],"78580":[[52159,52169]],"78584":[[52159,52169]]},"18":{"157155":[[104317,104324]],"157151":[[104317,104324]],"157156":[[104317,104324]],"157171":[[104330,104337]],"157167":[[104323,104337]],"157172":[[104330,104337]],"157160":[[104323,104333]],"157164":[[104323,104333]],"157154":[[104317,104324]],"157173":[[104330,104337]],"157163":[[104323,104333]],"157159":[[104323,104333]],"157162":[[104323,104333]],"157166":[[104323,104337]],"157168":[[104323,104337]],"157161":[[104323,104333]],"157169":[[104323,104337]],"157153":[[104317,104324]],"157170":[[104330,104337]],"157152":[[104317,104324]],"157165":[[104323,104333]],"157150":[[104317,104324]]},"19":{"314322":[[208648,208666]],"314326":[[208648,208666]],"314304":[[208635,208646]],"314327":[[208648,208666]],"314323":[[208648,208666]],"314301":[[208635,208646]],"314308":[[208635,208646]],"314333":[[208648,208666]],"314324":[[208648,208666]],"314331":[[208648,208666]],"314328":[[208648,208666]],"314329":[[208648,208666]],"314303":[[208635,208646]],"314336":[[208648,208673]],"314338":[[208648,208673]],"314325":[[208648,208666]],"314306":[[208635,208646]],"314305":[[208635,208646]],"314312":[[208635,208646]],"314311":[[208635,208646]],"314309":[[208635,208646]],"314342":[[208662,208673]],"314330":[[208648,208666]],"314332":[[208648,208666]],"314334":[[208648,208673]],"314335":[[208648,208673]],"314307":[[208635,208646]],"314337":[[208648,208673]],"314344":[[208662,208673]],"314339":[[208662,208673]],"314310":[[208635,208646]],"314343":[[208662,208673]],"314341":[[208662,208673]],"314302":[[208635,208646]],"314340":[[208662,208673]],"314321":[[208648,208666]]},"20":{"628666":[[417305,417324]],"628616":[[417274,417290]],"628655":[[417305,417324]],"628657":[[417305,417324]],"628614":[[417274,417290]],"628660":[[417305,417324]],"628610":[[417274,417290]],"628618":[[417274,417290]],"628607":[[417274,417290]],"628652":[[417305,417324]],"628613":[[417274,417290]],"628653":[[417305,417324]],"628664":[[417305,417324]],"628667":[[417305,417324]],"628685":[[417328,417343]],"628621":[[417274,417290]],"628615":[[417274,417290]],"628658":[[417305,417324]],"628676":[[417328,417343]],"628673":[[417328,417343]],"628659":[[417305,417324]],"628683":[[417328,417343]],"628679":[[417328,417343]],"628682":[[417328,417343]],"628681":[[417328,417343]],"628686":[[417328,417343]],"628651":[[417305,417324]],"628680":[[417328,417343]],"628656":[[417305,417324]],"628654":[[417305,417324]],"628662":[[417305,417324]],"628617":[[417274,417290]],"628608":[[417274,417290]],"628678":[[417328,417343]],"628619":[[417274,417290]],"628674":[[417328,417343]],"628609":[[417274,417290]],"628661":[[417305,417324]],"628675":[[417328,417343]],"628606":[[417274,417290]],"628665":[[417305,417324]],"628668":[[417305,417324]],"628684":[[417328,417343]],"628620":[[417274,417290]],"628611":[[417274,417290]],"628677":[[417328,417343]],"628663":[[417305,417324]],"628612":[[417274,417290]],"628672":[[417328,417343]]},"21":{"1257369":[[834656,834687]],"1257360":[[834656,834687]],"1257241":[[834549,834580]],"1257213":[[834549,834580]],"1257346":[[834656,834687]],"1257215":[[834549,834580]],"1257218":[[834549,834580]],"1257228":[[834549,834580]],"1257315":[[834611,834648]],"1257233":[[834549,834580]],"1257336":[[834611,834648]],"1257239":[[834549,834580]],"1257364":[[834656,834687]],"1257324":[[834611,834648]],"1257367":[[834656,834687]],"1257371":[[834656,834687]],"1257238":[[834549,834580]],"1257332":[[834611,834648]],"1257319":[[834611,834648]],"1257220":[[834549,834580]],"1257231":[[834549,834580]],"1257334":[[834611,834648]],"1257327":[[834611,834648]],"1257304":[[834611,834648]],"1257361":[[834656,834687]],"1257354":[[834656,834687]],"1257359":[[834656,834687]],"1257322":[[834611,834648]],"1257355":[[834656,834687]],"1257356":[[834656,834687]],"1257226":[[834549,834580]],"1257344":[[834656,834687]],"1257357":[[834656,834687]],"1257305":[[834611,834648]],"1257242":[[834549,834580]],"1257350":[[834656,834687]],"1257230":[[834549,834580]],"1257309":[[834611,834648]],"1257317":[[834611,834648]],"1257335":[[834611,834648]],"1257348":[[834656,834687]],"1257214":[[834549,834580]],"1257313":[[834611,834648]],"1257312":[[834611,834648]],"1257234":[[834549,834580]],"1257222":[[834549,834580]],"1257314":[[834611,834648]],"1257373":[[834656,834687]],"1257325":[[834611,834648]],"1257225":[[834549,834580]],"1257352":[[834656,834687]],"1257351":[[834656,834687]],"1257329":[[834611,834648]],"1257345":[[834656,834687]],"1257219":[[834549,834580]],"1257306":[[834611,834648]],"1257372":[[834656,834687]],"1257229":[[834549,834580]],"1257308":[[834611,834648]],"1257370":[[834656,834687]],"1257318":[[834611,834648]],"1257349":[[834656,834687]],"1257316":[[834611,834648]],"1257358":[[834656,834687]],"1257347":[[834656,834687]],"1257216":[[834549,834580]],"1257221":[[834549,834580]],"1257366":[[834656,834687]],"1257311":[[834611,834648]],"1257321":[[834611,834648]],"1257235":[[834549,834580]],"1257365":[[834656,834687]],"1257333":[[834611,834648]],"1257223":[[834549,834580]],"1257236":[[834549,834580]],"1257232":[[834549,834580]],"1257307":[[834611,834648]],"1257310":[[834611,834648]],"1257240":[[834549,834580]],"1257330":[[834611,834648]],"1257331":[[834611,834648]],"1257227":[[834549,834580]],"1257362":[[834656,834687]],"1257363":[[834656,834687]],"1257237":[[834549,834580]],"1257368":[[834656,834687]],"1257328":[[834611,834648]],"1257224":[[834549,834580]],"1257302":[[834611,834648]],"1257353":[[834656,834687]],"1257217":[[834549,834580]],"1257326":[[834611,834648]],"1257320":[[834611,834648]],"1257323":[[834611,834648]],"1257303":[[834611,834648]]}};
+const tpHas=(z,x,y)=>{const c=TP_COV[z],r=c&&c[x];if(!r)return false;for(const [a,b] of r)if(y>=a&&y<=b)return true;return false};
+const tpUrl=(z,x,y)=>TP_TILE_BASE+z+'/'+x+'/'+y+'.webp';
+const TP_IMG={},TP_PEND={},TP_HI={},TP_PLAIN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#2c8fd6"/></svg>');
+// sharp tiles on high-density screens: a 512 px tile made from the four painted children one zoom deeper (same geometry)
+function tpHi(z,x,y){const ks=[[0,0],[1,0],[0,1],[1,1]].map(([a,b])=>[z+1,2*x+a,2*y+b]);if(!ks.every(k=>tpHas(...k)))return null;
+  const key=z+'/'+x+'/'+y;if(TP_HI[key]&&TP_HI[key]!=='p')return TP_HI[key];
+  if(!TP_HI[key]){TP_HI[key]='p';Promise.all(ks.map(k=>new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=tpUrl(...k)}))).then(ims=>{
+    if(ims.some(i=>!i)){delete TP_HI[key];return}const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+    ims.forEach((im,i)=>g.drawImage(im,(i%2)*256,(i>>1)*256));TP_HI[key]=c.toDataURL('image/jpeg',.88);
+    if(TM){const e=TM.tiles['s'+key];if(e&&e.src!==TP_HI[key])e.src=TP_HI[key]}})}
+  return null}
+function tpTile(z,x,y,n){x=((x%n)+n)%n;if(tpHas(z,x,y))return((window.devicePixelRatio||1)>1.4&&tpHi(z,x,y))||tpUrl(z,x,y);
+  // no painted tile at this zoom here: magnify the nearest painted ancestor (same geometry, only softer)
+  for(let dz=1;dz<=8&&z-dz>=12;dz++){const az=z-dz,ax=x>>dz,ay=y>>dz,ak=az+'/'+ax+'/'+ay;if(!tpHas(az,ax,ay))continue;
+    let im=TP_IMG[ak];if(!im){im=TP_IMG[ak]=new Image();im.src=tpUrl(az,ax,ay)}
+    if(!(im.complete&&im.naturalWidth)){(TP_PEND[ak]=TP_PEND[ak]||[]).push([z,x,y]);im.onload=()=>{const l=TP_PEND[ak]||[];delete TP_PEND[ak];
+      if(TM)l.forEach(([zz,xx,yy])=>{const e=TM.tiles['s'+zz+'/'+xx+'/'+yy];if(e)e.src=tpTile(zz,xx,yy,2**zz)})};return TP_PLAIN}
+    const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),s=256>>dz,ox=(x-(ax<<dz))*s,oy=(y-(ay<<dz))*s;
+    g.imageSmoothingQuality='high';g.drawImage(im,ox,oy,s,s,0,0,256,256);return c.toDataURL('image/jpeg',.86)}
+  return TP_PLAIN}
+const tileUrl=(u,z,x,y,n)=>u.startsWith('tp://')?tpTile(z,x,y,n):u.replace('{s}','abcd'[(x+y)&3]).replace('{z}',z).replace('{x}',((x%n)+n)%n).replace('{y}',y);
 const T_LBL='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 const wx=(lng,z)=>(lng+180)/360*TS*2**z;
 const wy=(lat,z)=>{const s=Math.sin(lat*Math.PI/180);return(.5-Math.log((1+s)/(1-s))/(4*Math.PI))*TS*2**z};
@@ -3304,10 +3397,10 @@ function fitPts(pts,pad,zCap){const t=TM;if(!pts.length)return{lat:34.4425,lng:3
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),a=Math.min(...la),b=Math.max(...la),c=Math.min(...ln),d=Math.max(...ln);
   const dx=wx(d,0)-wx(c,0),dy=wy(a,0)-wy(b,0);let z=15;
   if(dx>0||dy>0)z=Math.log2(Math.min(dx>0?(t.w-2*pad)/dx:1e9,dy>0?(t.h-2*pad)/dy:1e9))-1;
-  z=Math.max(10,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}
+  z=Math.max(TP_ZMIN,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}
 function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!gFail)return initGMap();
   const t=TM={el,tl:$('#rtl'),mk:$('#rmk'),w:el.clientWidth||400,h:el.clientHeight||340,lat:34.4425,lng:35.834,z:14,tiles:{},ptr:new Map(),moved:false,anim:0,pd:0,off:[],marks:[],need:new Set(),zt:14};
-  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{const f=fitPts(allActiveMerchants().map(llOf),44);f.z+=TRIPOLI_ZOOM_BOOST;return f})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=v.z;
+  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{const f=fitPts(allActiveMerchants().map(llOf),44);f.z=TP_ZMIN;return f})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=Math.max(TP_ZMIN,v.z);
   const on=(o,ev,f,op)=>{o.addEventListener(ev,f,op);t.off.push(()=>o.removeEventListener(ev,f,op))};
   on(el,'pointerdown',e=>{if(e.target.closest('.mchip,.zb'))return;cancelAnimationFrame(t.anim);t.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});t.sx=e.clientX;t.sy=e.clientY;
     if(t.ptr.size===1)t.moved=false;if(t.ptr.size===2){const[a,b]=[...t.ptr.values()];t.pd=Math.hypot(a.x-b.x,a.y-b.y);t.moved=true}});
@@ -3324,13 +3417,13 @@ function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!
   if(window.ResizeObserver){const ro=new ResizeObserver(()=>{drawMap();_plbQ()});ro.observe(el);t.off.push(()=>ro.disconnect())}
   TPP.mark('map-init');buildMarks();drawMap();
   if(firstPick)locateMe();}
-function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(10,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
+function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
   t.lng=wlng(wx(lng,nz)-(px-t.w/2),nz);t.lat=wlat(wy(lat,nz)-(py-t.h/2),nz);t.z=nz;drawMap();saveView()}
-function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
+function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;z=Math.max(TP_ZMIN,z);cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
   const st=n=>{if(TM!==t)return;const k=Math.min(1,(n-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;t.lat=a.lat+(lat-a.lat)*e;t.lng=a.lng+(lng-a.lng)*e;t.z=a.z+(z-a.z)*e;t.flying=k<1;drawMap();if(k<1)t.anim=requestAnimationFrame(st);else saveView()};
   t.anim=requestAnimationFrame(st)}
 function drawMap(){const t=TM;if(!t)return;t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
-  const sat=S.mapStyle==='sat',zt=Math.max(8,Math.min(sat?17:19,t.zcap||99,Math.round(t.z))),sc=2**(t.z-zt),cx=wx(t.lng,zt),cy=wy(t.lat,zt),n=2**zt;
+  const sat=S.mapStyle==='sat',zt=Math.max(8,Math.min(sat?17:20,t.zcap||99,Math.round(t.z))),sc=2**(t.z-zt),cx=wx(t.lng,zt),cy=wy(t.lat,zt),n=2**zt;
   const x0=Math.floor((cx-t.w/2/sc)/TS),x1=Math.floor((cx+t.w/2/sc)/TS),y0=Math.max(0,Math.floor((cy-t.h/2/sc)/TS)),y1=Math.min(n-1,Math.floor((cy+t.h/2/sc)/TS));
   const need=new Set();
   for(const[nm,urls]of(sat?[['i',[T_IMG]],['l',[T_LBL]]]:[['s',T_STREET]]))for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){
@@ -3365,12 +3458,13 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick)add('<div class="me"></div>',S.userLL.lat,S.userLL.lng,2);drawMarks()}
 const AREA_MIN_CLUSTER=3; // منطقة عدد محلاتها الظاهرة أقل من هذا الرقم تُعرض محلاتها مباشرة دون أي تجميع
 function areaLL(name){const a=areaDir().find(x=>x[0]===name);return a?{lat:a[1],lng:a[2]}:null}
-const CLUSTER_MAXZ=21; // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
+const CLUSTER_MAXZ=20; /* approved maximum zoom */ // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
 const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التجمّع هذا الرقم، يُقسَّم إلى دبّوسين متقاربين بدل تكبير الخريطة لفصل الجميع دفعة واحدة
-const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
+const CLUSTER_SPLIT_GAP=56; /* wider gold pins */ // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
 const CLUSTER_FIRST_TAP_EXTRA_ZOOM=1; // درجة تكبير إضافية واحدة عند أول فتح لتجمّع (فوق الصيغة المعتمدة)، تُخفَّض تلقائياً بالقدر اللازم فقط إن كانت ستقصّ أي محل من المجموعة؛ لا تُطبَّق عند التبديل بين تجمّعين مفتوحين
 const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
+const TP_ZMIN=13; /* approved minimum zoom: the artistic Tripoli overview */
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=20,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65; // مدى التكبير اليدوي الأقصى مُدَّد بدرجتين إضافيتين (كان PIN_ZOOM_HI=18) حيثما يدعم ذلك الجهاز/مزوّد الخريطة تقنياً؛ isMaxPinZoom وisNearMaxPinZoom يُعاد حسابهما تلقائياً من PIN_ZOOM_HI فلا يحتاجان أي تعديل منفصل، وكذلك حدّا التكبير اليدوي في zoomAt وzoomMap أدناه (يُشيران إلى PIN_ZOOM_HI لا رقم ثابت)
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
 // عند الوصول لأعلى مستوى تكبير مدعوم (PIN_ZOOM_HI)، تُكبَّر الدبابيس الفردية (لا فقاعات التجمّعات) درجة إضافية فوق سقف pinZoomScale العادي، لإظهار الشعار/الأيقونة بوضوح أكبر
@@ -3414,7 +3508,7 @@ function clusterFitZoom(pts,prefZ,w,h,pad){
   const dx=wx(d,0)-wx(c,0),dy=wy(a,0)-wy(b,0);
   if(dx<=0&&dy<=0)return prefZ; // كل النقاط متطابقة عملياً (أو شبه ذلك) على مستوى البكسل العالمي
   const maxZforFit=Math.log2(Math.min(dx>0?(w-2*pad)/dx:1e9,dy>0?(h-2*pad)/dy:1e9));
-  return Math.max(10,Math.min(prefZ,maxZforFit))}
+  return Math.max(TP_ZMIN,Math.min(prefZ,maxZforFit))}
 // كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
 function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),groups={};
   pts.forEach(p=>{const k=key(p);(groups[k]=groups[k]||[]).push(p)});
@@ -3521,6 +3615,7 @@ function drawPinClusters(t,X,Y){
       d.firstChild.onclick=()=>pinTap(pt.p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
   t.pinLayer.innerHTML='';
   if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
+  if(t.z>=TP_DETAIL_Z-.05){tpDrawDetail(t,X,Y,pinHtml);if(labelZoomOk||S.sel)resolveLabelCollisions(t);return}
   // التجميع حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
   const splitIds=new Set(splitGroups.flatMap(g=>g.ids));
   const byArea={};
@@ -3534,7 +3629,7 @@ function drawPinClusters(t,X,Y){
     const x=t.w/2+wx(coord.lng,t.z)-X,y=t.h/2+wy(coord.lat,t.z)-Y;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     const ids=group.map(p=>p.id),clr=AREA_COLORS[areaName]||'var(--navy)';
-    d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
+    d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}" data-area="${esc(areaName)}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
     d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=isOpen?4:5;
     t.pinLayer.appendChild(d);
     if(isOpen)drawOpenGroup(group)}); // التجمّع المفتوح: محلاته الفردية تظهر عند مواقعها الحقيقية على الخريطة
@@ -3544,12 +3639,33 @@ function drawPinClusters(t,X,Y){
     const isOpen=!!(og&&og.type==='split'&&og.gid===gr.gid);
     const d=document.createElement('div');d.className='mk';
     d.style.transform=`translate(${Math.round(cx)}px,${Math.round(cy)}px)`;
-    d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
+    d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}" data-area="${esc(gr.area)}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
     if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})
   if(labelZoomOk||S.sel||(S.route&&S.route.id))resolveLabelCollisions(t)}
 // عند تطابق تسميتين أو أكثر بصرياً (أسماء متجاورة تتراكب على الشاشة)، تُبقى تسمية المحل المحدَّد (أو وجهة خط السير) ظاهرة دوماً كأولوية أولى، وتُخفى التسميات الأخرى المتعارضة معها فقط — دون أي تغيير بموضع الدبّوس نفسه أو قابليته للمس
+/* ===== PREVIEW: detail zoom (19-20). No area/split clusters: each shop at its true position. Pins whose tips are closer
+   than TP_STACK_PX on screen (same building, or a few metres apart) are drawn as ONE approved pin with a small count badge;
+   tapping it opens a short list of the shops' names. Choosing a shop = the app's own first tap (pinTap). While a shop of the
+   stack is selected, tapping the stack pin continues the app's normal sequence for that shop (2nd tap route, 3rd tap store page). ===== */
+const TP_DETAIL_Z=19,TP_STACK_PX=26;
+function tpStacks(t,X,Y){const pts=t.pins.map(p=>({p,x:t.w/2+wx(p.lng,t.z)-X,y:t.h/2+wy(p.lat,t.z)-Y}));const out=[];
+  pts.forEach(q=>{const s=out.find(s=>s.some(o=>Math.hypot(o.x-q.x,o.y-q.y)<TP_STACK_PX));if(s)s.push(q);else out.push([q])});return out}
+function tpDrawDetail(t,X,Y,pinHtml){
+  tpStacks(t,X,Y).forEach(st=>{const sel=st.find(q=>q.p.id===S.sel),top=sel||st[0],on=!!sel;
+    const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(top.x)}px,${Math.round(top.y)}px)`;
+    d.innerHTML=pinHtml(top.p,on,false);
+    if(st.length>1){d.firstChild.insertAdjacentHTML('beforeend',`<em class="tpCount" aria-hidden="true">${st.length}</em>`);d.firstChild.setAttribute('aria-label',st.length+' محلات في هذا الموقع')}
+    d.firstChild.onclick=e=>{if(st.length===1||sel){pinTap(top.p.id);return}if(TM&&TM.moved)return;e.stopPropagation();tpPick(st.map(q=>q.p))};
+    d.style.zIndex=on?9:(st.length>1?8:7);t.pinLayer.appendChild(d)})}
+function tpPick(list){document.querySelectorAll('.tpPick').forEach(e=>e.remove());
+  const md=document.createElement('div');md.className='tpPick';md.setAttribute('role','dialog');md.setAttribute('aria-label','اختر المحل');
+  md.innerHTML=`<div class="tpPickSheet"><div class="tpPickHead"><b>${list.length} محلات في هذا الموقع</b><button type="button" class="tpPickX" aria-label="إغلاق">✕</button></div>
+   <div class="tpPickList">${list.map(p=>`<button type="button" class="tpPickRow" data-id="${esc(p.id)}"><span class="tpPickDot" style="--c:${p.c}">${p.ic||''}</span><span class="tpPickTxt"><b>${esc(p.name)}</b><small>${esc((M(p.id)?CAT(effCat(M(p.id))):[])[1]||'')}</small></span><span class="tpPickGo">›</span></button>`).join('')}</div></div>`;
+  const close=()=>md.remove();md.onclick=e=>{if(e.target===md)close()};md.querySelector('.tpPickX').onclick=close;
+  md.querySelectorAll('.tpPickRow').forEach(b=>b.onclick=()=>{const id=b.dataset.id;close();pinTap(id)});
+  document.body.appendChild(md)}
 function resolveLabelCollisions(t){
   const els=[...t.pinLayer.querySelectorAll('.pnname')];if(els.length<2)return;
   els.forEach(el=>el.style.display='');
@@ -3569,7 +3685,120 @@ function drawMarks(){const t=TM;if(!t)return;if(TPP.on&&!TPP.has('first-pins'))r
       cluster.forEach((c,i)=>{c.x=cx+(i-(cluster.length-1)/2)*GAP;c.y=cy})}});
   raw.forEach(r=>{r.m.d.style.transform=`translate(${Math.round(r.x)}px,${Math.round(r.y)}px)`});
   if(t.pinLayer)drawPinClusters(t,X,Y);
+  tpArtSync(t,X,Y);
 }
+/* ===== PREVIEW v9 (from v8): artistic opening view + the approved gold pin family (visual only, except the v6.2 empty-map close) =====
+   - Regional pins (zoom 13): gold pin, per-area heritage engraving, live area name + live total count (gpRegional).
+   - Cluster pins (the app's own .pn.cluster elements): same gold pin, geometric ornament, live count; the area name appears
+     under the pin only where it fits. The app's markup, handlers and clustering are untouched; the gold artwork is layered in.
+   - Unchanged from v6.2: artwork cross-fade 13.35-14.15, regional pins gliding to their area's cluster spot and handing over
+     at about 13.95, empty-map tap closing only the expanded cluster, hidden pin of an expanded cluster. */
+const TPA_Z0=13.35,TPA_Z1=14.15,GP_TIPX=576/1199,GP_TIPY=1210/1312,GP_AR=1312/1199;
+const GP_RW=104,GP_CW=74;           // regional pin width at zoom 13; cluster pin width at zoom 14 (CSS px)
+function gpRegionalH(n,c){const k=String(c).length>1?' two':'';return `<span class="gp" style="--w:${GP_RW}px"><img src="${GP_R[n]||GP_R['التل']}" alt="" draggable="false"><b class="gpN">${esc(n)}</b><i class="gpK${k}">${c} متجر</i></span>`}
+const tpaSm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k)};
+function tpaAlpha(z){return 1-tpaSm((z-TPA_Z0)/(TPA_Z1-TPA_Z0))}
+function tpaBigScale(z){return +(GP_CW/GP_RW+(1-GP_CW/GP_RW)*(1-tpaSm((z-13.05)/.9))).toFixed(3)}   // 104 px -> 74 px by 13.95
+function tpaClusterScale(z){return +(.84+.16*(1-tpaSm((z-14)/2))).toFixed(3)}                     // 74 px at 14 -> 62 px from 16
+function tpaBigOf(p){const a=p.area||'';if(a==='عزمي بك')return a;if(TAREAS.some(x=>x[0]===a))return a;
+  const c=areaLL(a)||{lat:p.lat,lng:p.lng};return nearestTArea(c.lat,c.lng)}
+function tpaBigTap(n){const t=TM;if(!t)return;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length)return;
+  S._mapOpenGroup=null;S._mapSplitGroups=[];if(S.areaSel){S.areaSel=null;const row=$('#catrow');if(row)row.innerHTML=catsHtml()}
+  const areas=[...new Set(ps.map(p=>p.area||''))];
+  if(areas.length===1&&ps.length>=AREA_MIN_CLUSTER&&areaLL(areas[0])){clusterTap(ps.map(p=>p.id),areas[0]);return}
+  cancelAnimationFrame(t.anim);clusterCenterView(ps.map(p=>({lat:p.lat,lng:p.lng})),Math.min(CLUSTER_MAXZ,t.z+3),650)}
+function tpaBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
+  if(e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions,#tpBig,button,a,input,.tpPick,#storeSheet,.attr'))return;
+  if(S.sel||(S.route&&S.route.id))return;
+  const og=S._mapOpenGroup;if(!og)return;
+  if(og.type==='split')S._mapOpenGroup={type:'area',area:og.area,split:true};
+  else if(og.type==='area'&&!og.split)S._mapOpenGroup=null;else return;
+  drawMarks()}
+// v8: split pins — first tap from the closed split view zooms exactly two levels above the zoom at which the split appeared
+// (capped at 20), centred on that group's shops, and opens it through the app's own openSplitGroup. Switching to the other
+// half or re-opening after an empty-map close re-centres without stacking further zoom. Taps during the fly are ignored.
+const _tpOpenSplit=openSplitGroup;
+openSplitGroup=function(gid){const t=TM;if(!t)return _tpOpenSplit(gid);
+  if(t._tpLock&&performance.now()<t._tpLock)return;
+  const og=S._mapOpenGroup,g=(S._mapSplitGroups||[]).find(x=>x.gid===gid),closing=!!(og&&og.type==='split'&&og.gid===gid);
+  _tpOpenSplit(gid);if(!g||closing)return;
+  t._tpLock=performance.now()+750;
+  const pts=g.ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
+  const base=S._tpSplitZ||t.z,z=Math.min(PIN_ZOOM_HI,Math.max(t.z,base+2));
+  t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;const bc=clusterBBoxCenter(pts);
+  flyTo(adjustLatForUsableCenter(bc.lat,bc.lng,z,t.el,t.h),bc.lng,z,650)};
+// v9: shops of an opened cluster that sit too close on screen are fanned out a little (screen space only); each moved pin
+// keeps a fine gold leader line and a dot at its true GPS point. The selected shop stays exactly on its true point.
+function tpaSpread(t,X,Y){const og=S._mapOpenGroup;if(!t.pinLayer)return;
+  if(!og||!(og.type==='split'||(og.type==='area'&&!og.split))||(S.route&&S.route.id)||t.z>=18.95)return;
+  const mks=[...t.pinLayer.querySelectorAll('.mk')].filter(m=>{const p=m.firstElementChild;return p&&p.classList.contains('pn')&&!p.classList.contains('cluster')&&(m.style.zIndex==='7'||m.style.zIndex==='9')});
+  if(mks.length<2)return;
+  const P=mks.map((m,i)=>{const id=m.firstElementChild.dataset.id,pin=(t.pins||[]).find(p=>String(p.id)===String(id));
+    const tx=pin?t.w/2+wx(pin.lng,t.z)-X:0,ty=pin?t.h/2+wy(pin.lat,t.z)-Y:0,r=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(m.style.transform)||[0,tx,ty];
+    return{m,tx,ty,x:+r[1],y:+r[2],fix:String(id)===String(S.sel),i}});
+  const D=34*pinZoomScale(t.z),MAX=2.4*D;
+  for(let it=0;it<40;it++){let moved=false;
+    for(let a=0;a<P.length;a++)for(let b=a+1;b<P.length;b++){const A=P[a],B=P[b];let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy);
+      if(d>=D)continue;moved=true;if(d<.01){const an=(a*2.4+b*1.3);dx=Math.cos(an);dy=Math.sin(an)*.4;d=Math.hypot(dx,dy)}
+      const push=(D-d)/(A.fix||B.fix?1:2)+.5,ux=dx/d,uy=dy/d*.6;               // mostly sideways, a little vertical
+      if(!A.fix){A.x-=ux*push;A.y-=uy*push}if(!B.fix){B.x+=ux*push;B.y+=uy*push}}
+    P.forEach(p=>{const ox=p.x-p.tx,oy=p.y-p.ty,o=Math.hypot(ox,oy);if(o>MAX){p.x=p.tx+ox/o*MAX;p.y=p.ty+oy/o*MAX}});
+    if(!moved)break}
+  let svg='';P.forEach(p=>{p.m.style.transform=`translate(${p.x.toFixed(0)}px,${p.y.toFixed(0)}px)`;
+    if(Math.hypot(p.x-p.tx,p.y-p.ty)>3)svg+=`<line x1="${p.tx.toFixed(1)}" y1="${p.ty.toFixed(1)}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#a87a1c" stroke-width="1.4" stroke-dasharray="2 2"/>`;
+    svg+=`<circle cx="${p.tx.toFixed(1)}" cy="${p.ty.toFixed(1)}" r="2.6" fill="#ffd23f" stroke="#5a3608" stroke-width="1"/>`});
+  const L=document.createElementNS('http://www.w3.org/2000/svg','svg');L.setAttribute('class','tpLeads');L.innerHTML=svg;t.pinLayer.appendChild(L)}
+// v8: keep the unopened half of a split visibly apart from the opened half's shops (screen-space only; GPS untouched)
+function tpaSeparate(t){const og=S._mapOpenGroup;if(!t.pinLayer)return;
+  if(og&&og.type==='area'&&og.split&&!S._tpSplitZ&&!t.flying)S._tpSplitZ=t.z;
+  if(!og||!(og.type==='split'||(og.type==='area'&&og.split)))S._tpSplitZ=null;
+  if(!og||og.type!=='split')return;
+  const shops=[...t.pinLayer.querySelectorAll('.mk')].filter(m=>{const p=m.firstElementChild;return p&&p.classList.contains('pn')&&!p.classList.contains('cluster')&&(m.style.zIndex==='7'||m.style.zIndex==='9')});
+  if(!shops.length)return;let U=null;
+  shops.forEach(m=>m.querySelectorAll('.pn,.pnname').forEach(e=>{if(e.offsetParent===null)return;const r=e.getBoundingClientRect();U=U?{l:Math.min(U.l,r.left),r:Math.max(U.r,r.right),t:Math.min(U.t,r.top),b:Math.max(U.b,r.bottom)}:{l:r.left,r:r.right,t:r.top,b:r.bottom}}));
+  if(!U)return;const G=10,uc=(U.l+U.r)/2;
+  t.pinLayer.querySelectorAll('.pn.cluster.split:not(.open)').forEach(p=>{const mk=p.parentElement,r=p.getBoundingClientRect();
+    if(r.right<U.l-G||r.left>U.r+G||r.bottom<U.t-G||r.top>U.b+G)return;
+    const dx=((r.left+r.right)/2<uc)?(U.l-G-r.right):(U.r+G-r.left);
+    const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(mk.style.transform);if(!m)return;
+    mk.style.transform=`translate(${(+m[1]+dx).toFixed(0)}px,${m[2]}px)`;p.classList.add('tpShift')})}
+function tpaNameTags(t){if(!t.pinLayer)return;const cl=[...t.pinLayer.querySelectorAll('.pn.cluster')];if(!cl.length)return;
+  if(t.z<13.8){cl.forEach(e=>e.classList.remove('tpNamed'));return}
+  const mr=t.el.getBoundingClientRect(),pins=[...t.pinLayer.querySelectorAll('.pn')].filter(e=>e.offsetParent!==null).map(e=>({e,r:e.getBoundingClientRect()}));
+  const hit=(a,b)=>!(a.r<b.left||a.l>b.right||a.b<b.top||a.t>b.bottom),kept=[];
+  cl.filter(e=>e.offsetParent!==null).sort((a,b)=>(+(b.querySelector('b')||{}).textContent||0)-(+(a.querySelector('b')||{}).textContent||0)).forEach(e=>{const r=e.getBoundingClientRect(),n=e.dataset.area||'',w=n.length*6.6+20,cx=r.left+r.width*GP_TIPX;
+    const tag={l:cx-w/2,r:cx+w/2,t:r.bottom+2,b:r.bottom+22};
+    const ok=n&&tag.l>mr.left+4&&tag.r<mr.right-4&&tag.b<mr.bottom-4&&!pins.some(p=>p.e!==e&&hit(tag,p.r))&&!kept.some(k=>hit(tag,{left:k.l,right:k.r,top:k.t,bottom:k.b}));
+    e.classList.toggle('tpNamed',!!ok);if(ok)kept.push(tag)})}
+function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
+  if(!t._tpBg){t._tpBg=1;t.el.addEventListener('click',tpaBgTap);t.off.push(()=>t.el.removeEventListener('click',tpaBgTap))}
+  const a=S.mapStyle==='sat'?0:tpaAlpha(t.z),s=2**(t.z-14),m=TPA.m;
+  t.el.classList.add('tpv6');t.el.style.setProperty('--tpcs',tpaClusterScale(t.z));
+  let im=document.getElementById('tpArt');
+  if(!im||im.parentNode!==t.tl){im=document.createElement('img');im.id='tpArt';im.alt='';im.draggable=false;im.decoding='async';im.src=TPA_IMG;t.tl.appendChild(im)}
+  if(a<=.002)im.style.display='none';
+  else{im.style.display='';im.style.opacity=a.toFixed(3);
+    im.style.transform=`matrix(${m[0]*s},${m[1]*s},${m[2]*s},${m[3]*s},${(m[4]*s-X+t.w/2).toFixed(2)},${(m[5]*s-Y+t.h/2).toFixed(2)})`}
+  tpaSpread(t,X,Y);tpaSeparate(t);
+  const busy=!!(S.route&&S.route.id)||S.mapStyle==='sat';
+  const hand=tpaSm((t.z-13.85)/.2),pa=busy?0:1-hand,ca=busy?1:hand;
+  if(t.pinLayer){t.pinLayer.style.opacity=ca<.998?ca.toFixed(3):'';t.pinLayer.style.pointerEvents=ca<.5?'none':''}
+  tpaNameTags(t);
+  let L=document.getElementById('tpBig');
+  if(!L||L.parentNode!==t.mk){L=document.createElement('div');L.id='tpBig';L._sig='';t.mk.appendChild(L)}
+  if(pa<=.002){L.style.display='none';return}
+  L.style.display='';L.style.opacity=pa.toFixed(3);L.classList.toggle('off',pa<.5);
+  const cnt={};(t.pins||[]).forEach(p=>{const b=tpaBigOf(p);(cnt[b]=cnt[b]||[]).push(p.id)});
+  const sig=TPA.pins.map(([n])=>n+':'+((cnt[n]||[]).length)).join('|');
+  if(L._sig!==sig){L._sig=sig;
+    L.innerHTML=TPA.pins.filter(([n])=>cnt[n]&&cnt[n].length).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
+    L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)})}
+  const g=tpaSm((t.z-13.05)/.8),bs=tpaBigScale(t.z);
+  L.querySelectorAll('.tpBigPin').forEach(d=>{const u=+d.dataset.u,v=+d.dataset.v,ll=areaLL(d.dataset.n);
+    let x=(m[0]*u+m[2]*v+m[4])*s-X+t.w/2,y=(m[1]*u+m[3]*v+m[5])*s-Y+t.h/2;
+    if(ll&&g>0){const rx=t.w/2+wx(ll.lng,t.z)-X,ry=t.h/2+wy(ll.lat,t.z)-Y;x+=(rx-x)*g;y+=(ry-y)*g}
+    d.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${bs})`})}
+
 function setMapStyle(){S.mapStyle=S.mapStyle==='sat'?'street':'sat';document.querySelectorAll('.mstyle').forEach(b=>b.textContent=S.mapStyle==='sat'?'🗺️ خريطة الطرق':'🛰️ قمر صناعي');
   if(GM&&GM.ok)GM.map.setMapTypeId(S.mapStyle==='sat'?'hybrid':'roadmap');
   if(TM){TM.tl.innerHTML='';TM.tiles={};TM.okc=0;TM.fail=0;TM.zcap=0;TM.okz={};TM.fz={};const e=$('#merr');if(e)e.style.display='none';drawMap()}}
@@ -3705,7 +3934,7 @@ function pinTap(id){if(TM&&TM.moved)return;
   }
   refreshGoogleNavButton();setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
-const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
+const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
 const fitAll=()=>{if(GM)return gFit();if(!TM)return;const v=fitPts(visibleMerchants().map(llOf),44);flyTo(v.lat,v.lng,v.z,700)};
 function locateMe(silent){const done=(lat,lng,msg,real,failed)=>{S.userLL={lat,lng};S.userReal=!!real;const rr=S.route&&S.route.id&&!S.pickMode&&!(TM&&TM.pick)?S.route:null;if(GM&&GM.ok){gBuild();if(!rr){GM.map.panTo({lat,lng});GM.map.setZoom(16)}}if(TM){buildMarks();if(!rr)flyTo(lat,lng,16,800)}if(rr)showRoute(rr.id,rr.mode);else if(S.sel)refreshCardUi();if(msg)toast(msg);
@@ -5268,7 +5497,7 @@ function adminMapV(m){if(!m)return`<div class="top"><button class="back" style="
  <div class="rmap" id="rmap" data-pick="1" style="height:360px"><div id="rtl"></div><div id="rmk"></div>
   <div class="cpin"><svg viewBox="0 0 40 50" width="40" height="50"><path d="M20 49C20 49 4 31 4 19a16 16 0 0 1 32 0c0 12-16 30-16 30z" fill="#ffc20e" stroke="#0c2a6b" stroke-width="3"/><circle cx="20" cy="19" r="6" fill="#0c2a6b"/></svg></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
  <div class="field">${ic('pin')}<span style="flex:1" id="regloc">${locTxt(m.lat,m.lng)}</span></div>
  <div class="field">${ic('pin')}<input id="elAddr" placeholder="العنوان" value="${m.addr||''}" oninput="S.reg.addr=this.value"></div>
  <div class="muted" style="margin:10px 0 4px;font-size:12.5px">منطقة المحل (اختر يدوياً للدقة، خصوصاً قرب حدود منطقتين متقاربتين):</div>
@@ -5279,7 +5508,7 @@ function adminMapV(m){if(!m)return`<div class="top"><button class="back" style="
  <div class="rmap" id="rmap" style="height:300px"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:58px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:96px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
   <button class="mchip mround" style="bottom:10px;right:10px" onclick="fitAll()" aria-label="توسيط">${SVG_TGT}</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
  <div class="row" style="gap:6px"><button class="btn sm blue" style="flex:1" onclick="openMerchantMapEdit('${m.id}')">✏️ تعديل الموقع</button><a class="btn sm ghost" style="text-decoration:none;display:flex;justify-content:center;gap:6px;flex:1" target="_blank" href="${gmapUrl(m)}">${ic('nav',18)} خرائط Google</a></div>`}
 function qrQueueView(){const back=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">ملصقات QR بانتظار الطباعة</h3><div style="width:34px"></div></div>`;
   const all=adminMerchants().filter(m=>!m.posterPrinted);
@@ -5646,7 +5875,7 @@ function reuseLiveMap(live,fresh){
   fresh.replaceWith(live);
   const t=TM;
   // نفس منطق initRealMap عند عدم وجود عرض محفوظ (أول وصول للتجار): تأطير طرابلس على كل المحلات الفعّالة
-  if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=f.z+TRIPOLI_ZOOM_BOOST}
+  if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=TP_ZMIN}
   buildMarks();drawMap();routeUi()}
 setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))renderDeferredIfTouching()},10000);
 // render() على تبويب الخريطة يستبدل كامل محتوى الصفحة ويعيد بناء الخريطة (مستمعات لمس جديدة) ويصفّر التمرير — إن حصل هذا أثناء لمس/سحب فعلي
