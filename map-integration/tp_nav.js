@@ -3,9 +3,9 @@
    open cluster/split groups, selected shop, route on/off, and the exact view (centre + zoom).
    A tap on genuinely empty map goes back exactly one step and restores that state and view:
    route → selected shop (card kept) → open cluster → closed split pins → regional view → Tripoli overview (no further action).
-   «−» at the zoom where a map step was entered goes back that step; otherwise it zooms out one level as before.
+   «−» at the zoom where a map step was entered goes back that step (route, shop, cluster, region); otherwise it zooms out one level.
    Zooming far out of an open cluster (pinch or «−») closes that cluster, so a cluster pin never shows with its own shops.
-   Routes are never cancelled by zooming; only by the explicit route controls or by a step back. */
+   Routes are cancelled only by the explicit route controls or by a step back (empty-map tap or «−» at the route's zoom). */
 const TPN={stack:[],depth:0,MAX:12,resets:0};
 const tpnView=()=>TM?{lat:TM.lat,lng:TM.lng,z:TM.z}:null;
 const tpnClone=o=>o==null?o:JSON.parse(JSON.stringify(o));
@@ -59,14 +59,17 @@ function tpnBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
   if(e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions,#tpBig,button,a,input,select,textarea,.tpPick,#storeSheet,#mapcard,.attr,.tpCityBtn,.tp23-fullscreen-btn,.pnname'))return;
   if(tpnOnRoute(e))return;
   tpStepBack()}
-// «−» follows the steps: at the zoom where the current map step was entered it goes back that step; otherwise a normal zoom out
+// «−» follows the steps: at the zoom where the current map step was entered (route, selected shop, cluster or region) it goes
+// back that one step — route → selected shop → cluster → split pins → overview; otherwise it zooms out one level as before
 (function(){const f=zoomMap;const w=function(d){
-  if(d<0&&TM&&!(S.route&&S.route.id)&&!S.sel){const top=TPN.stack[TPN.stack.length-1];
-    if(top&&(top.kind==='cluster'||top.kind==='view')&&top.entryZ!=null&&TM.z<=top.entryZ+.05&&tpStepBack())return}
+  if(d<0&&TM){const top=TPN.stack[TPN.stack.length-1];
+    if(top&&top.entryZ!=null&&TM.z<=top.entryZ+.05&&tpStepBack())return}
   return f(d)};window.zoomMap=w;try{zoomMap=w}catch(e){}})();
 // keep the state consistent with the zoom (called on every map draw): note each step's settled zoom; after pinching or zooming
 // far out of an open cluster, close it (logical state only, the view stays where the customer put it)
-function tpnSync(t){if(!t||t.flying)return;const top=TPN.stack[TPN.stack.length-1];if(!top)return;
+function tpnSync(t){try{const g=document.getElementById('tpGoShop'),sel=S.sel&&M(S.sel);if(g&&(g.style.display!=='none')!==!!(sel&&!(S.route&&S.route.id)))refreshGoogleNavButton()}catch(e){}
+  if(!t||t.flying)return;const top=TPN.stack[TPN.stack.length-1];if(!top)return;
   if(top.entryZ==null){top.entryZ=t.z;return}
   if((t.ptr&&t.ptr.size)||S.sel||(S.route&&S.route.id))return;
   if((top.kind==='cluster')&&t.z<top.entryZ-1.25){TPN.stack.pop();tpnRestore(top.snap,false)}}
+window.addEventListener('popstate',()=>setTimeout(()=>{try{refreshGoogleNavButton();if(TM)drawMarks()}catch(e){}},0));

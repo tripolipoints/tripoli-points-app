@@ -15,4 +15,7 @@ R("  if(!t._tpBg){t._tpBg=1;t.el.addEventListener('click',tpaBgTap);t.off.push((
 a = s.index("const zoomMap=d=>"); b = s.index("\n", a)
 line = s[a:b]
 s = s[:a] + "let zoomMap=" + line[len("const zoomMap="):] + "\n" + open(os.path.join(HERE, 'tp_nav.js'), encoding='utf-8').read() + s[b:]
+# label: «توجّه للمحل» → «توجّه للمتجر» (button text, its aria-label and the label restored after «جارٍ حساب المسار…»)
+R("aria-label=\"توجّه للمحل\">${ic('walk',16)}<span>توجّه للمحل</span>", "aria-label=\"توجّه للمتجر\">${ic('walk',16)}<span>توجّه للمتجر</span>")
+R("'جارٍ حساب المسار…':'توجّه للمحل'", "'جارٍ حساب المسار…':'توجّه للمتجر'")
 open(P, 'w', encoding='utf-8').write(s); print('step-back navigation patch applied')
