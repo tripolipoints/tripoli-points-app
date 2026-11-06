@@ -85,7 +85,7 @@ assets = ('<script>/* Tripoli Points artistic map: artwork (copy of the approved
           % (json.dumps(TPA, ensure_ascii=False), json.dumps({n: 'assets/map/pins/r%d.webp' % i for i, n in enumerate(names)}, ensure_ascii=False)))
 R('<script>\n// ===== الاتصال بقاعدة البيانات (Supabase) =====', assets + '\n<script>\n// ===== الاتصال بقاعدة البيانات (Supabase) =====')
 R("  if(t.pinLayer)drawPinClusters(t,X,Y);\n}\nfunction setMapStyle",
-  "  if(t.pinLayer)drawPinClusters(t,X,Y);\n  tpArtSync(t,X,Y);\n}\n" + open(os.path.join(HERE, 'tp9_overview.js'), encoding='utf-8').read() + "\nfunction setMapStyle")
+  "  if(t.pinLayer)drawPinClusters(t,X,Y);\n  tpArtSync(t,X,Y);\n}\n" + open(os.path.join(HERE, 'tp11_overview.js'), encoding='utf-8').read() + "\nfunction setMapStyle")
 css = (open(os.path.join(HERE, 'tp10_overview.css'), encoding='utf-8').read()
        .replace('url(__PINC__)', "url('assets/map/pins/c.webp')").replace('url(__PINM2__)', "url('assets/map/pins/m2.webp')"))
 assert '__PIN' not in css

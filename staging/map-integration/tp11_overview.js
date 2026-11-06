@@ -11,9 +11,14 @@ const tpaSm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k)};
 function tpaAlpha(z){return 1-tpaSm((z-TPA_Z0)/(TPA_Z1-TPA_Z0))}
 function tpaBigScale(z){return +(GP_CW/GP_RW+(1-GP_CW/GP_RW)*(1-tpaSm((z-13.05)/.9))).toFixed(3)}   // 104 px -> 74 px by 13.95
 function tpaClusterScale(z){return +(.84+.16*(1-tpaSm((z-14)/2))).toFixed(3)}                     // 74 px at 14 -> 62 px from 16
-function tpaBigOf(p){const a=p.area||'';if(a==='عزمي بك')return a;if(TAREAS.some(x=>x[0]===a))return a;
-  const c=areaLL(a)||{lat:p.lat,lng:p.lng};return nearestTArea(c.lat,c.lng)}
-function tpaBigTap(n){const t=TM;if(!t)return;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length)return;
+// the six regional areas of the opening map: the five main areas + Azmi Bek (its own shopping area)
+const TPA_REGIONS=()=>{const az=(SUBAREAS.find(a=>a[0]==='عزمي بك')||[0,34.44008,35.83607]);return TAREAS.map(a=>[a[0],a[2],a[3]]).concat([['عزمي بك',az[1],az[2]]])};
+// regional area of a merchant: an exact regional name stays itself; any other area (sub-area/street name saved at registration,
+// e.g. «شارع مار مارون») goes to the NEAREST of the six regional areas, by that area's point (or the shop's own GPS if unknown)
+function tpaBigOf(p){const a=p.area||'',R=TPA_REGIONS();if(R.some(r=>r[0]===a))return a;
+  const c=areaLL(a)||(p.lat!=null?{lat:p.lat,lng:p.lng}:null);if(!c)return '';
+  let best='',bd=1e18;R.forEach(r=>{const d=hav(c,{lat:r[1],lng:r[2]});if(d<bd){bd=d;best=r[0]}});return best}
+function tpaBigTap(n){const t=TM;if(!t)return;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length){const ll=TPA_REGIONS().find(r=>r[0]===n);if(ll){cancelAnimationFrame(t.anim);flyTo(ll[1],ll[2],15,650)}return}
   S._mapOpenGroup=null;S._mapSplitGroups=[];if(S.areaSel){S.areaSel=null;const row=$('#catrow');if(row)row.innerHTML=catsHtml()}
   const areas=[...new Set(ps.map(p=>p.area||''))];
   if(areas.length===1&&ps.length>=AREA_MIN_CLUSTER&&areaLL(areas[0])){clusterTap(ps.map(p=>p.id),areas[0]);return}
@@ -102,7 +107,7 @@ function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
   const cnt={};(t.pins||[]).forEach(p=>{const b=tpaBigOf(p);(cnt[b]=cnt[b]||[]).push(p.id)});
   const sig=TPA.pins.map(([n])=>n+':'+((cnt[n]||[]).length)).join('|');
   if(L._sig!==sig){L._sig=sig;
-    L.innerHTML=TPA.pins.filter(([n])=>cnt[n]&&cnt[n].length).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
+    L.innerHTML=TPA.pins.map(([n,u,v])=>{cnt[n]=cnt[n]||[];return [n,u,v]}).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
     L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)})}
   const g=tpaSm((t.z-13.05)/.8),bs=tpaBigScale(t.z);
   L.querySelectorAll('.tpBigPin').forEach(d=>{const u=+d.dataset.u,v=+d.dataset.v,ll=areaLL(d.dataset.n);
