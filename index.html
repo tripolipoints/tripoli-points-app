@@ -2474,6 +2474,9 @@ async function phoneNext(){
   if(mChk&&mChk.exists){S.loginRole='merchant';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
   const cChk=await sbRpc('customer_check_phone',{p_phone:S.phone});
   if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
+  // only a successful answer from BOTH checks saying the number does not exist leads to registration; a request/authorisation
+  // failure (null, or an answer without a yes/no) keeps the person on the phone screen and asks to try again
+  if(!mChk||!cChk||typeof mChk.exists!=='boolean'||typeof cChk.exists!=='boolean'){render();return toast('تعذّر التحقق من الرقم الآن (مشكلة اتصال بالخادم). لم يُنشأ أي حساب — حاول مرة أخرى بعد قليل')}
   S.pinMode='set';S.screen='pin';render();resetZoomForPinScreen();
 }
 function hydrateMerchant(md){
@@ -2989,7 +2992,7 @@ function toggleMapFullscreen(force){
  refreshGoogleNavButton();placeLocateBtn();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('rmap')?.classList.contains('tp23-fullscreen'))toggleMapFullscreen(false)});
-function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,zBoost===TRIPOLI_ZOOM_BOOST?TP_ZMIN:v.z+(zBoost||0),600)}}}}
+function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(zBoost===TRIPOLI_ZOOM_BOOST){const h=tpHomeView();flyTo(h.lat,h.lng,h.z,600)}else if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
 function setMapBig(on){const rm=$('#rmap');if(!rm)return;const was=rm.classList.contains('big');if(was===on)return;rm.classList.toggle('big',on);
   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h}
   requestAnimationFrame(()=>{if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize');const ll=S.sel&&M(S.sel)&&llOf(M(S.sel));if(ll)GM.map.panTo(ll)}if(TM)drawMap()})}
@@ -3400,7 +3403,7 @@ function fitPts(pts,pad,zCap){const t=TM;if(!pts.length)return{lat:34.4425,lng:3
   z=Math.max(TP_ZMIN,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}
 function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!gFail)return initGMap();
   const t=TM={el,tl:$('#rtl'),mk:$('#rmk'),w:el.clientWidth||400,h:el.clientHeight||340,lat:34.4425,lng:35.834,z:14,tiles:{},ptr:new Map(),moved:false,anim:0,pd:0,off:[],marks:[],need:new Set(),zt:14};
-  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{const f=fitPts(allActiveMerchants().map(llOf),44);f.z=TP_ZMIN;return f})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=Math.max(TP_ZMIN,v.z);
+  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{return tpHomeView()})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=Math.max(TP_ZMIN,v.z);
   const on=(o,ev,f,op)=>{o.addEventListener(ev,f,op);t.off.push(()=>o.removeEventListener(ev,f,op))};
   on(el,'pointerdown',e=>{if(e.target.closest('.mchip,.zb'))return;cancelAnimationFrame(t.anim);t.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});t.sx=e.clientX;t.sy=e.clientY;
     if(t.ptr.size===1)t.moved=false;if(t.ptr.size===2){const[a,b]=[...t.ptr.values()];t.pd=Math.hypot(a.x-b.x,a.y-b.y);t.moved=true}});
@@ -3465,6 +3468,8 @@ const CLUSTER_FIRST_TAP_EXTRA_ZOOM=1; // درجة تكبير إضافية واح
 const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
 const TP_ZMIN=13; /* approved minimum zoom: the artistic Tripoli overview */
+/* opening / reset view: always the artistic Tripoli overview, centred on the six regional pins (not on the shops' average position) */
+function tpHomeView(){const m=TPA.m,P=TPA.pins,us=P.map(p=>p[1]),vs=P.map(p=>p[2]),u=(Math.min(...us)+Math.max(...us))/2,v=(Math.min(...vs)-470+Math.max(...vs))/2;const X=m[0]*u+m[2]*v+m[4],Y=m[1]*u+m[3]*v+m[5];return{lat:wlat(Y,14),lng:wlng(X,14),z:TP_ZMIN}}
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=20,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65; // مدى التكبير اليدوي الأقصى مُدَّد بدرجتين إضافيتين (كان PIN_ZOOM_HI=18) حيثما يدعم ذلك الجهاز/مزوّد الخريطة تقنياً؛ isMaxPinZoom وisNearMaxPinZoom يُعاد حسابهما تلقائياً من PIN_ZOOM_HI فلا يحتاجان أي تعديل منفصل، وكذلك حدّا التكبير اليدوي في zoomAt وzoomMap أدناه (يُشيران إلى PIN_ZOOM_HI لا رقم ثابت)
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
 // عند الوصول لأعلى مستوى تكبير مدعوم (PIN_ZOOM_HI)، تُكبَّر الدبابيس الفردية (لا فقاعات التجمّعات) درجة إضافية فوق سقف pinZoomScale العادي، لإظهار الشعار/الأيقونة بوضوح أكبر
@@ -5880,7 +5885,7 @@ function reuseLiveMap(live,fresh){
   fresh.replaceWith(live);
   const t=TM;
   // نفس منطق initRealMap عند عدم وجود عرض محفوظ (أول وصول للتجار): تأطير طرابلس على كل المحلات الفعّالة
-  if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=TP_ZMIN}
+  if(!S.mv){const f=tpHomeView();t.lat=f.lat;t.lng=f.lng;t.z=f.z}
   buildMarks();drawMap();routeUi()}
 setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))renderDeferredIfTouching()},10000);
 // render() على تبويب الخريطة يستبدل كامل محتوى الصفحة ويعيد بناء الخريطة (مستمعات لمس جديدة) ويصفّر التمرير — إن حصل هذا أثناء لمس/سحب فعلي

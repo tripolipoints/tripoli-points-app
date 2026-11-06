@@ -62,10 +62,13 @@ R("  z=Math.max(10,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}", " 
 R("  return Math.max(10,Math.min(prefZ,maxZforFit))}", "  return Math.max(TP_ZMIN,Math.min(prefZ,maxZforFit))}")
 R("if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=v.z;", "if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=Math.max(TP_ZMIN,v.z);")
 R("function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;", "function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;z=Math.max(TP_ZMIN,z);")
-R("const PIN_ZOOM_LO=12,", "const TP_ZMIN=13; /* approved minimum zoom: the artistic Tripoli overview */\nconst PIN_ZOOM_LO=12,")
-R("const f=fitPts(allActiveMerchants().map(llOf),44);f.z+=TRIPOLI_ZOOM_BOOST;return f", "const f=fitPts(allActiveMerchants().map(llOf),44);f.z=TP_ZMIN;return f")
-R("if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}", "if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,zBoost===TRIPOLI_ZOOM_BOOST?TP_ZMIN:v.z+(zBoost||0),600)}")
-R("if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=f.z+TRIPOLI_ZOOM_BOOST}", "if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=TP_ZMIN}")
+R("const PIN_ZOOM_LO=12,", "const TP_ZMIN=13; /* approved minimum zoom: the artistic Tripoli overview */\n"
+  "/* opening / reset view: always the artistic Tripoli overview, centred on the six regional pins (not on the shops' average position) */\n"
+  "function tpHomeView(){const m=TPA.m,P=TPA.pins,us=P.map(p=>p[1]),vs=P.map(p=>p[2]),u=(Math.min(...us)+Math.max(...us))/2,v=(Math.min(...vs)-470+Math.max(...vs))/2;"
+  "const X=m[0]*u+m[2]*v+m[4],Y=m[1]*u+m[3]*v+m[5];return{lat:wlat(Y,14),lng:wlng(X,14),z:TP_ZMIN}}\nconst PIN_ZOOM_LO=12,")
+R("const f=fitPts(allActiveMerchants().map(llOf),44);f.z+=TRIPOLI_ZOOM_BOOST;return f", "return tpHomeView()")
+R("if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}", "if(zBoost===TRIPOLI_ZOOM_BOOST){const h=tpHomeView();flyTo(h.lat,h.lng,h.z,600)}else if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}")
+R("if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=f.z+TRIPOLI_ZOOM_BOOST}", "if(!S.mv){const f=tpHomeView();t.lat=f.lat;t.lng=f.lng;t.z=f.z}")
 
 # ---- 3) zoom 19–20: shops at their own positions; same-spot shops share one pin with a choice list (approved v2) ----
 R("  t.pinLayer.innerHTML='';\n  if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}",
@@ -75,6 +78,14 @@ bsrc = open(os.path.join(HERE, 'build.py'), encoding='utf-8').read()
 det = bsrc[bsrc.index('R("function resolveLabelCollisions(t){", r"""') + len('R("function resolveLabelCollisions(t){", r"""'):bsrc.index('function resolveLabelCollisions(t){""")')]
 R("function resolveLabelCollisions(t){", det + "function resolveLabelCollisions(t){")
 pcss = bsrc[bsrc.index('.pn .tpCount,.pn .tpCount *{all:unset}'):bsrc.index('</style>\n<div id="tpTest"')].replace('%%', '%')
+
+# ---- 3b) login fix: phone lookup failure must not be treated as a new number ----
+R("  if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}\n  S.pinMode='set';",
+  "  if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}\n"
+  "  // only a successful answer from BOTH checks saying the number does not exist leads to registration; a request/authorisation\n"
+  "  // failure (null, or an answer without a yes/no) keeps the person on the phone screen and asks to try again\n"
+  "  if(!mChk||!cChk||typeof mChk.exists!=='boolean'||typeof cChk.exists!=='boolean'){render();return toast('تعذّر التحقق من الرقم الآن (مشكلة اتصال بالخادم). لم يُنشأ أي حساب — حاول مرة أخرى بعد قليل')}\n"
+  "  S.pinMode='set';")
 
 # ---- 4) artistic opening view + gold pin family (approved v10) ----
 names = json.load(open(os.path.join(BAKED, 'names.json'), encoding='utf-8'))
