@@ -1,15 +1,15 @@
-# Production release — Tripoli Points Artistic Map V3.1 (prepared 6 Nov 2026, NOT deployed)
+# Production release — Tripoli Points Artistic Map V3.2 (prepared 6 Nov 2026, NOT deployed)
 
-V3.1 = V3 (map) + the approved Staging UI improvements listed below. Supersedes the V3 package (`f7d50d8e…`).
+V3.2 = V3 (map) + the approved Staging UI improvements + the map-control refinements below. Supersedes V3 (`f7d50d8e…`) and V3.1 (`a8885e3a…`).
 
 | Item | Value |
 |---|---|
-| Release version | `production-artistic-map-v3.1` |
+| Release version | `production-artistic-map-v3.2` |
 | Base (current Production) | GitHub main `a6c4e79529a65ec4d70711f78c81b499a8c86c99` |
 | Approved map source | Staging V3 `48ecdaae1958a2b76bfafd3431d2a6d39a0085c1` (`backup/staging-artistic-map-v3-approved`) |
 | Release branch | `release/production-artistic-map-v3` (not merged into main) |
-| Production ZIP | `Tripoli_Points_Production_Artistic_Map_v3.1.zip` — 23,721,635 bytes, 6,390 files |
-| ZIP SHA-256 | `a8885e3a1eb9851e1a53666cc36fac1903e07d2a40c707cbb0c1a698683a408a` |
+| Production ZIP | `Tripoli_Points_Production_Artistic_Map_v3.2.zip` — 23,722,268 bytes |
+| ZIP SHA-256 | `4797e63ab9b8e561f88dfea0e427134788ac7fae5aae57408957159e7c2ade21` |
 | Production backup | branch `backup/production-before-artistic-map-20261106` → `production-backups/Tripoli_Points_Production_before_artistic_map_a6c4e79.zip` (SHA-256 `d1885e6d…d278a`) |
 | Supabase | Production project, SB_URL/SB_KEY lines identical to main (not contacted during preparation) |
 
@@ -21,6 +21,13 @@ V3.1 = V3 (map) + the approved Staging UI improvements listed below. Supersedes 
 4. «+» zoom drawn as a centred SVG.
 5. The six area tiles and «بحث وفئات» above the map: raised shadow and pressed state.
 6. iOS: a passive touchstart listener so :active pressed states show (no effect on gestures).
+
+## Map-control refinements in V3.2 (display only; `map-integration/prod_controls.py`)
+- Home map: full-screen button = 34×34 px, radius 13 px, same right edge and 4 px spacing as + / − (was 38 px).
+- Full-screen map: close (X) = 34×34 px, radius 13 px, same right edge as + / −, even spacing (was 44 px).
+- Full-screen map: «Tripoli» gold pill (Poppins lettering + map icon, same reset action) at the top-left, same height as the controls.
+- One shadow (the approved Staging control shadow) on +, −, X, Tripoli and the directions / Google Maps buttons, with pressed state.
+- The artwork's own «طرابلس» label (part of the painting) is unchanged.
 
 ## Approved Staging change NOT included (needs a separate decision)
 `custKnown` / `custName` (14 code blocks): changes how the merchant's device checks a customer on the transaction screen (relies on

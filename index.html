@@ -1965,6 +1965,25 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
 /* v9: leader lines from fanned-out shop pins to their true GPS point */
 .rmap .pinLayer svg.tpLeads{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;z-index:6;pointer-events:none}
 </style>
+<style>/* Production V3.2: map controls — one size, one shape, one shadow (approved Staging control shadow) */
+:root{--tpCtl:34px;--tpCtlR:13px;--tpCtlGap:12px;--tpCtlSh:0 4px 12px rgba(0,25,65,.32),0 2px 4px rgba(0,25,65,.22),0 0 0 1px rgba(0,25,65,.08);
+ --tpCtlShOn:0 1px 4px rgba(0,25,65,.26),0 1px 2px rgba(0,25,65,.18),0 0 0 1px rgba(0,25,65,.08)}
+/* home map: + (top 12) − (top 50) full-screen (top 88): 34 px squares, 4 px apart, same right edge */
+.rmap:not(.tp23-fullscreen) .tp23-fullscreen-btn{top:88px!important;right:10px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important;font-size:18px!important;line-height:1!important;padding:0!important}
+/* full-screen map: X, +, − stacked 34 px squares with the same right edge and even 12 px gaps */
+body > .rmap.tp23-fullscreen .tp23-fullscreen-btn,.rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(34px + env(safe-area-inset-top))!important;right:12px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important;font-size:17px!important;line-height:1!important;padding:0!important}
+body > .rmap.tp23-fullscreen .zb,.rmap.tp23-fullscreen .zb{right:12px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:12px"],.rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(80px + env(safe-area-inset-top))!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(126px + env(safe-area-inset-top))!important}
+/* «Tripoli» on the full-screen map: the approved gold pill (Poppins lettering + map icon), same height as the controls */
+.rmap .tpMapCity{display:none}
+.rmap.tp23-fullscreen .tpMapCity{display:flex;position:absolute;z-index:8;top:calc(34px + env(safe-area-inset-top));left:12px;width:auto;height:var(--tpCtl);padding:0 12px 0 13px;font-size:14px}
+.rmap.tp23-fullscreen .tpMapCity .ic{width:19px;height:19px}
+/* one consistent shadow on every main map control */
+.rmap .zb,.rmap .tp23-fullscreen-btn,.rmap .tpMapCity,.rmap .tpRouteBtn{box-shadow:var(--tpCtlSh)!important}
+.rmap .tpMapCity{box-shadow:var(--tpCtlSh),inset 0 1px 0 rgba(255,255,255,.45)!important}
+.rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .tpMapCity:active,.rmap .tpRouteBtn:active{transform:translateY(1px);box-shadow:var(--tpCtlShOn)!important}
+</style>
 </head>
 <body>
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
@@ -2952,7 +2971,7 @@ function mapDirStateHtml(){if(allActiveMerchants().length)return'';
   if(S.dirState==='ok')return`<div class="mapDirState empty" role="status">لا توجد محلات متاحة حالياً. ترقّبوا انضمام محلات جديدة قريباً!</div>`;
   return S.dirState==='error'?`<div class="mapDirState err" role="alert">تعذّر تحميل المحلات. تحقّق من الاتصال<button type="button" onclick="S.dirState='loading';render();syncDirectory()">إعادة المحاولة</button></div>`:`<div class="mapDirState" role="status">جارٍ تحميل المحلات…</div>`}
 function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>${mapDirStateHtml()}
- ${tp30GoogleNavButton()}
+ ${tp30GoogleNavButton()}<button type="button" class="tpCityBtn tpMapCity" onclick="resetMapFilter()" aria-label="Tripoli"><span>Tripoli</span>${TRIPOLI_MAP_IC}</button>
  <button class="tp23-fullscreen-btn" type="button" onclick="toggleMapFullscreen()" aria-label="عرض الخريطة بملء الشاشة" title="ملء الشاشة">⛶</button>
  <button class="zb zbIn" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
  <button class="mchip mround" style="bottom:10px;right:10px" onclick="locateMe()" aria-label="موقعي">${SVG_TGT}</button>
