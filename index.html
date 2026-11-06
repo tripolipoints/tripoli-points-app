@@ -1984,6 +1984,12 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 .rmap .tpMapCity{box-shadow:var(--tpCtlSh),inset 0 1px 0 rgba(255,255,255,.45)!important}
 .rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .tpMapCity:active,.rmap .tpRouteBtn:active{transform:translateY(1px);box-shadow:var(--tpCtlShOn)!important}
 </style>
+<style>/* TRIAL: category photo inside the individual shop pin — same pin, same inner circle size as the icon ring */
+.rmap.tpv6 .pn.tpCatPin > b{visibility:hidden}
+.rmap.tpv6 .pn .tpCatImg{position:absolute;left:9.2px;top:5.3px;width:19.4px;height:19.4px;border-radius:50%;object-fit:cover;pointer-events:none;z-index:2;
+ box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e)}
+.rmap.tpv6 .pn.sel .tpCatImg,.rmap.tpv6 .pn.route .tpCatImg{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 65%,#e8c66e),0 0 0 3.4px #ffd23f}
+</style>
 </head>
 <body>
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
@@ -4033,7 +4039,28 @@ function tpnBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
   return f(d)};window.zoomMap=w;try{zoomMap=w}catch(e){}})();
 // keep the state consistent with the zoom (called on every map draw): note each step's settled zoom; after pinching or zooming
 // far out of an open cluster, close it (logical state only, the view stays where the customer put it)
-function tpnSync(t){try{const g=document.getElementById('tpGoShop'),sel=S.sel&&M(S.sel);if(g&&(g.style.display!=='none')!==!!(sel&&!(S.route&&S.route.id)))refreshGoogleNavButton()}catch(e){}
+/* ===== TRIAL (Staging only): category photo inside individual shop pins — one category: «سماعات أذن» =====
+   Only individual shop pins (the miniature gold pin) get the photo, in place of the category icon, same pin, same size.
+   Regional pins (zoom 13) and cluster pins are untouched. A shop whose logo is currently shown keeps its logo.
+   Applies to a shop whose category (main or extra) name contains «سماعات» or whose slug is 'earbuds'.
+   ?catdemo=1 : if Staging has no such shop, adds ONE in-memory test shop «سماعات أذن (تجريبي)» on Azmi Bek street for comparison.
+   Nothing is written to the database; the test shop disappears on reload. */
+const TP_CAT_IMG=[{test:(slug,name)=>slug==='earbuds'||/سماعات/.test(name||''),src:'assets/map/cat/cat-earbuds.webp'}];
+function tpCatImgOf(m){if(!m)return null;const ks=[m.cat].concat(m.extraCats||[]);
+  for(const k of ks){const c=CAT(k);for(const r of TP_CAT_IMG)if(r.test(k,c[1]))return r.src}return null}
+function tpCatDress(t){if(!t||!t.pinLayer)return;
+  t.pinLayer.querySelectorAll('.pn:not(.cluster):not(.ref)[data-id]').forEach(e=>{if(e.querySelector('.tpCatImg'))return;
+    const img=e.querySelector('.pnimg');if(img&&img.style.display!=='none')return;            // a shown logo keeps priority
+    const src=tpCatImgOf(M(e.dataset.id));if(!src)return;
+    e.classList.add('tpCatPin');e.insertAdjacentHTML('beforeend',`<img class="tpCatImg" src="${src}" alt="" draggable="false">`)})}
+(function(){if(!/[?&]catdemo=1/.test(location.search))return;
+  const add=()=>{if(typeof S==='undefined'||S.dirState!=='ok'||!S.cats)return setTimeout(add,700);
+    if(S.merchants.some(m=>tpCatImgOf(m)&&m.status==='active'))return;                     // Staging already has such a shop
+    if(!S.cats.some(c=>c.slug==='earbuds'))S.cats.push({id:-901,slug:'earbuds',name_ar:'سماعات أذن (تجريبي)',icon:'🎧',color:'#8a6a2a',parent_id:null,is_active:false,sort_order:999});
+    hydrateMerchant({id:'demo-earbuds',name:'سماعات أذن (تجريبي)',status:'active',cat:'earbuds',extra_cats:[],pct:5,tier:'small',
+      lat:34.4420180,lng:35.8331420,addr:'شارع عزمي بك (متجر تجريبي — في الذاكرة فقط)',area:'عزمي بك',photo_url:'',logo_url:'',page_enabled:false});
+    try{if(TM){buildMarks();drawMap()}}catch(e){}};add()})();
+function tpnSync(t){tpCatDress(t);try{const g=document.getElementById('tpGoShop'),sel=S.sel&&M(S.sel);if(g&&(g.style.display!=='none')!==!!(sel&&!(S.route&&S.route.id)))refreshGoogleNavButton()}catch(e){}
   if(!t||t.flying)return;const top=TPN.stack[TPN.stack.length-1];if(!top)return;
   if(top.entryZ==null){top.entryZ=t.z;return}
   if((t.ptr&&t.ptr.size)||S.sel||(S.route&&S.route.id))return;
