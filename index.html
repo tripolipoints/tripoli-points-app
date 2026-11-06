@@ -1984,11 +1984,13 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 .rmap .tpMapCity{box-shadow:var(--tpCtlSh),inset 0 1px 0 rgba(255,255,255,.45)!important}
 .rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .tpMapCity:active,.rmap .tpRouteBtn:active{transform:translateY(1px);box-shadow:var(--tpCtlShOn)!important}
 </style>
-<style>/* TRIAL: category photo inside the individual shop pin — same pin, same inner circle size as the icon ring */
+<style>/* TRIAL v2: category photo inside the individual shop pin — same pin, same size, same gold frame and shine.
+   No extra yellow glow or yellow ring, no area-colour (green) ring around the photo; the photo exactly fills the inner circle. */
 .rmap.tpv6 .pn.tpCatPin > b{visibility:hidden}
-.rmap.tpv6 .pn .tpCatImg{position:absolute;left:9.2px;top:5.3px;width:19.4px;height:19.4px;border-radius:50%;object-fit:cover;pointer-events:none;z-index:2;
- box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e)}
-.rmap.tpv6 .pn.sel .tpCatImg,.rmap.tpv6 .pn.route .tpCatImg{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 65%,#e8c66e),0 0 0 3.4px #ffd23f}
+.rmap.tpv6 .pn.tpCatPin .pnring{background:transparent!important;box-shadow:none!important}
+.rmap.tpv6 .pn .tpCatImg{position:absolute;left:8.65px;top:4.75px;width:20.5px;height:20.5px;border-radius:50%;object-fit:cover;pointer-events:none;z-index:2;box-shadow:none}
+.rmap.tpv6 .pn.tpCatPin.sel,.rmap.tpv6 .pn.tpCatPin.route{filter:drop-shadow(0 2px 3px rgba(50,30,0,.38))}
+.rmap.tpv6 .pn.tpCatPin.sel .pnring,.rmap.tpv6 .pn.tpCatPin.route .pnring,.rmap.tpv6 .pn.tpCatPin.sel .tpCatImg,.rmap.tpv6 .pn.tpCatPin.route .tpCatImg{box-shadow:none!important}
 </style>
 </head>
 <body>
