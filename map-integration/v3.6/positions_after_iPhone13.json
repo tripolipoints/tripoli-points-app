@@ -1,0 +1,346 @@
+{
+ "small": {
+  "z": 13,
+  "pins": {
+   "الميناء": {
+    "transform": "translate(54.9px, 171px) scale(1)",
+    "tip": [
+     71.5,
+     488.14
+    ],
+    "box": [
+     21.54,
+     383.19,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r0.webp",
+    "imgOk": true,
+    "name": "الميناء",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "عزمي بك": {
+    "transform": "translate(149.1px, 190.8px) scale(1)",
+    "tip": [
+     165.7,
+     507.94
+    ],
+    "box": [
+     115.74,
+     402.99,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r2.webp",
+    "imgOk": true,
+    "name": "عزمي بك",
+    "count": "15 متجر",
+    "font": "Tajawal"
+   },
+   "التل": {
+    "transform": "translate(213.1px, 260.5px) scale(1)",
+    "tip": [
+     229.7,
+     577.64
+    ],
+    "box": [
+     179.74,
+     472.69,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r1.webp",
+    "imgOk": true,
+    "name": "التل",
+    "count": "6 متجر",
+    "font": "Tajawal"
+   },
+   "القبة": {
+    "transform": "translate(302.1px, 294.5px) scale(1)",
+    "tip": [
+     318.7,
+     611.64
+    ],
+    "box": [
+     268.74,
+     506.69,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r3.webp",
+    "imgOk": true,
+    "name": "القبة",
+    "count": "3 متجر",
+    "font": "Tajawal"
+   },
+   "ضم والفرز": {
+    "transform": "translate(118.2px, 320px) scale(1)",
+    "tip": [
+     134.8,
+     637.14
+    ],
+    "box": [
+     84.84,
+     532.19,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r4.webp",
+    "imgOk": true,
+    "name": "ضم والفرز",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "أبو سمراء": {
+    "transform": "translate(233.9px, 386.5px) scale(1)",
+    "tip": [
+     250.5,
+     703.64
+    ],
+    "box": [
+     200.54,
+     598.69,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r5.webp",
+    "imgOk": true,
+    "name": "أبو سمراء",
+    "count": "2 متجر",
+    "font": "Tajawal"
+   }
+  }
+ },
+ "big": {
+  "z": 13,
+  "pins": {
+   "الميناء": {
+    "transform": "translate(71.4px, 274px) scale(1)",
+    "tip": [
+     71.41,
+     274
+    ],
+    "box": [
+     21.45,
+     169.05,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r0.webp",
+    "imgOk": true,
+    "name": "الميناء",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "عزمي بك": {
+    "transform": "translate(165.6px, 293.8px) scale(1)",
+    "tip": [
+     165.61,
+     293.8
+    ],
+    "box": [
+     115.65,
+     188.85,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r2.webp",
+    "imgOk": true,
+    "name": "عزمي بك",
+    "count": "15 متجر",
+    "font": "Tajawal"
+   },
+   "التل": {
+    "transform": "translate(229.6px, 363.5px) scale(1)",
+    "tip": [
+     229.61,
+     363.5
+    ],
+    "box": [
+     179.65,
+     258.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r1.webp",
+    "imgOk": true,
+    "name": "التل",
+    "count": "6 متجر",
+    "font": "Tajawal"
+   },
+   "القبة": {
+    "transform": "translate(318.6px, 397.5px) scale(1)",
+    "tip": [
+     318.61,
+     397.5
+    ],
+    "box": [
+     268.65,
+     292.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r3.webp",
+    "imgOk": true,
+    "name": "القبة",
+    "count": "3 متجر",
+    "font": "Tajawal"
+   },
+   "ضم والفرز": {
+    "transform": "translate(134.7px, 423px) scale(1)",
+    "tip": [
+     134.71,
+     423
+    ],
+    "box": [
+     84.75,
+     318.05,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r4.webp",
+    "imgOk": true,
+    "name": "ضم والفرز",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "أبو سمراء": {
+    "transform": "translate(250.4px, 489.5px) scale(1)",
+    "tip": [
+     250.41,
+     489.5
+    ],
+    "box": [
+     200.45,
+     384.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r5.webp",
+    "imgOk": true,
+    "name": "أبو سمراء",
+    "count": "2 متجر",
+    "font": "Tajawal"
+   }
+  }
+ },
+ "afterTap": {
+  "z": 16,
+  "visibleShopOrCluster": 16
+ },
+ "afterBack": {
+  "z": 13,
+  "pins": {
+   "الميناء": {
+    "transform": "translate(71.4px, 274px) scale(1)",
+    "tip": [
+     71.41,
+     274
+    ],
+    "box": [
+     21.45,
+     169.05,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r0.webp",
+    "imgOk": true,
+    "name": "الميناء",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "عزمي بك": {
+    "transform": "translate(165.6px, 293.8px) scale(1)",
+    "tip": [
+     165.61,
+     293.8
+    ],
+    "box": [
+     115.65,
+     188.85,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r2.webp",
+    "imgOk": true,
+    "name": "عزمي بك",
+    "count": "15 متجر",
+    "font": "Tajawal"
+   },
+   "التل": {
+    "transform": "translate(229.6px, 363.5px) scale(1)",
+    "tip": [
+     229.61,
+     363.5
+    ],
+    "box": [
+     179.65,
+     258.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r1.webp",
+    "imgOk": true,
+    "name": "التل",
+    "count": "6 متجر",
+    "font": "Tajawal"
+   },
+   "القبة": {
+    "transform": "translate(318.6px, 397.5px) scale(1)",
+    "tip": [
+     318.61,
+     397.5
+    ],
+    "box": [
+     268.65,
+     292.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r3.webp",
+    "imgOk": true,
+    "name": "القبة",
+    "count": "3 متجر",
+    "font": "Tajawal"
+   },
+   "ضم والفرز": {
+    "transform": "translate(134.7px, 423px) scale(1)",
+    "tip": [
+     134.71,
+     423
+    ],
+    "box": [
+     84.75,
+     318.05,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r4.webp",
+    "imgOk": true,
+    "name": "ضم والفرز",
+    "count": "4 متجر",
+    "font": "Tajawal"
+   },
+   "أبو سمراء": {
+    "transform": "translate(250.4px, 489.5px) scale(1)",
+    "tip": [
+     250.41,
+     489.5
+    ],
+    "box": [
+     200.45,
+     384.55,
+     104,
+     113.8
+    ],
+    "img": "assets/map/pins/r5.webp",
+    "imgOk": true,
+    "name": "أبو سمراء",
+    "count": "2 متجر",
+    "font": "Tajawal"
+   }
+  }
+ },
+ "errors": []
+}

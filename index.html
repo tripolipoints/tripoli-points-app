@@ -1921,11 +1921,12 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
 /* 1) regional pins: per-area engraved image + live name and count, centred in the medallion */
 .gp{position:relative;display:block;width:var(--w);height:calc(var(--w) * 1.0943);filter:drop-shadow(0 5px 6px rgba(60,35,0,.30))}
 .gp img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
-.gp .gpN{position:absolute;left:15%;width:68.4%;top:19.6%;height:11.4%;display:flex;align-items:center;justify-content:center;white-space:nowrap;
- font:700 calc(var(--w) * .092)/1 var(--gpFont);color:#341802;text-shadow:0 1px 0 rgba(255,246,222,.95),0 -1px 1px rgba(90,54,8,.25);direction:rtl}
-.gp .gpK{position:absolute;left:34%;width:30.4%;top:36.6%;height:7.4%;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-style:normal;
- font:700 calc(var(--w) * .07)/1 var(--gpFont);color:#fff3d6;direction:rtl}
+.gp .gpN{position:absolute;left:31.5%;width:35.6%;top:47.55%;height:8.6%;display:flex;align-items:center;justify-content:center;white-space:nowrap;
+ font:800 calc(var(--w) * .088)/1.25 'Tajawal',var(--gpFont);color:#2a1708;text-shadow:0 1px 0 rgba(255,250,236,.9);direction:rtl}
+.gp .gpK{position:absolute;left:36.4%;width:25.8%;top:54.64%;height:6%;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-style:normal;
+ font:700 calc(var(--w) * .064)/1.25 'Tajawal',var(--gpFont);color:#6a4313;direction:rtl}
 .gp .gpK.two{font-size:calc(var(--w) * .062)}
+.gp .gpN,.gp .gpK{overflow:hidden}
 #tpBig{position:absolute;inset:0;z-index:20;pointer-events:none}
 #tpBig .tpBigPin{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
 #tpBig .tpBigBtn{position:absolute;left:calc(-104px * .4804);top:calc(-104px * 1.0092);width:104px;padding:0;margin:0;border:0;background:none;cursor:pointer;
@@ -3731,6 +3732,10 @@ function drawMarks(){const t=TM;if(!t)return;if(TPP.on&&!TPP.has('first-pins'))r
      at about 13.95, empty-map tap closing only the expanded cluster, hidden pin of an expanded cluster. */
 const TPA_Z0=13.35,TPA_Z1=14.15,GP_TIPX=576/1199,GP_TIPY=1210/1312,GP_AR=1312/1199;
 const GP_RW=104,GP_CW=74;           // regional pin width at zoom 13; cluster pin width at zoom 14 (CSS px)
+function tpGpFit(L){const go=()=>L.querySelectorAll('.gp .gpN,.gp .gpK').forEach(e=>{if(!e.clientWidth)return;e.style.fontSize='';
+    const rg=document.createRange(),tw=()=>{rg.selectNodeContents(e);return rg.getBoundingClientRect().width},bw=e.getBoundingClientRect().width*.94;
+    let f=parseFloat(getComputedStyle(e).fontSize),n=0;while(tw()>bw&&f>5&&n++<60){f-=.25;e.style.fontSize=f+'px'}});
+  go();requestAnimationFrame(go);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go)}
 function gpRegionalH(n,c){const k=String(c).length>1?' two':'';return `<span class="gp" style="--w:${GP_RW}px"><img src="${GP_R[n]||GP_R['التل']}" alt="" draggable="false"><b class="gpN">${esc(n)}</b><i class="gpK${k}">${c} متجر</i></span>`}
 const tpaSm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k)};
 function tpaAlpha(z){return 1-tpaSm((z-TPA_Z0)/(TPA_Z1-TPA_Z0))}
@@ -3833,7 +3838,7 @@ function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
   const sig=TPA.pins.map(([n])=>n+':'+((cnt[n]||[]).length)).join('|');
   if(L._sig!==sig){L._sig=sig;
     L.innerHTML=TPA.pins.map(([n,u,v])=>{cnt[n]=cnt[n]||[];return [n,u,v]}).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
-    L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)})}
+    L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)});tpGpFit(L)}
   const g=tpaSm((t.z-13.05)/.8),bs=tpaBigScale(t.z);
   L.querySelectorAll('.tpBigPin').forEach(d=>{const u=+d.dataset.u,v=+d.dataset.v,ll=areaLL(d.dataset.n);
     let x=(m[0]*u+m[2]*v+m[4])*s-X+t.w/2,y=(m[1]*u+m[3]*v+m[5])*s-Y+t.h/2;
