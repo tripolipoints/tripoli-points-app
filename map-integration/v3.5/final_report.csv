@@ -1,0 +1,103 @@
+slug,name_ar,source
+main_fashion,الأزياء والموضة,realistic photo (board FC03)
+fashion,ملابس,realistic photo (board FC02)
+shoes,أحذية,ZIP image kept — needs a realistic photo
+handbags,حقائب,realistic photo (board EG11)
+accessories,إكسسوارات,realistic photo (board EG10)
+modest,لباس شرعي ومحجبات,ZIP image kept — needs a realistic photo
+kidswear,ملابس أطفال,realistic photo (board EG02)
+sportswear,ملابس رياضية,realistic photo (board EG01)
+headwear,أغطية للرأس,ZIP image kept — needs a realistic photo
+fabrics,أقمشة,realistic photo (board FC01)
+wool_knitwear,أصواف وتريكو,ZIP image kept — needs a realistic photo
+sewing_supplies,مستلزمات الخياطة والحياكة,realistic photo (board FC00)
+menswear,ملابس رجالية,realistic photo (board EG04)
+womenswear,ملابس نسائية,realistic photo (board EG03)
+shoes_men,رجالية,realistic photo (board EG14)
+shoes_women,نسائية,realistic photo (board EG13)
+shoes_kids,أطفال,realistic photo (board EG12)
+shoes_sport,أحذية رياضية,ZIP image kept — needs a realistic photo
+main_food,المطاعم والمأكولات,realistic photo (board FC10)
+food,مطاعم,realistic photo (board F201)
+sweets,حلويات,realistic photo (board F104)
+chocolate,شوكولا,realistic photo (board F103)
+bakery,مخابز,realistic photo (board F102)
+oriental,مأكولات شرقية,realistic photo (board F101)
+nuts,مكسرات وبزورات,realistic photo (board F100)
+grocery,أغذية,realistic photo (board F114)
+drinks,مشروبات,realistic photo (board F113)
+naturaldrinks,مشروبات طبيعية,realistic photo (board F112)
+vegetables,خضار وفواكه,realistic photo (board F111)
+cafe,مقاهي,realistic photo (board F110)
+main_home,المنزل والأثاث,realistic photo (board HO04)
+furniture,أثاث,realistic photo (board HO03)
+linens,مفروشات,realistic photo (board HO02)
+carpets,سجاد,realistic photo (board HO01)
+curtains,برادي وستائر,realistic photo (board HO00)
+chandeliers,ثريات وإنارة,realistic photo (board HO14)
+homeware,أدوات منزلية,realistic photo (board HO13)
+decor,ديكور,realistic photo (board HO12)
+homeappliances,أجهزة منزلية,realistic photo (board HO11)
+antiques,تحف,realistic photo (board HO10)
+home,منزل وأثاث (عام),realistic photo (board HO04)
+bags_hand,حقائب يد,realistic photo (board AC04)
+bags_school,حقائب مدرسية,realistic photo (board AC03)
+bags_travel,حقائب سفر,realistic photo (board AC02)
+belts,أحزمة,realistic photo (board AC01)
+wallets,محافظ,realistic photo (board AC00)
+fashion_accessories,إكسسوارات أزياء,realistic photo (board AC14)
+main_electronics,الإلكترونيات,realistic photo (board AC11)
+mobile,هواتف خلوية,realistic photo (board AC12)
+electronics,إلكترونيات,realistic photo (board AC13)
+electronics_acc,إكسسوارات إلكترونية,realistic photo (board BE04)
+homeelec,أجهزة منزلية إلكترونية,realistic photo (board BE03)
+ac,مكيفات,realistic photo (board BE02)
+electrical,إلكترونيات عامة (كهربائيات),realistic photo (board BE01)
+main_beauty,الجمال والعناية,realistic photo (board BE00)
+perfume,عطور,realistic photo (board BE14)
+beauty,مستحضرات تجميل,realistic photo (board BE13)
+beautysupplies,مستلزمات تجميل,realistic photo (board BE12)
+salons,صالونات,realistic photo (board BE11)
+beautycenters,مراكز تجميل,realistic photo (board BE10)
+abayas,عبايات,realistic photo (board AR04)
+jalabiyas,جلابيات,realistic photo (board AR03)
+hijab,حجاب,realistic photo (board AR02)
+islamic_wear,ألبسة شرعية,realistic photo (board AR01)
+main_jewelry,المجوهرات والبصريات,realistic photo (board AR00)
+jewelry,مجوهرات,realistic photo (board AR14)
+watches,ساعات,realistic photo (board AR13)
+glasses,نظارات وبصريات,realistic photo (board AR12)
+boys_wear,ملابس أولاد,realistic photo (board AR11)
+girls_wear,ملابس بنات,realistic photo (board AR10)
+baby_wear,ملابس مواليد,realistic photo (board A04)
+main_auto,السيارات والنقل,realistic photo (board A03)
+carshowroom,معارض سيارات,realistic photo (board A02)
+carparts,قطع سيارات,realistic photo (board A01)
+carrent,تأجير سيارات,realistic photo (board A00)
+carrental,تأجير سيارات سياحية,realistic photo (board A14)
+fuel,محطات وقود,realistic photo (board A13)
+carservices,خدمات سيارات,realistic photo (board A12)
+insurance,تأمين,realistic photo (board A11)
+sportswear_men,رجالية,realistic photo (board A10)
+sportswear_women,نسائية,no image yet (duplicate/wrong subject removed) — shows parent image or category icon
+sportswear_kids,أطفال,no image yet (duplicate/wrong subject removed) — shows parent image or category icon
+main_health,الصحة والطب,no image yet (duplicate/wrong subject removed) — shows parent image or category icon
+doctors,أطباء,ZIP image kept — needs a realistic photo
+clinics,عيادات,ZIP image kept — needs a realistic photo
+hospitals,مستشفيات,no image yet (duplicate/wrong subject removed) — shows parent image or category icon
+pharma,صيدليات,ZIP image kept — needs a realistic photo
+labs,مختبرات,ZIP image kept — needs a realistic photo
+supplements,مكملات غذائية,ZIP image kept — needs a realistic photo
+main_travel,السفر والسياحة,ZIP image kept — needs a realistic photo
+travel,مكاتب سفريات,ZIP image kept — needs a realistic photo
+hotels,فنادق,ZIP image kept — needs a realistic photo
+bookings,حجوزات,ZIP image kept — needs a realistic photo
+tourism,سياحة,ZIP image kept — needs a realistic photo
+travelbags,حقائب سفر,ZIP image kept — needs a realistic photo
+knitwear_ready,ملابس تريكو جاهزة,ZIP image kept — needs a realistic photo
+wool_sweaters,كنزات صوف,ZIP image kept — needs a realistic photo
+wool_jackets,جاكيتات صوف,ZIP image kept — needs a realistic photo
+wool_kids,ملابس صوف للأطفال,ZIP image kept — needs a realistic photo
+knitwear_unisex,ملابس تريكو نسائية ورجالية,ZIP image kept — needs a realistic photo
+earphones,سماعات أذن,realistic photo (board L201)
+wedding_dresses,فساتين أعراس,realistic photo (board L200)

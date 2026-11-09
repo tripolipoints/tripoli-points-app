@@ -14,7 +14,7 @@ R("const r=clusterTargetRect(t.el,t.h),PAD_X=40,",
   "const r=clusterTargetRect(t.el,t.h),PAD_X=Math.max(40,Math.round(tpGrowRouteH()*28/33.8/2)+14),")
 R("const pv=pinVisualH(17)*PIN_ROUTE_SCALE,aw=t.w-2*PAD_X,", "const pv=tpGrowRouteH()+6,aw=t.w-2*PAD_X,")
 # cancelling the route returns the pins to their sizes immediately (before, they changed only on the next map move)
-R("function clearRoute(){S.route=null;routeUi()}", "function clearRoute(){S.route=null;routeUi();if(TM)try{drawMap()}catch(e){}}")
+R("function clearRoute(){S.route=null;routeUi()}", "function clearRoute(){const had=!!S.route;S.route=null;routeUi();if(TM)try{if(had)tpGrowRouteCancelled();drawMap()}catch(e){}}")
 R("</head>", """<style>/* V3.5: category image inside the individual shop pin — same pin, same gold frame and shine, no extra ring or yellow */
 .rmap.tpv6 .pn.tpCatPin > b{visibility:hidden}
 .rmap.tpv6 .pn.tpCatPin .pnring{background:transparent!important;box-shadow:none!important}
