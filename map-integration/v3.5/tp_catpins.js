@@ -17,10 +17,15 @@ function tpCatImgOf(m){if(!m||!m.cat)return null;const cats=(typeof S!=='undefin
   return null}
 function tpCatDress(t){if(!t||!t.pinLayer)return;
   t.pinLayer.querySelectorAll('.pn:not(.cluster):not(.ref)[data-id]').forEach(e=>{if(e.querySelector('.tpCatImg'))return;
-    const img=e.querySelector('.pnimg');if(img&&img.style.display!=='none')return;
-    const src=tpCatImgOf(M(e.dataset.id));if(!src)return;
-    e.classList.add('tpCatPin');const im=new Image();im.className='tpCatImg';im.alt='';im.draggable=false;im.decoding='async';
-    im.onerror=()=>{im.remove();e.classList.remove('tpCatPin')};im.src=src;e.appendChild(im)})}
+    const img=e.querySelector('.pnimg');
+    if(img&&img.style.display!=='none'&&!(img.complete&&!img.naturalWidth)){   // the app's own logo (selected / route): keep it;
+      if(!img._tpw){img._tpw=1;img.addEventListener('error',()=>tpCatDress(t))}return}    // if it fails to load, use the category image
+    if(img)img.style.display='none';
+    const m=M(e.dataset.id),logo=m&&typeof safeLogoUrl==='function'?safeLogoUrl(m.logo):'',cat=tpCatImgOf(m),src=logo||cat;if(!src)return;
+    // a shop with its own logo shows the logo at every stage (the category image is only for shops without one)
+    e.classList.add('tpCatPin');const im=new Image();im.className='tpCatImg'+(logo?' tpLogo':'');im.alt='';im.draggable=false;im.decoding='async';
+    im.onerror=()=>{if(logo&&cat&&im.src.indexOf(cat)<0){im.classList.remove('tpLogo');im.src=cat;return}im.remove();e.classList.remove('tpCatPin')};
+    im.src=src;e.appendChild(im)})}
 const TP_GROW_SEL=1.45,TP_GROW_ROUTE=1.9,TP_GROW_STEP=1.18,TP_GROW_SEL_MAX=2.6,TP_GROW_MAX=3.1; // caps keep the pin reasonable at the highest zoom on small phones
 function tpGrowRouteScale(zs,t){const g=t&&t._tpGrowSel&&S.route&&t._tpGrowSel.id===S.route.id?t._tpGrowSel.s*TP_GROW_STEP:0;
   return Math.min(TP_GROW_MAX,Math.max(zs*TP_GROW_ROUTE,g))}

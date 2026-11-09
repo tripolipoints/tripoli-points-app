@@ -19,6 +19,7 @@ R("</head>", """<style>/* V3.5: category image inside the individual shop pin â€
 .rmap.tpv6 .pn.tpCatPin > b{visibility:hidden}
 .rmap.tpv6 .pn.tpCatPin .pnring{background:transparent!important;box-shadow:none!important}
 .rmap.tpv6 .pn .tpCatImg{position:absolute;left:8.65px;top:4.75px;width:20.5px;height:20.5px;border-radius:50%;object-fit:cover;pointer-events:none;z-index:2;box-shadow:none;image-rendering:auto}
+.rmap.tpv6 .pn .tpCatImg.tpLogo{background:#fff8e6;object-fit:contain}
 .rmap.tpv6 .pn.tpCatPin.sel,.rmap.tpv6 .pn.tpCatPin.route{filter:drop-shadow(0 2px 3px rgba(50,30,0,.38))}
 .rmap.tpv6 .pn.tpCatPin.sel .pnring,.rmap.tpv6 .pn.tpCatPin.route .pnring,.rmap.tpv6 .pn.tpCatPin.sel .tpCatImg,.rmap.tpv6 .pn.tpCatPin.route .tpCatImg{box-shadow:none!important}
 /* V3.5: progressive enlargement â€” grows from the tip (transform-origin 50% 100%), above neighbours (z-index set by drawPinClusters) */
