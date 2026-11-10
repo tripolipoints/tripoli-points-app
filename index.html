@@ -2005,36 +2005,28 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 .rmap.tp23-fullscreen .tp23-fullscreen-btn::after{transform:translate(-50%,-50%) rotate(-45deg)}
 </style>
 <style>/* V3.7 — full-screen map: «أحياء وشوارع» strip, bottom bar, regional pins without counts */
-.rmap .tpHood{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:12px;right:56px;max-width:560px;border-radius:18px;
- background:linear-gradient(#fffaf0,#f8efd9);border:1.6px solid #e2b33f;box-shadow:0 6px 18px rgba(10,30,70,.28),inset 0 1px 0 #fff;overflow:hidden;
+.rmap .tpHood{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:8px;right:52px;max-width:560px;background:none;border:0;box-shadow:none;
  font-family:'Tajawal',var(--gpFont,sans-serif);animation:tpHoodIn .22s ease-out}
 .rmap .tpHood[hidden],.rmap .tpHoodShow[hidden]{display:none!important}
 @keyframes tpHoodIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.tpHoodHd{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:23px;padding:0 30px 0 30px;
- background:linear-gradient(180deg,#123f95,#0a2766);color:#fff;border-bottom:1.5px solid #e2b33f}
-.tpHoodHd b{display:flex;align-items:center;gap:4px;font-weight:800;font-size:12.5px;white-space:nowrap}
-.tpHoodHd b svg{width:13px;height:13px;fill:#f2c14e;stroke:#a87a12;stroke-width:1}.tpHoodHd b svg circle{fill:#0a2766;stroke:none}
-.tpHoodHd i{flex:1;max-width:46px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#e9bd4c,transparent)}
-.tpHoodHide{position:absolute;left:4px;top:2px;width:19px;height:19px;border-radius:50%;border:1px solid rgba(242,193,78,.7);background:rgba(255,255,255,.12);
- display:grid;place-items:center;padding:0;cursor:pointer}
+.tpHoodHide{position:absolute;z-index:3;left:-2px;top:-6px;width:22px;height:22px;border-radius:50%;border:1.4px solid #e2b33f;background:linear-gradient(180deg,#123f95,#0a2766);
+ color:#f2c14e;display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .tpHoodHide svg,.tpHoodShow svg,.tpHoodArr svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.tpHoodHide{color:#f2c14e}
-.tpHoodBody{position:relative;display:flex;align-items:center;gap:2px;padding:4px 3px 0}
-.tpHoodRow{flex:1;display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
- scrollbar-width:none;padding:1px 2px 2px;overscroll-behavior-x:contain;touch-action:pan-x}
+.tpHoodBody{position:relative;display:flex;align-items:center;gap:0}
+.tpHoodRow{flex:1;display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+ scrollbar-width:none;padding:3px 3px 5px;overscroll-behavior-x:contain;touch-action:pan-x}
 .tpHoodRow::-webkit-scrollbar{display:none}
-.tpHoodCard{flex:0 0 auto;width:72px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:2px;padding:2px 2px 3px;
- border-radius:10px;border:1px solid #eadfc6;background:#fff;box-shadow:0 2px 5px rgba(60,40,0,.12);cursor:pointer;font:inherit;color:#1b1b2b}
-.tpHoodCard img{width:66px;height:34px;border-radius:8px;object-fit:cover;display:block;background:#e9e2d0}
-.tpHoodCard span{font-weight:800;font-size:10px;line-height:1.1;text-align:center;max-width:68px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tpHoodCard.on{background:linear-gradient(180deg,#ffd970,#f2b827);border-color:#c8901a;box-shadow:0 3px 8px rgba(160,110,0,.35)}
-.tpHoodCard.on img{outline:1.5px solid #fff4cf}
-.tpHoodArr{flex:0 0 20px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;
- border:1px solid #e5d6b0;background:#fff;color:#0a2766;box-shadow:0 1px 4px rgba(0,0,0,.18)}
-.tpHoodArr.tpHoodPrev{background:linear-gradient(180deg,#ffd970,#f2b827);border-color:#c8901a}
-.tpHoodArr:disabled{opacity:.35;cursor:default}
-.tpHoodDots{display:flex;justify-content:center;gap:4px;height:8px;align-items:center;padding-bottom:1px}
-.tpHoodDots span{width:4px;height:4px;border-radius:50%;background:#cdbf9d}.tpHoodDots span.on{width:6px;height:6px;background:#e2a816}
+.tpHoodCard{position:relative;flex:0 0 auto;width:62px;height:82px;scroll-snap-align:start;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;
+ border:1.5px solid rgba(255,255,255,.95);background:#d9d2c0;box-shadow:0 3px 8px rgba(0,20,60,.38);font:inherit}
+.tpHoodCard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.tpHoodCard span{position:absolute;left:0;right:0;bottom:0;padding:12px 3px 4px;background:linear-gradient(180deg,rgba(5,20,50,0),rgba(5,20,50,.82));
+ color:#fff;font-weight:800;font-size:10px;line-height:1.12;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.tpHoodCard.on{border:2.5px solid #f2b827;box-shadow:0 0 0 2px rgba(242,184,39,.35),0 4px 10px rgba(120,80,0,.45)}
+.tpHoodCard.on span{background:linear-gradient(180deg,rgba(242,184,39,0),rgba(214,150,10,.95));color:#2a1708;text-shadow:0 1px 0 rgba(255,240,200,.6)}
+.tpHoodArr{position:relative;z-index:2;flex:0 0 22px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;
+ border:1px solid #e5d6b0;background:#fff;color:#0a2766;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.tpHoodArr.tpHoodNext{margin-left:-4px}.tpHoodArr.tpHoodPrev{margin-right:-4px;background:linear-gradient(180deg,#ffd970,#f2b827);border-color:#c8901a}
+.tpHoodArr:disabled{opacity:0;pointer-events:none}
 .rmap .tpHoodShow{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:12px;display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 12px;
  border-radius:14px;border:1.4px solid #e2b33f;background:linear-gradient(180deg,#123f95,#0a2766);color:#fff;font:800 13px 'Tajawal',sans-serif;
  box-shadow:0 4px 12px rgba(10,30,70,.3);cursor:pointer}
@@ -4155,24 +4147,24 @@ function tpFreeMark(t,nz){if(t.pick)return;if(nz<=13.08){t._tpFree=false;return}
 
 /* ===== V3.7: full-screen map — «أحياء وشوارع» strip, bottom bar, base framing ===== */
 const TP_AREA_DISP={'أبو سمراء':'أبي سمراء'};
-const TP_HOOD=[["شارع مار مارون", 0], ["شارع قاديشا", 1], ["رياض الصلح", 2], ["نقابة الأطباء", 3], ["الزاهرية", 4], ["التبانة", 5], ["سوق العريض", 6], ["سوق النحاسين", 7], ["سرايا العتيقة", 8], ["ساحة النجمة", 9], ["ساحة الكورة", 10], ["ساحة النور", 11], ["طريق المعرض", 12], ["البحصاص", 13]].map(([n,i])=>({n,img:'assets/map/hood/h'+String(i).padStart(2,'0')+'.webp'}));
+const TP_HOOD=[["شارع مار مارون", 0], ["شارع قاديشا", 1], ["رياض الصلح", 2], ["نقابة الأطباء", 3], ["الزاهرية", 4], ["التبانة", 5], ["سوق العريض", 6], ["سوق النحاسين", 7], ["سرايا العتيقة", 8], ["ساحة النجمة", 9], ["ساحة الكورة", 10], ["ساحة النور", 11], ["طريق المعرض", 12], ["البحصاص", 13]].map(([n,i])=>({n,img:'assets/map/hood/p'+String(i).padStart(2,'0')+'.webp'}));
 let tpHoodSel=-1,tpHoodHidden=false;
 function tpHoodLL(n){const a=(typeof SUBAREAS!=='undefined'?SUBAREAS:[]).find(x=>x[0]===n);return a?{lat:a[1],lng:a[2]}:null}
 function tpHoodEl(){const rm=document.getElementById('rmap');if(!rm)return null;let el=rm.querySelector('#tpHood');if(el)return el;
   const cards=TP_HOOD.map((h,i)=>tpHoodLL(h.n)?`<button class="tpHoodCard" type="button" data-i="${i}" onclick="tpHoodPick(${i})"><img src="${h.img}" alt="" draggable="false" loading="lazy"><span>${esc(h.n)}</span></button>`:'').join('');
-  rm.insertAdjacentHTML('beforeend',`<div id="tpHood" class="tpHood" dir="rtl" hidden><div class="tpHoodHd"><i></i><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>أحياء وشوارع</b><i></i>
-    <button class="tpHoodHide" type="button" onclick="tpHoodToggle(true)" aria-label="إخفاء شريط الأحياء والشوارع"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button></div>
+  rm.insertAdjacentHTML('beforeend',`<div id="tpHood" class="tpHood tpHoodP" dir="rtl" hidden>
+    <button class="tpHoodHide" type="button" onclick="tpHoodToggle(true)" aria-label="إخفاء شريط الأحياء والشوارع"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
     <div class="tpHoodBody"><button class="tpHoodArr tpHoodNext" type="button" onclick="tpHoodScroll(1)" aria-label="التالي"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
     <div class="tpHoodRow">${cards}</div>
     <button class="tpHoodArr tpHoodPrev" type="button" onclick="tpHoodScroll(-1)" aria-label="السابق"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
-    <div class="tpHoodDots"></div></div>
+    </div>
     <button id="tpHoodShow" class="tpHoodShow" type="button" hidden onclick="tpHoodToggle(false)" aria-label="إظهار شريط الأحياء والشوارع">أحياء وشوارع<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`);
   el=rm.querySelector('#tpHood');const row=el.querySelector('.tpHoodRow');row.addEventListener('scroll',()=>tpHoodDots(),{passive:true});
   // swipes on the strip must not move the map underneath
   ['pointerdown','touchstart','mousedown','wheel','click','dblclick'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:ev!=='click'}));
   const sh=rm.querySelector('#tpHoodShow');['pointerdown','touchstart','mousedown','click'].forEach(ev=>sh.addEventListener(ev,e=>e.stopPropagation(),{passive:ev!=='click'}));
   return el}
-function tpHoodDots(){const el=document.getElementById('tpHood');if(!el||el.hidden)return;const row=el.querySelector('.tpHoodRow'),d=el.querySelector('.tpHoodDots');
+function tpHoodDots(){const el=document.getElementById('tpHood');if(!el||el.hidden)return;const row=el.querySelector('.tpHoodRow'),d=el.querySelector('.tpHoodDots')||{};
   const n=Math.max(1,Math.ceil((row.scrollWidth-4)/Math.max(1,row.clientWidth))),p=Math.min(n-1,Math.round(Math.abs(row.scrollLeft)/Math.max(1,row.scrollWidth-row.clientWidth)*(n-1))||0);
   const h=Array.from({length:n},(_,i)=>`<span class="${i===p?'on':''}"></span>`).join('');if(d.innerHTML!==h)d.innerHTML=h;
   const max=row.scrollWidth-row.clientWidth-2,pos=Math.abs(row.scrollLeft);el.querySelector('.tpHoodNext').disabled=pos>=max;el.querySelector('.tpHoodPrev').disabled=pos<=1}
