@@ -2491,7 +2491,7 @@ function nav(tabs,variant){if(variant==='premium'){const act=custNavActive();ret
 function navClick(k){S._homeY=null;NAV.tabNav=true;S.faq=null;S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.ofv=null;S.ofvSortOpen=false;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
 const custInfoReady=c=>!!(c&&c.name&&c.name.trim()&&c.name!=='زبون جديد'&&c.last&&c.last.trim()&&c.photo);
 function openTreasure(){const c=S.customers[S.phone];if(custInfoReady(c)){trMarkStart(S.phone);S.sub='collect'}else{S.treasureRedirect=true;S.sub='info'}render()}
-function checkTreasureReady(){const c=S.customers[S.phone];trMarkStart(S.phone);if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
+function checkTreasureReady(){const c=S.customers[S.phone];if(S._trSaved){S._trSaved=false;trMarkStart(S.phone)}if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
 function go(s){S.screen=s;render()}
 // ===== بوابة الإدارة =====
 // تنبيه: هذه حماية على مستوى الواجهة فقط (تكفي للنموذج). الحماية الحقيقية تأتي مع حساب إدارة على الخادم (Supabase) وصلاحيات على قاعدة البيانات.
@@ -3244,7 +3244,7 @@ const collectedCount=p=>Math.min(collectedMids(p).length,S.collectPics.length);
 /* «صورة جديدة!»: after the server's transactions arrive, a count higher than the last one this phone saw opens the popup with the
    newest unlocked photo. The first check on a device only records the count (no popup for photos collected before). The count is
    never lowered here, so data that has not loaded yet can't replay old photos. Without browser storage nothing is shown. */
-function tpTreasureCheck(p){if(!p||S.mode!=='customer'||!S.collectPics.length)return false;trMarkStart(p);const k='tp_tr2_seen_'+p,n=collectedCount(p);let seen;
+function tpTreasureCheck(p){if(!p||S.mode!=='customer'||!S.collectPics.length)return false;const k='tp_tr2_seen_'+p,n=collectedCount(p);let seen;
   try{seen=localStorage.getItem(k)}catch(e){return false}
   if(seen===null||isNaN(+seen)){try{localStorage.setItem(k,String(n))}catch(e){}return false}
   seen=+seen;if(n<=seen)return false;try{localStorage.setItem(k,String(n))}catch(e){return false}
@@ -4898,8 +4898,10 @@ function infoV(c){const banner=S.treasureRedirect?`<div class="card" style="back
   return banner+subHead('معلوماتي الشخصية')+`<div class="card"><label class="muted">صورتك الشخصية</label><div style="margin:4px 0 10px">${phBox(c.photo,'custPhoto',true,{label:'ادخل صورتك الشخصية'})}</div><label class="muted">الاسم</label><div class="field"><input id="nm" value="${c.name==='زبون جديد'?'':c.name}" placeholder="اكتب اسمك"></div><label class="muted">اسم العائلة</label><div class="field"><input id="ln" value="${c.last||''}" placeholder="اكتب اسم عائلتك"></div><label class="muted">رقم الهاتف</label><div class="field"><input value="${dph(S.phone)}" dir="ltr" disabled style="text-align:right"></div><button class="btn" onclick="custSaveName()">احفظ التغييرات</button></div>`}
 function custSaveName(){const v=$('#nm').value.trim(),l=$('#ln').value.trim();if(!v)return toast('اكتب اسمك');
   const lettersOnly=/^[\p{L}\s]*$/u;if(!lettersOnly.test(v)||!lettersOnly.test(l))return toast('الاسم يجب أن يحتوي على أحرف فقط');
-  S.customers[S.phone].name=v;S.customers[S.phone].last=l;toast('تم الحفظ');if(checkTreasureReady())return;if(S.treasureRedirect)return render();S.sub=null;render()}
-function custPhoto(inp){shrinkImg(inp.files[0],u=>{S.customers[S.phone].photo=u;toast('تم حفظ صورتك');if(checkTreasureReady())return;render()})}
+  if(S.treasureRedirect&&!l)return toast('اكتب اسم عائلتك');
+  S.customers[S.phone].name=v;S.customers[S.phone].last=l;if(S.treasureRedirect&&!S.customers[S.phone].photo){toast('تم الحفظ — أضف صورتك الشخصية لتفعيل كنوز طرابلس');return render()}
+  toast('تم الحفظ');S._trSaved=true;if(checkTreasureReady())return;if(S.treasureRedirect)return render();S.sub=null;render()}
+function custPhoto(inp){shrinkImg(inp.files[0],u=>{S.customers[S.phone].photo=u;toast(S.treasureRedirect?'تم حفظ صورتك — أكمل اسمك واسم عائلتك ثم اضغط «احفظ التغييرات»':'تم حفظ صورتك');render()})}
 function favsV(){const l=S.merchants.filter(m=>S.fav[m.id]&&m.status==='active'&&isLiveMerchant(m));
   return subHead('المحلات المفضلة')+(l.length?l.map(m=>{const k=CAT(m.cat);return `<div class="card row"><div><b>${m.name}</b><div class="muted">${k[1]} · ${m.addr||''}</div></div><button class="back" style="margin:0;color:#e5487e" onclick="toggleFav('${m.id}')"><svg class="ic" style="fill:#e5487e" viewBox="0 0 24 24">${I.heart}</svg></button></div>`}).join(''):'<p class="muted">لم تضف أي محل بعد. اضغط على القلب في صفحة العروض.</p>')}
 function notesV(){const f=S.nf,l=myNotes().filter(n=>f==='all'||n.type===f||(f==='general'&&n.type==='nearby')),col={offer:'var(--yellow)',points:'var(--ok)',general:'var(--navy)',nearby:'var(--blue)'},icn={offer:'gift',points:'star',general:'bell',nearby:'pin'};
