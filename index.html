@@ -2490,8 +2490,8 @@ function nav(tabs,variant){if(variant==='premium'){const act=custNavActive();ret
   return `<div class="nav">${tabs.map(([k,l,i,b])=>{const sp=k==='treasure';return `<button class="${S.tab===k?'on':''}" ${sp?'style="color:var(--yellow)"':''} onclick="navClick('${k}')">${sp?'<span style="font-size:19px;line-height:1">🏛️</span>':ic(i)}${b?`<span class="nbadge">${b}</span>`:''}<span>${l}</span></button>`}).join('')}</div>`}
 function navClick(k){S._homeY=null;NAV.tabNav=true;S.faq=null;S.sel=null;S.sub=null;S.route=null;S.mv=null;S.q='';S.shopNav={mainId:null};S.shopCat='all';S.shopQ='';S.shopMode=null;S.shopArea=null;S.offMode=null;S.offAreaSel=null;S.ofv=null;S.ofvSortOpen=false;S.mapFocus=null;S.mapOfferFocus=null;if(k==='treasure'){openTreasure();return}S.tab=k;render();if(k==='mops'&&S.mode==='merchant')syncMerchantData(S.merchantId)}
 const custInfoReady=c=>!!(c&&c.name&&c.name.trim()&&c.name!=='زبون جديد'&&c.last&&c.last.trim()&&c.photo);
-function openTreasure(){const c=S.customers[S.phone];if(custInfoReady(c))S.sub='collect';else{S.treasureRedirect=true;S.sub='info'}render()}
-function checkTreasureReady(){const c=S.customers[S.phone];if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
+function openTreasure(){const c=S.customers[S.phone];if(custInfoReady(c)){trMarkStart(S.phone);S.sub='collect'}else{S.treasureRedirect=true;S.sub='info'}render()}
+function checkTreasureReady(){const c=S.customers[S.phone];trMarkStart(S.phone);if(S.treasureRedirect&&custInfoReady(c)){S.treasureRedirect=false;toast('🎉 تم تفعيل كنوز طرابلس');S.sub='collect';render();return true}return false}
 function go(s){S.screen=s;render()}
 // ===== بوابة الإدارة =====
 // تنبيه: هذه حماية على مستوى الواجهة فقط (تكفي للنموذج). الحماية الحقيقية تأتي مع حساب إدارة على الخادم (Supabase) وصلاحيات على قاعدة البيانات.
@@ -3234,12 +3234,17 @@ const unread=()=>S.notifOn?myNotes().filter(n=>n.at>(S.read[S.phone]||0)).length
 const notifBadge=n=>n?`<span class="dotn">${n>9?'9+':n}</span>`:'';
 const liveOffers=()=>S.offers.filter(o=>{const m=M(o.mid);return o.active&&m&&m.status==='active'&&isLiveMerchant(m)&&Date.now()-o.at<o.days*D});
 // ===== كنوز طرابلس (تحفيز الزبون لتجربة محلات متعددة) =====
-function collectedMids(p){const seen=new Set(),l=[];S.tx.filter(t=>t.phone===p&&t.status==='CONFIRMED').sort((a,b)=>a.at-b.at).forEach(t=>{if(!seen.has(t.mid)){seen.add(t.mid);l.push(t.mid)}});return l}
+/* Treasure rules: only purchases of at least TREASURE_MIN dollars (invoice), made after the customer's treasure profile became
+   complete (name + family name + photo), count. The start time is recorded on this device the first time the profile is seen complete. */
+const TREASURE_MIN=15;
+function trStart(p){try{const v=localStorage.getItem('tp_tr_start_'+p);return v===null||isNaN(+v)?null:+v}catch(e){return null}}
+function trMarkStart(p){if(!p||S.mode!=='customer'||!custInfoReady(S.customers[p])||trStart(p)!==null)return;try{localStorage.setItem('tp_tr_start_'+p,String(Date.now()))}catch(e){}}
+function collectedMids(p){const seen=new Set(),l=[],st=trStart(p);if(st===null)return l;S.tx.filter(t=>t.phone===p&&t.status==='CONFIRMED'&&t.at>=st&&(+t.invoice||0)>=TREASURE_MIN).sort((a,b)=>a.at-b.at).forEach(t=>{if(!seen.has(t.mid)){seen.add(t.mid);l.push(t.mid)}});return l}
 const collectedCount=p=>Math.min(collectedMids(p).length,S.collectPics.length);
 /* «صورة جديدة!»: after the server's transactions arrive, a count higher than the last one this phone saw opens the popup with the
    newest unlocked photo. The first check on a device only records the count (no popup for photos collected before). The count is
    never lowered here, so data that has not loaded yet can't replay old photos. Without browser storage nothing is shown. */
-function tpTreasureCheck(p){if(!p||S.mode!=='customer'||!S.collectPics.length)return false;const k='tp_tr_seen_'+p,n=collectedCount(p);let seen;
+function tpTreasureCheck(p){if(!p||S.mode!=='customer'||!S.collectPics.length)return false;trMarkStart(p);const k='tp_tr2_seen_'+p,n=collectedCount(p);let seen;
   try{seen=localStorage.getItem(k)}catch(e){return false}
   if(seen===null||isNaN(+seen)){try{localStorage.setItem(k,String(n))}catch(e){}return false}
   seen=+seen;if(n<=seen)return false;try{localStorage.setItem(k,String(n))}catch(e){return false}
@@ -3252,18 +3257,18 @@ function picTile(pic,unlocked){const canView=unlocked&&pic.img;return `<div clas
 function collectTeaser(){const n=collectedCount(S.phone),all=S.collectPics.length,done=n>=all;
   return `<button class="card" style="display:flex;align-items:center;gap:10px;width:100%;text-align:right;border:0;margin:10px 0" onclick="openTreasure()">
    <span style="font-size:26px">${done?'🏆':'🗺️'}</span>
-   <div style="flex:1"><b style="font-size:14px">${done?'جمعت كل كنوز طرابلس! 🎉':'كنوز طرابلس'}</b><div class="muted" style="font-size:12px">${done?'تواصل مع الإدارة لاستلام جائزتك':`اكتشفت ${n} من ${all} صورة — تسوّق من محل جديد لتكمل المجموعة`}</div></div>
+   <div style="flex:1"><b style="font-size:14px">${done?'جمعت كل كنوز طرابلس! 🎉':'كنوز طرابلس'}</b><div class="muted" style="font-size:12px">${done?'تواصل مع الإدارة لاستلام جائزتك':`اكتشفت ${n} من ${all} صورة — تسوّق من محل جديد بـ ${TREASURE_MIN}$ أو أكثر لتكمل المجموعة`}</div></div>
    ${ic('chev',18)}</button>`}
 function collectV(c){const mids=collectedMids(S.phone),n=collectedCount(S.phone),all=S.collectPics,done=n>=all.length;
   return subHead('كنوز طرابلس')+`
   <div class="card" style="text-align:center;background:linear-gradient(150deg,#0c2a6b,#1d63e0);color:#fff">
    <div style="font-size:34px">${done?'🏆':'🗺️'}</div>
    <b style="font-size:17px">${done?'أنت بطل طرابلس!':'اجمع كنوز طرابلس'}</b>
-   <p style="margin:4px 0 0;opacity:.9;font-size:13px">${done?'جمعت كل الصور! تواصل مع الإدارة لاستلام جائزتك 🎁':'كل عملية شراء من محل جديد تكشف لك صورة من معالم المدينة'}</p>
+   <p style="margin:4px 0 0;opacity:.9;font-size:13px">${done?'جمعت كل الصور! تواصل مع الإدارة لاستلام جائزتك 🎁':`كل عملية شراء بقيمة ${TREASURE_MIN}$ أو أكثر من محل جديد تكشف لك صورة من معالم المدينة`}</p>
    <div style="background:#ffffff33;border-radius:999px;height:10px;margin-top:12px;overflow:hidden"><div style="background:#ffc20e;height:100%;width:${all.length?Math.round(n/all.length*100):0}%"></div></div>
    <div style="margin-top:6px;font-size:13px">${n} / ${all.length} صورة</div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">${all.map((p,i)=>picTile(p,i<n)).join('')}</div>
-  ${done?'':`<p class="muted" style="text-align:center;margin-top:10px">تسوّق من محل لم تجرّبه من قبل لتكشف الصورة التالية</p>`}`}
+  ${done?'':`<p class="muted" style="text-align:center;margin-top:10px">تسوّق بـ ${TREASURE_MIN}$ أو أكثر من محل لم تجرّبه من قبل لتكشف الصورة التالية</p>`}`}
 function events(p){const ev=[];S.tx.filter(t=>t.phone===p&&t.status==='CONFIRMED').forEach(t=>{const n=M(t.mid).name;if(t.earn)ev.push({s:'+',n:t.earn,m:n,at:t.at,t});if(t.redeemPts)ev.push({s:'-',n:t.redeemPts,m:n,at:t.at+1,t})});S.bonuses.filter(b=>b.phone===p).forEach((b,i)=>ev.push({s:'+',n:b.pts,m:'هدية الترحيب',at:b.at,t:{id:'b'+i,invoice:0,redeemVal:0,net:0},bonus:true}));return ev.sort((a,b)=>b.at-a.at)}
 const chips=(list,cur,fn)=>`<div class="chips">${list.map(([k,l])=>`<button class="chip ${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`;
 const catPlainChips=(list,cur,fn)=>`<div class="catPlainRow">${list.map(([k,l,icn])=>`<button class="catPlain ${cur===k?'on':''}" onclick="${fn}('${k}')"><i>${icn}</i><span>${l}</span></button>`).join('')}</div>`;
@@ -4890,8 +4895,8 @@ const FAQ=[['كيف أجمع النقاط؟','عند كل عملية شراء ف
 function helpV(){return subHead('المساعدة والدعم')+FAQ.map(([q,a],i)=>`<div class="card" style="cursor:pointer" onclick="faqToggle(${i})"><div class="row"><b>${q}</b>${ic('chev',18)}</div>${S.faq===i?`<p class="muted" style="margin:8px 0 0">${a}</p>`:''}</div>`).join('')
   +`<a class="btn blue" style="display:block;text-align:center;text-decoration:none;margin-top:6px" target="_blank" href="https://wa.me/${SUPPORT_WA}">تواصل عبر واتساب</a>`}
 function infoV(c){const banner=S.treasureRedirect?`<div class="card" style="background:linear-gradient(135deg,#0c2a6b,#1d63e0);color:#fff;margin-bottom:10px"><b>🏛️ لتفعيل كنوز طرابلس والحصول على جائزتك</b><div style="font-size:13px;margin-top:4px;opacity:.9">أدخل اسمك وأضف صورتك الشخصية لتبدأ بجمع الصور</div></div>`:'';
-  return banner+subHead('معلوماتي الشخصية')+`<div class="card"><label class="muted">صورتك الشخصية</label><div style="margin:4px 0 10px">${phBox(c.photo,'custPhoto',true,{label:'ادخل صورتك الشخصية'})}</div><label class="muted">الاسم</label><div class="field"><input id="nm" value="${c.name==='زبون جديد'?'':c.name}" placeholder="اكتب اسمك"></div><label class="muted">اسم العائلة</label><div class="field"><input id="ln" value="${c.last||''}" placeholder="اكتب اسم عائلتك"></div><label class="muted">رقم الهاتف</label><div class="field"><input value="${dph(S.phone)}" dir="ltr" disabled style="text-align:right"></div><button class="btn" onclick="saveName()">احفظ التغييرات</button></div>`}
-function saveName(){const v=$('#nm').value.trim(),l=$('#ln').value.trim();if(!v)return toast('اكتب اسمك');
+  return banner+subHead('معلوماتي الشخصية')+`<div class="card"><label class="muted">صورتك الشخصية</label><div style="margin:4px 0 10px">${phBox(c.photo,'custPhoto',true,{label:'ادخل صورتك الشخصية'})}</div><label class="muted">الاسم</label><div class="field"><input id="nm" value="${c.name==='زبون جديد'?'':c.name}" placeholder="اكتب اسمك"></div><label class="muted">اسم العائلة</label><div class="field"><input id="ln" value="${c.last||''}" placeholder="اكتب اسم عائلتك"></div><label class="muted">رقم الهاتف</label><div class="field"><input value="${dph(S.phone)}" dir="ltr" disabled style="text-align:right"></div><button class="btn" onclick="custSaveName()">احفظ التغييرات</button></div>`}
+function custSaveName(){const v=$('#nm').value.trim(),l=$('#ln').value.trim();if(!v)return toast('اكتب اسمك');
   const lettersOnly=/^[\p{L}\s]*$/u;if(!lettersOnly.test(v)||!lettersOnly.test(l))return toast('الاسم يجب أن يحتوي على أحرف فقط');
   S.customers[S.phone].name=v;S.customers[S.phone].last=l;toast('تم الحفظ');if(checkTreasureReady())return;if(S.treasureRedirect)return render();S.sub=null;render()}
 function custPhoto(inp){shrinkImg(inp.files[0],u=>{S.customers[S.phone].photo=u;toast('تم حفظ صورتك');if(checkTreasureReady())return;render()})}
@@ -5502,7 +5507,7 @@ function addCollectPic(){const n=$('#npname'),v=n?n.value.trim():'';if(!v)return
 function topCollectors(){return Object.keys(S.customers).map(p=>({p,c:S.customers[p],n:collectedCount(p)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n)}
 function adminCollectV(){const all=S.collectPics,tc=topCollectors(),full=S.collectPics.length;
   return `<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">🏛️ كنوز طرابلس</h3><div style="width:34px"></div></div>
-  <p class="muted" style="margin-top:0">كل عملية شراء من محل جديد تكشف للزبون صورة من هذه المجموعة. أضف صوراً حقيقية لمعالم طرابلس لتحل محل الصور الافتراضية.</p>
+  <p class="muted" style="margin-top:0">كل عملية شراء بقيمة ${TREASURE_MIN}$ أو أكثر من محل جديد، بعد إكمال الزبون اسمه وصورته، تكشف له صورة من هذه المجموعة. أضف صوراً حقيقية لمعالم طرابلس لتحل محل الصور الافتراضية.</p>
   <div class="card"><b style="font-size:15px">إضافة معلَم جديد</b>
   <div class="field" style="margin-top:8px"><input id="npname" placeholder="اسم المعلم (مثال: برج الساعة)"></div>
   <button class="btn sm blue" onclick="addCollectPic()">+ إضافة</button></div>
