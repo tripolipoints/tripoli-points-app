@@ -1,0 +1,103 @@
+slug,name_ar,processing
+main_fashion,الأزياء والموضة,circle photo
+fashion,ملابس,circle photo
+shoes,أحذية,circle photo
+handbags,حقائب,circle photo
+accessories,إكسسوارات,manual crop (rim/ribbon removed)
+modest,لباس شرعي ومحجبات,circle photo
+kidswear,ملابس أطفال,circle photo
+sportswear,ملابس رياضية,circle photo
+headwear,أغطية للرأس,circle photo
+fabrics,أقمشة,circle photo
+wool_knitwear,أصواف وتريكو,circle photo
+sewing_supplies,مستلزمات الخياطة والحياكة,circle photo
+menswear,ملابس رجالية,circle photo
+womenswear,ملابس نسائية,circle photo
+shoes_men,رجالية,circle photo
+shoes_women,نسائية,circle photo
+shoes_kids,أطفال,circle photo
+shoes_sport,أحذية رياضية,manual crop (rim/ribbon removed)
+main_food,المطاعم والمأكولات,circle photo
+food,مطاعم,manual crop (rim/ribbon removed)
+sweets,حلويات,circle photo
+chocolate,شوكولا,circle photo
+bakery,مخابز,circle photo
+oriental,مأكولات شرقية,circle photo
+nuts,مكسرات وبزورات,circle photo
+grocery,أغذية,circle photo
+drinks,مشروبات,circle photo
+naturaldrinks,مشروبات طبيعية,circle photo
+vegetables,خضار وفواكه,circle photo
+cafe,مقاهي,circle photo
+main_home,المنزل والأثاث,circle photo
+furniture,أثاث,circle photo
+linens,مفروشات,circle photo
+carpets,سجاد,circle photo
+curtains,برادي وستائر,circle photo
+chandeliers,ثريات وإنارة,circle photo
+homeware,أدوات منزلية,circle photo
+decor,ديكور,circle photo
+homeappliances,أجهزة منزلية,circle photo
+antiques,تحف,circle photo
+home,منزل وأثاث (عام),circle photo
+bags_hand,حقائب يد,circle photo
+bags_school,حقائب مدرسية,circle photo
+bags_travel,حقائب سفر,circle photo
+belts,أحزمة,circle photo
+wallets,محافظ,circle photo
+fashion_accessories,إكسسوارات أزياء,circle photo
+main_electronics,الإلكترونيات,circle photo
+mobile,هواتف خلوية,circle photo
+electronics,إلكترونيات,circle photo
+electronics_acc,إكسسوارات إلكترونية,circle photo
+homeelec,أجهزة منزلية إلكترونية,circle photo
+ac,مكيفات,circle photo
+electrical,إلكترونيات عامة (كهربائيات),manual crop (rim/ribbon removed)
+main_beauty,الجمال والعناية,circle photo
+perfume,عطور,circle photo
+beauty,مستحضرات تجميل,circle photo
+beautysupplies,مستلزمات تجميل,manual crop (rim/ribbon removed)
+salons,صالونات,manual crop (rim/ribbon removed)
+beautycenters,مراكز تجميل,circle photo
+abayas,عبايات,icon on ivory
+jalabiyas,جلابيات,icon on ivory
+hijab,حجاب,icon on ivory
+islamic_wear,ألبسة شرعية,icon on ivory
+main_jewelry,المجوهرات والبصريات,icon on ivory
+jewelry,مجوهرات,icon on ivory
+watches,ساعات,icon on ivory
+glasses,نظارات وبصريات,icon on ivory
+boys_wear,ملابس أولاد,icon on ivory
+girls_wear,ملابس بنات,icon on ivory
+baby_wear,ملابس مواليد,icon on ivory
+main_auto,السيارات والنقل,icon on ivory
+carshowroom,معارض سيارات,circle photo
+carparts,قطع سيارات,icon on ivory
+carrent,تأجير سيارات,icon on ivory
+carrental,تأجير سيارات سياحية,icon on ivory
+fuel,محطات وقود,icon on ivory
+carservices,خدمات سيارات,icon on ivory
+insurance,تأمين,icon on ivory
+sportswear_men,رجالية,icon on ivory
+sportswear_women,نسائية,circle photo
+sportswear_kids,أطفال,circle photo
+main_health,الصحة والطب,circle photo
+doctors,أطباء,circle photo
+clinics,عيادات,circle photo
+hospitals,مستشفيات,circle photo
+pharma,صيدليات,circle photo
+labs,مختبرات,circle photo
+supplements,مكملات غذائية,circle photo
+main_travel,السفر والسياحة,circle photo
+travel,مكاتب سفريات,icon on ivory
+hotels,فنادق,icon on ivory
+bookings,حجوزات,icon on ivory
+tourism,سياحة,icon on ivory
+travelbags,حقائب سفر,"icon on ivory (small icon on glow, enlarged)"
+knitwear_ready,ملابس تريكو جاهزة,icon on ivory
+wool_sweaters,كنزات صوف,icon on ivory
+wool_jackets,جاكيتات صوف,icon on ivory
+wool_kids,ملابس صوف للأطفال,icon on ivory
+knitwear_unisex,ملابس تريكو نسائية ورجالية,icon on ivory
+earphones,سماعات أذن,circle photo
+wedding_dresses,فساتين أعراس,circle photo

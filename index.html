@@ -215,8 +215,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 .offBanner .obTitle{margin:18px 0 3px;font-size:23px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
 .offBanner .obSub{margin:0;font-size:12.5px;color:#ffffffd0}
 .hero2 .bell{position:absolute;left:92.7%;top:42.2%;width:8.2%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#fff;border:0;display:flex;align-items:center;justify-content:center;color:var(--navy);box-shadow:0 2px 8px #0003;padding:0}
-.hero2 .qrsHero{position:absolute;right:3.2%;top:68%;display:flex;align-items:center;gap:4px;height:clamp(28px,8.2vw,34px);padding:0 10px 0 9px;border-radius:999px;border:0;background:#fff;color:var(--navy);font-family:inherit;font-weight:800;font-size:12.5px;box-shadow:0 2px 8px #0003;cursor:pointer;z-index:2}
-.hero2 .qrsHero .ic{width:17px;height:17px;color:var(--navy)}
+/* staging-netlify: QR pill sits in its own row below the home banner (no overlap with the image or the bell) */
+@font-face{font-family:'TPBrand';font-style:normal;font-weight:700;font-display:swap;src:url(assets/fonts/poppins-bold-latin.e3c2d4743b.woff) format('woff');unicode-range:U+0020,U+0041-005A,U+0061-007A}
+.qrsRowHome{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,2.6vw,11px);margin:8px 0 7px;flex:none}
+/* staging-netlify v5: Scan (navy, right in RTL) + Tripoli (gold, left) — equal pills in one row below the banner */
+.qrsHero,.tpCityBtn{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(8px,2.6vw,11px);direction:ltr;box-sizing:border-box;width:100%;min-width:0;height:clamp(32px,9.2vw,38px);padding:0 9px 0 11px;margin:0;border-radius:999px;font-family:inherit;font-weight:800;font-size:clamp(15px,4.5vw,18px);line-height:1;letter-spacing:.2px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;white-space:nowrap}
+.qrsHero{border:1px solid #0a2459;background:linear-gradient(180deg,#143f94 0%,#0c2a6b 100%);color:#fff;box-shadow:0 4px 10px rgba(12,42,107,.28),inset 0 1px 0 rgba(255,255,255,.14)}
+.tpCityBtn{border:1px solid #e9a900;background:linear-gradient(180deg,#ffd23f 0%,#ffbf0b 100%);color:var(--navy);box-shadow:0 4px 10px rgba(201,145,0,.30),inset 0 1px 0 rgba(255,255,255,.45)}
+.qrsHero::after,.tpCityBtn::after{content:'';position:absolute;inset:-5px -3px -7px}/* invisible: touch area ≥ 42px tall without changing the look */
+.qrsHero:active,.tpCityBtn:active{transform:translateY(1px);filter:brightness(.97)}
+.qrsHero:focus-visible,.tpCityBtn:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.qrsHero span,.tpCityBtn span{display:block;line-height:1;min-width:0;font-family:'TPBrand','Tajawal',system-ui,-apple-system,sans-serif;font-weight:700;letter-spacing:.15px;font-synthesis:none;-webkit-font-smoothing:antialiased}
+.qrsHero .ic,.tpCityBtn .ic{display:block;flex:none;width:clamp(19px,5.6vw,23px);height:clamp(19px,5.6vw,23px);color:currentColor}
 .qrsSheet{text-align:center}.qrsSheet h3{margin:0 0 4px;color:var(--navy)}.qrsSheet>p.muted{margin:0 0 10px}
 .qrsCam[hidden],.qrsSheet .btn[hidden]{display:none}.qrsCam{position:relative;border-radius:14px;overflow:hidden;background:#0b1730;margin:0 auto 6px;max-width:100%}
 .qrsCam video{display:block;width:100%;max-height:min(46vh,300px);object-fit:cover}
@@ -531,6 +541,13 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
 }
 .scr:has(> .hero2) .rmap .mchip{box-shadow:0 3px 12px rgba(12,42,107,.24)}
 .scr:has(> .hero2) .rmap .zb{border-radius:13px;box-shadow:0 3px 9px rgba(11,39,79,.25)}
+/* staging-netlify v7: floating map controls — clearly visible soft drop shadow + hairline ring (reads on light tiles and on blue sea),
+   subtle pressed state. Colours, sizes, positions, icons and actions unchanged. */
+.rmap .zb,.rmap .tp23-fullscreen-btn,.rmap .mchip.mround{box-shadow:0 4px 12px rgba(0,25,65,.32),0 2px 4px rgba(0,25,65,.22),0 0 0 1px rgba(0,25,65,.08)!important;transition:transform .1s ease,box-shadow .1s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .mchip.mround:active{transform:translateY(1px);box-shadow:0 1px 4px rgba(0,25,65,.26),0 1px 2px rgba(0,25,65,.18),0 0 0 1px rgba(0,25,65,.08)!important}
+/* staging-netlify v4: «+» drawn as a centred SVG so it sits exactly in the middle of its square */
+.rmap .zb{display:flex;align-items:center;justify-content:center}
+.rmap .zb.zbIn svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;pointer-events:none}
 .scr:has(> .hero2) > .promoSlot{
   background:transparent;border-radius:19px;
   box-shadow:0 5px 18px rgba(11,38,91,.18);
@@ -1273,6 +1290,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:right;
   .scr:has(> .hero2) > .cats2 .cat2 .cat2name{margin-left:-2px;margin-right:-2px;max-width:calc(100% + 4px)}
   .tpTreasureTitle{font-size:12.6px}
 }
+/* staging-netlify v8: the six area / search tiles above the map look raised and tappable.
+   Same navy drop shadow on every tile (white, selected, yellow «بحث وفئات»); backgrounds, borders, icons, text,
+   corners and sizes unchanged. Row sits above the map's top edge so the shadow is never cut off. */
+.scr:has(> .hero2) > .cats2{position:relative;z-index:1}
+.scr:has(> .hero2) > .cats2 .cat2{box-shadow:0 4px 10px rgba(0,30,75,.18),0 1px 2px rgba(0,30,75,.10)!important;transition:background .15s,transform .1s ease,box-shadow .1s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.scr:has(> .hero2) > .cats2 .cat2.on{box-shadow:0 4px 10px rgba(0,30,75,.18),0 1px 2px rgba(0,30,75,.10),0 2px 10px rgba(211,154,28,.16)!important}
+.scr:has(> .hero2) > .cats2 .cat2.tp25-discover{box-shadow:0 4px 10px rgba(0,30,75,.18),0 1px 2px rgba(0,30,75,.10),0 3px 10px rgba(161,112,5,.16)!important}
+.scr:has(> .hero2) > .cats2 .cat2:active{transform:translateY(1px) scale(.97);box-shadow:0 2px 4px rgba(0,30,75,.16),0 1px 1px rgba(0,30,75,.08)!important}
 </style>
 <style id="tp23-big-map-preview">
 /* V23 map-size preview: keep all route, pin and data behavior unchanged. */
@@ -1871,6 +1896,114 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
   }
 }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&display=swap">
+<style>/* Tripoli Points map: zoom 19–20 shared-spot list */
+.pn .tpCount,.pn .tpCount *{all:unset}
+.pn .tpCount{position:absolute;z-index:3;top:-2px;left:calc(50% + 8px);min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#0b2d6b;color:#fff;border:2px solid #ffc20e;font:800 11px/14px -apple-system,system-ui,sans-serif;text-align:center;box-shadow:0 2px 5px rgba(0,25,65,.35);pointer-events:none}
+.tpPick{position:fixed;inset:0;z-index:2147483600;background:rgba(6,20,52,.42);display:flex;align-items:flex-end;justify-content:center;direction:rtl}
+.tpPickSheet{width:min(480px,100%);background:#fff;border-radius:22px 22px 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,25,65,.3);
+ font-family:-apple-system,'SF Arabic','Tajawal',system-ui,sans-serif;animation:tpUp .18s ease-out}
+@keyframes tpUp{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.tpPickHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;color:#0b2d6b;font-size:16px}
+.tpPickX{width:36px;height:36px;border-radius:12px;border:0;background:#eef2f8;color:#0b2d6b;font-size:16px}
+.tpPickList{display:grid;gap:8px;max-height:52vh;overflow:auto}
+.tpPickRow{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 10px;border:1px solid #e3e9f3;border-radius:16px;background:#f8faff;text-align:right;cursor:pointer}
+.tpPickRow:active{background:#fff6d6;border-color:#ffc20e}
+.tpPickDot{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#fff;font-size:18px;box-shadow:inset 0 0 0 3px #fff,0 0 0 1px #d7e0ec}
+.tpPickTxt{flex:1;min-width:0;display:grid}.tpPickTxt b{color:#0b2d6b;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tpPickTxt small{color:#6b7a93;font-size:12px}
+.tpPickGo{color:#9aa8bf;font-size:22px}
+</style>
+<style>/* PREVIEW v8: one gold pin family — regional (zoom 13) → cluster → miniature shop pin. Images are pre-rendered (no SVG
+   references), every name/count/icon is live HTML text, so nothing can render empty on iPhone Safari. */
+.rmap #rtl img#tpArt{position:absolute;left:0;top:0;transform-origin:0 0;z-index:60;pointer-events:none;max-width:none;will-change:transform,opacity;transition:none}
+:root{--gpTipX:48.04%;--gpTipY:92.23%;--gpFont:'Amiri','Geeza Pro','Noto Naskh Arabic','Times New Roman',serif}
+
+/* 1) regional pins: per-area engraved image + live name and count, centred in the medallion */
+.gp{position:relative;display:block;width:var(--w);height:calc(var(--w) * 1.0943);filter:drop-shadow(0 5px 6px rgba(60,35,0,.30))}
+.gp img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.gp .gpN{position:absolute;left:31.5%;width:35.6%;top:47.55%;height:8.6%;display:flex;align-items:center;justify-content:center;white-space:nowrap;
+ font:800 calc(var(--w) * .088)/1.25 'Tajawal',var(--gpFont);color:#2a1708;text-shadow:0 1px 0 rgba(255,250,236,.9);direction:rtl}
+.gp .gpK{position:absolute;left:36.4%;width:25.8%;top:54.64%;height:6%;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-style:normal;
+ font:700 calc(var(--w) * .064)/1.25 'Tajawal',var(--gpFont);color:#6a4313;direction:rtl}
+.gp .gpK.two{font-size:calc(var(--w) * .062)}
+.gp .gpN,.gp .gpK{overflow:hidden}
+#tpBig{position:absolute;inset:0;z-index:20;pointer-events:none}
+#tpBig .tpBigPin{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
+#tpBig .tpBigBtn{position:absolute;left:calc(-104px * .4804);top:calc(-104px * 1.0092);width:104px;padding:0;margin:0;border:0;background:none;cursor:pointer;
+ pointer-events:auto;-webkit-tap-highlight-color:transparent}
+#tpBig.off .tpBigBtn{pointer-events:none}
+#tpBig .tpBigBtn:active{transform:scale(.96)}
+
+/* 2) cluster pins (the app's own elements): same gold pin, ornament baked in, the app's own count restyled as the hero */
+.rmap.tpv6 .pn.cluster{width:74px;height:81px;left:calc(-74px * .4804);top:calc(-74px * 1.0092);transform-origin:var(--gpTipX) var(--gpTipY);transform:scale(var(--tpcs,1));
+ background:url('assets/map/pins/c.webp') center/100% 100% no-repeat;filter:drop-shadow(0 4px 5px rgba(60,35,0,.32))}
+.rmap.tpv6 .pn.cluster .pnbody,.rmap.tpv6 .pn.cluster .pnring{display:none}
+.rmap.tpv6 .pn.cluster > b{inset:auto;left:34.2%;width:30%;top:29.6%;height:12%;display:flex;align-items:center;justify-content:center;
+ font:700 25px/1 var(--gpFont);color:#3a1c04;text-shadow:0 1px 0 rgba(255,246,222,.95)}
+.rmap.tpv6 .pn.cluster::before{content:attr(data-area);position:absolute;left:var(--gpTipX);top:calc(100% + 2px);transform:translateX(-50%);display:none;white-space:nowrap;
+ padding:2px 8px;border-radius:9px;background:#5a2e0c;border:1.5px solid #d9a63a;color:#fff3d6;font:700 11px/1.3 var(--gpFont);box-shadow:0 1px 3px rgba(60,40,0,.3);pointer-events:none}
+.rmap.tpv6 .pn.cluster.tpNamed::before{display:block}
+.rmap.tpv6 .pn.cluster::after{content:'';position:absolute;inset:4% 12% 10% 12%}
+.rmap.tpv6 .pn.cluster.open{display:none}
+
+/* 3) shop pins: miniature of the same gold pin; area colour as a ring around the category icon / logo */
+.rmap.tpv6 .pn:not(.cluster):not(.ref){width:38px;height:41.6px;left:calc(-38px * .4804);top:calc(-38px * 1.0092);transform-origin:var(--gpTipX) var(--gpTipY);
+ background:url('assets/map/pins/m2.webp') center/100% 100% no-repeat;filter:drop-shadow(0 2px 3px rgba(50,30,0,.38))}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnbody{display:none}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnring,.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnimg{inset:auto;left:9.2px;top:5.3px;width:19.4px;height:19.4px;border-radius:50%;box-sizing:border-box}
+/* v10: gold first, colour second — warm gold-cream disc, the area colour only as a soft thin ring */
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnring{background:radial-gradient(circle at 40% 32%,#fff6dc 0%,#f6dfa2 55%,#e6c172 100%);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e),inset 0 1px 1.5px rgba(120,80,10,.25)}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) .pnimg{background:#fff8e6;box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c) 45%,#e8c66e)}
+.rmap.tpv6 .pn:not(.cluster):not(.ref) > b{inset:auto;left:9.2px;top:5.3px;width:19.4px;height:19.4px;font-size:11.5px;line-height:1}
+.rmap.tpv6 .pn:not(.cluster):not(.ref)::after{content:'';position:absolute;inset:-5px -4px 0 -4px}
+/* selected / route: the app's highlight (gold glow) on the same miniature pin */
+.rmap.tpv6 .pn.sel,.rmap.tpv6 .pn.route{filter:drop-shadow(0 0 3px #ffc20e) drop-shadow(0 0 6px rgba(255,194,14,.8)) drop-shadow(0 2px 3px rgba(50,30,0,.4))}
+.rmap.tpv6 .pn.sel .pnring,.rmap.tpv6 .pn.route .pnring{box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 65%,#e8c66e),0 0 0 3.4px #ffd23f}
+/* shop names */
+.rmap.tpv6 .pnname{top:3px;background:#5a2e0c;border:1.5px solid #d9a63a;color:#fff3d6;font:700 11.5px/1.3 'Amiri','Geeza Pro','Tajawal','SF Arabic',-apple-system,system-ui,sans-serif;max-width:140px;padding:2px 9px;border-radius:9px;box-shadow:0 1px 3px rgba(60,40,0,.3)}
+.rmap.tpv6 .pnname.hi{background:#5a2e0c;border-color:#ffd23f;color:#fff3d6;font-weight:700;box-shadow:0 0 0 1.5px rgba(255,210,63,.55),0 1px 4px rgba(60,40,0,.35);z-index:3}
+
+/* v9: leader lines from fanned-out shop pins to their true GPS point */
+.rmap .pinLayer svg.tpLeads{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;z-index:6;pointer-events:none}
+</style>
+<style>/* Production V3.2: map controls — one size, one shape, one shadow (approved Staging control shadow) */
+:root{--tpCtl:34px;--tpCtlR:13px;--tpCtlGap:12px;--tpCtlSh:0 4px 12px rgba(0,25,65,.32),0 2px 4px rgba(0,25,65,.22),0 0 0 1px rgba(0,25,65,.08);
+ --tpCtlShOn:0 1px 4px rgba(0,25,65,.26),0 1px 2px rgba(0,25,65,.18),0 0 0 1px rgba(0,25,65,.08)}
+/* home map: + (top 12) − (top 50) full-screen (top 88): 34 px squares, 4 px apart, same right edge */
+.rmap:not(.tp23-fullscreen) .tp23-fullscreen-btn{top:88px!important;right:10px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important;font-size:18px!important;line-height:1!important;padding:0!important}
+/* full-screen map: X, +, − stacked 34 px squares with the same right edge and even 12 px gaps */
+body > .rmap.tp23-fullscreen .tp23-fullscreen-btn,.rmap.tp23-fullscreen .tp23-fullscreen-btn{top:calc(34px + env(safe-area-inset-top))!important;right:12px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important;font-size:17px!important;line-height:1!important;padding:0!important}
+body > .rmap.tp23-fullscreen .zb,.rmap.tp23-fullscreen .zb{right:12px!important;width:var(--tpCtl)!important;height:var(--tpCtl)!important;border-radius:var(--tpCtlR)!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:12px"],.rmap.tp23-fullscreen .zb[style*="top:12px"]{top:calc(80px + env(safe-area-inset-top))!important}
+body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[style*="top:50px"]{top:calc(126px + env(safe-area-inset-top))!important}
+/* «Tripoli» on the full-screen map: the approved gold pill (Poppins lettering + map icon), same height as the controls */
+.rmap .tpMapCity{display:none}
+.rmap.tp23-fullscreen .tpMapCity{display:flex;position:absolute;z-index:8;top:calc(34px + env(safe-area-inset-top));left:12px;width:auto;height:var(--tpCtl);padding:0 12px 0 13px;font-size:14px}
+.rmap.tp23-fullscreen .tpMapCity .ic{width:19px;height:19px}
+/* one consistent shadow on every main map control */
+.rmap .zb,.rmap .tp23-fullscreen-btn,.rmap .tpMapCity,.rmap .tpRouteBtn{box-shadow:var(--tpCtlSh)!important}
+.rmap .tpMapCity{box-shadow:var(--tpCtlSh),inset 0 1px 0 rgba(255,255,255,.45)!important}
+.rmap .zb:active,.rmap .tp23-fullscreen-btn:active,.rmap .tpMapCity:active,.rmap .tpRouteBtn:active{transform:translateY(1px);box-shadow:var(--tpCtlShOn)!important}
+</style>
+<style>/* V3.5: category image inside the individual shop pin — same pin, same gold frame and shine, no extra ring or yellow */
+.rmap.tpv6 .pn.tpCatPin > b{visibility:hidden}
+.rmap.tpv6 .pn.tpCatPin .pnring{background:transparent!important;box-shadow:none!important}
+.rmap.tpv6 .pn .tpCatImg{position:absolute;left:8.65px;top:4.75px;width:20.5px;height:20.5px;border-radius:50%;object-fit:cover;pointer-events:none;z-index:2;box-shadow:none;image-rendering:auto}
+.rmap.tpv6 .pn .tpCatImg.tpLogo{background:#fff8e6;object-fit:contain}
+.rmap.tpv6 .pn.tpCatPin.sel,.rmap.tpv6 .pn.tpCatPin.route{filter:drop-shadow(0 2px 3px rgba(50,30,0,.38))}
+.rmap.tpv6 .pn.tpCatPin.sel .pnring,.rmap.tpv6 .pn.tpCatPin.route .pnring,.rmap.tpv6 .pn.tpCatPin.sel .tpCatImg,.rmap.tpv6 .pn.tpCatPin.route .tpCatImg{box-shadow:none!important}
+/* V3.5: progressive enlargement — grows from the tip (transform-origin 50% 100%), above neighbours (z-index set by drawPinClusters) */
+.rmap.tpv6 .pn.tpGrow.sel{transform:scale(calc(var(--zs,1) * 1.45))}
+.rmap.tpv6 .pn.tpGrow.route{transform:scale(calc(var(--zs,1) * 1.9))}
+.rmap.tpv6 .pn.tpGrow.sel~.pnname,.rmap.tpv6 .pn.tpGrow.route~.pnname{top:calc(3px + 6px)}
+</style>
+<style>/* V3.6.1: «−» and «✕» drawn as centred marks (same size and weight as the «+» icon) */
+.zb[aria-label="تصغير"]{font-size:0!important}
+.zb[aria-label="تصغير"]::before{content:"";display:block;width:9.75px;height:1.95px;border-radius:2px;background:currentColor}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn{font-size:0!important}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn::before,.rmap.tp23-fullscreen .tp23-fullscreen-btn::after{content:"";position:absolute;left:50%;top:50%;width:15px;height:2.3px;border-radius:2px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn::after{transform:translate(-50%,-50%) rotate(-45deg)}
+</style>
 </head>
 <body>
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
@@ -1879,6 +2012,8 @@ html.tpBarOn.tpBarTall{scroll-padding-top:calc(92px + env(safe-area-inset-top,0p
 <div id="subBarSlot"></div>
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>/* Tripoli Points artistic map: artwork (copy of the approved Treasures of Tripoli map) and gold pins */
+const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 973], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.983cd47280.webp", "التل": "assets/map/pins/r1.01483b69cd.webp", "عزمي بك": "assets/map/pins/r2.7c5c58d1b0.webp", "القبة": "assets/map/pins/r3.fe8ac6af61.webp", "ضم والفرز": "assets/map/pins/r4.33f29f8bdb.webp", "أبو سمراء": "assets/map/pins/r5.0ad8903496.webp"};</script>
 <script>
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 // هذه مفاتيح عامة (anon) مخصصة للاستخدام من المتصفح؛ الحماية الحقيقية هي قفل الجداول (RLS) وبوابات RPC بقاعدة البيانات، وليست سرّية هذه المفاتيح.
@@ -2142,6 +2277,12 @@ function qrSvg(text,px){
 }
 const reserved=p=>S.tx.filter(t=>t.phone===p&&t.status==='PENDING').reduce((a,t)=>a+t.redeemPts,0);
 const avail=p=>Math.max(0,S.customers[p].points-reserved(p));
+// Staging fix: on a merchant's device the local S.customers list only ever holds built-in sample data (it is never loaded from
+// the server for merchants). So in merchant mode a local record is trusted only for a demo merchant; for a real merchant the
+// customer's existence, status and balance are unknown here and are validated by create_transaction on the server.
+// Names from merchant_requests / merchant_transactions (cname) are for display only, never proof of anything.
+const custKnown=p=>{const c=p&&S.customers[p];if(!c)return null;if(S.mode!=='merchant')return c;const m=M(S.merchantId);return m&&m.demo?c:null};
+const custName=p=>{const c=custKnown(p);if(c&&c.name)return c.name;const pick=l=>l.filter(x=>x.phone===p&&x.cname).sort((a,b)=>b.at-a.at)[0];const r=pick(S.custReq)||pick(S.tx);return r?r.cname:''};
 const maxRedeem=p=>Math.floor(avail(p)*CAP);
 // ===== العروض: الأنواع والأهلية والحساب =====
 const OTL={discount:'خصم مباشر',gift:'هدية مجانية',bonus:'نقاط إضافية',product:'عرض خاص'};
@@ -2176,7 +2317,7 @@ function clearVip(p){const m=M(S.merchantId);if(m.vips)delete m.vips[p];toast('�
 function calc(inv,pct,on,p,m,o){const tl=TIERS[(m&&m.tier)||'large'],rp2=m?rdPct(m,p)/100:0;
   const disc=o&&o.type==='discount'?+(inv*o.val/100).toFixed(2):0, base=+(inv-disc).toFixed(2);
   const vc=m&&p&&isVip(m,p)?Math.min(vipCap(m,p),Math.floor(base*RATE)):0;
-  const cap=p&&S.customers[p]?(vc>0?Math.min(maxRedeem(p),vc):Math.min(maxRedeem(p),Math.floor(base*RATE*rp2),tl.maxPts)):0, rp=on?cap:0, rv=rp/RATE, net=+(base-rv).toFixed(2);
+  const cap=p&&custKnown(p)?(vc>0?Math.min(maxRedeem(p),vc):Math.min(maxRedeem(p),Math.floor(base*RATE*rp2),tl.maxPts)):0, rp=on?cap:0, rv=rp/RATE, net=+(base-rv).toFixed(2);
   const bonus=o&&o.type==='bonus'&&o.per>0?Math.floor(net/o.per)*o.pts:0;
   return {disc,base,redeemPts:rp,redeemVal:rv,net,bonus,gift:o&&o.type==='gift'?o.gift:'',earn:Math.floor(net*pct/100*RATE)+bonus};
 }
@@ -2189,12 +2330,11 @@ function sweep(){let c=false;S.tx.forEach(t=>{if(t.status==='PENDING'&&Date.now(
  if(S.mode==='customer'&&S.phone&&S.customers[S.phone]){const w=S.customers[S.phone].welcome;if(w&&w.remain>0&&Date.now()>w.exp){syncCustomerData(S.phone)}}
  return c}
 async function createTx(mid,p,inv,on,items,offerId){
-  const m=M(mid),c=S.customers[p];
+  const m=M(mid),c=custKnown(p);
   if(m.status!=='active')return'حساب المحل غير فعّال';
   if(!/^\d{7,8}$/.test(p))return'رقم الهاتف غير صحيح';
   if(p===m.phone)return'لا يمكن تسجيل عملية على رقم المحل نفسه';
-  if(!c)return'هذا الرقم غير مسجّل في التطبيق';
-  if(c.status!=='active')return'حساب الزبون مجمّد';
+  if(c&&c.status!=='active')return'حساب الزبون مجمّد'; // unknown here = not rejected locally: create_transaction checks the customer exists and is active
   if(!(inv>0))return'أدخل قيمة الفاتورة';
   if(reserved(p)>0)return'لدى الزبون عملية قيد التأكيد';
   const res=await sbRpc('create_transaction',{p_merchant_id:mid,p_customer_phone:p,p_invoice:inv,p_redeem:!!on,p_offer_id:offerId||null,p_items:items||[]});
@@ -2373,6 +2513,9 @@ async function phoneNext(){
   if(mChk&&mChk.exists){S.loginRole='merchant';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
   const cChk=await sbRpc('customer_check_phone',{p_phone:S.phone});
   if(cChk&&cChk.exists){S.loginRole='customer';S.pinMode='enter';S.screen='pin';render();return resetZoomForPinScreen()}
+  // only a successful answer from BOTH checks saying the number does not exist leads to registration; a request/authorisation
+  // failure (null, or an answer without a yes/no) keeps the person on the phone screen and asks to try again
+  if(!mChk||!cChk||typeof mChk.exists!=='boolean'||typeof cChk.exists!=='boolean'){render();return toast('تعذّر التحقق من الرقم الآن (مشكلة اتصال بالخادم). لم يُنشأ أي حساب — حاول مرة أخرى بعد قليل')}
   S.pinMode='set';S.screen='pin';render();resetZoomForPinScreen();
 }
 function hydrateMerchant(md){
@@ -2455,7 +2598,7 @@ async function syncCustomerData(p){
   render({bg:true});txBannerCheck();
 }
 function mapOfferRow(o){return{id:o.id,mid:o.mid,title:o.title,badge:o.badge,at:o.at,days:o.days,active:o.active,type:o.type,val:o.val,gift:o.gift_text,pts:o.pts,per:o.per,oldPrice:o.old_price,newPrice:o.new_price,img:o.img_url,specs:o.specs,min:o.min,first:o.first,db:true}}
-function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
+function mapReqRow(mid,r){return{id:r.id,mid,phone:r.phone,cname:r.cname||'',invoice:r.invoice,offer:r.offerId,used:false,at:r.at,db:true}}
 async function syncMerchantData(mid){
   const[tx,notes,wallet,offs,reqs]=await Promise.all([sbRpc('merchant_transactions',{p_merchant_id:mid}),sbRpc('merchant_notes_list',{p_merchant_id:mid}),sbRpc('merchant_wallet',{p_merchant_id:mid}),sbRpc('merchant_offers',{p_merchant_id:mid}),sbRpc('merchant_requests',{p_merchant_id:mid})]);
   if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.mid===mid));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid,phone:r.phone,cname:r.cname})))}
@@ -2624,7 +2767,7 @@ function mregView(){const r=S.reg,st=r.step||1,cx=Math.min(84,Math.max(16,r.x||5
   <div class="cpin"><svg viewBox="0 0 40 50" width="40" height="50"><path d="M20 49C20 49 4 31 4 19a16 16 0 0 1 32 0c0 12-16 30-16 30z" fill="#ffc20e" stroke="#0c2a6b" stroke-width="3"/><circle cx="20" cy="19" r="6" fill="#0c2a6b"/></svg></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
   <button class="mchip" style="bottom:12px;left:12px" onclick="locateMe()">موقعي الحالي${ic('pin')}</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
   <div class="field">${ic('pin')}<span style="flex:1" id="regloc">${locTxt(r.lat,r.lng)}</span></div>
   <button class="btn" onclick="regNext()">تأكيد الموقع</button></div>`;
   if(st===3)return `<div class="scr">${back}${dots}<h1 style="font-size:22px">نسبة النقاط</h1><p class="sub">اختر النسبة التي تريد تقديمها من قيمة المشتريات</p>
@@ -2853,11 +2996,11 @@ function mapDirStateHtml(){if(allActiveMerchants().length)return'';
   if(S.dirState==='ok')return`<div class="mapDirState empty" role="status">لا توجد محلات متاحة حالياً. ترقّبوا انضمام محلات جديدة قريباً!</div>`;
   return S.dirState==='error'?`<div class="mapDirState err" role="alert">تعذّر تحميل المحلات. تحقّق من الاتصال<button type="button" onclick="S.dirState='loading';render();syncDirectory()">إعادة المحاولة</button></div>`:`<div class="mapDirState" role="status">جارٍ تحميل المحلات…</div>`}
 function mapBlock(tall){return `<div class="rmap ${tall?'':'tp23-home-map'} ${S.mapBig?'big':''} ${tall?'tall':''}" id="rmap"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div><div id="rtchip"></div>${mapDirStateHtml()}
- ${tp30GoogleNavButton()}${tall?'':`<button class="mchip" style="top:12px;left:12px" onclick="resetMapFilter()"><span>🗺️</span>طرابلس</button>`}
+ ${tp30GoogleNavButton()}<button type="button" class="tpCityBtn tpMapCity" onclick="resetMapFilter()" aria-label="Tripoli"><span>Tripoli</span>${TRIPOLI_MAP_IC}</button>
  <button class="tp23-fullscreen-btn" type="button" onclick="toggleMapFullscreen()" aria-label="عرض الخريطة بملء الشاشة" title="ملء الشاشة">⛶</button>
- <button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
+ <button class="zb zbIn" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
  <button class="mchip mround" style="bottom:10px;right:10px" onclick="locateMe()" aria-label="موقعي">${SVG_TGT}</button>
- <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div><div id="mapcard">${tall?cardHtml():''}</div>`}
+ <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div><div id="mapcard">${tall?cardHtml():''}</div>`}
 let tp24MapHome=null,tp24MapPlaceholder=null;
 function toggleMapFullscreen(force){
  const rm=document.getElementById('rmap');if(!rm)return;
@@ -2888,7 +3031,7 @@ function toggleMapFullscreen(force){
  refreshGoogleNavButton();placeLocateBtn();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('rmap')?.classList.contains('tp23-fullscreen'))toggleMapFullscreen(false)});
-function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
+function updateMap(fit,zBoost){const routeJustSynced=!!(S.route&&S.sel!==S.route.id);if(routeJustSynced){S.route=null;routeUi()}refreshCardUi(routeJustSynced);setMapBig(S.mapBig);if(GM)gBuild(fit,zBoost);if(TM){buildMarks();if(fit){const p=visibleMerchants().map(llOf);if(zBoost===TRIPOLI_ZOOM_BOOST){const h=tpHomeView();flyTo(h.lat,h.lng,h.z,600)}else if(p.length){const v=fitPts(p,44);flyTo(v.lat,v.lng,v.z+(zBoost||0),600)}}}}
 function setMapBig(on){const rm=$('#rmap');if(!rm)return;const was=rm.classList.contains('big');if(was===on)return;rm.classList.toggle('big',on);
   if(TM){TM.w=rm.clientWidth||TM.w;TM.h=rm.clientHeight||TM.h}
   requestAnimationFrame(()=>{if(GM&&GM.ok){google.maps.event.trigger(GM.map,'resize');const ll=S.sel&&M(S.sel)&&llOf(M(S.sel));if(ll)GM.map.panTo(ll)}if(TM)drawMap()})}
@@ -3166,9 +3309,31 @@ const dist=m=>Math.max(10,Math.round(hav(S.userLL,llOf(m))/10)*10);
 // ===== الخريطة الواقعية (محرك خرائط مبلّطة بلا مكتبات) =====
 const TS=256,BB={w:35.805,e:35.865,n:34.460,s:34.425},PORT={lat:34.4535,lng:35.8165};
 const T_IMG='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-const T_STREET=['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}','https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png','https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
+const T_STREET=['tp://{z}/{x}/{y}']; /* Tripoli Points painted map (OpenStreetMap data) — assets/map/tiles */
 S.mapStyle='street';
-const tileUrl=(u,z,x,y,n)=>u.replace('{s}','abcd'[(x+y)&3]).replace('{z}',z).replace('{x}',((x%n)+n)%n).replace('{y}',y);
+/* ===== Tripoli Points painted map tiles (static files assets/map/tiles/z/x/y.webp; © OpenStreetMap contributors, ODbL) ===== */
+const TP_TILE_BASE='assets/map/tiles/',TP_COV={"13":{"4912":[[3257,3263]],"4910":[[3257,3263]],"4913":[[3257,3263]],"4914":[[3257,3263]],"4911":[[3257,3263]],"4908":[[3257,3263]],"4909":[[3257,3263]]},"14":{"9819":[[6516,6525]],"9818":[[6516,6525]],"9821":[[6516,6525]],"9823":[[6516,6525]],"9826":[[6516,6525]],"9825":[[6516,6525]],"9824":[[6516,6525]],"9820":[[6516,6525]],"9822":[[6516,6525]]},"15":{"19645":[[13034,13047]],"19641":[[13034,13047]],"19638":[[13034,13047]],"19642":[[13034,13047]],"19651":[[13034,13047]],"19644":[[13034,13047]],"19649":[[13034,13047]],"19640":[[13034,13047]],"19643":[[13034,13047]],"19650":[[13034,13047]],"19648":[[13034,13047]],"19639":[[13034,13047]],"19647":[[13034,13047]],"19646":[[13034,13047]]},"16":{"39292":[[26076,26090]],"39294":[[26076,26090]],"39297":[[26076,26090]],"39285":[[26076,26090]],"39287":[[26076,26090]],"39291":[[26076,26090]],"39293":[[26076,26090]],"39289":[[26076,26090]],"39284":[[26076,26090]],"39286":[[26076,26090]],"39290":[[26076,26090]],"39296":[[26076,26090]],"39283":[[26076,26090]],"39288":[[26076,26090]],"39295":[[26076,26090]]},"17":{"78586":[[52152,52180]],"78581":[[52152,52180]],"78568":[[52152,52180]],"78572":[[52152,52180]],"78571":[[52152,52180]],"78579":[[52152,52180]],"78594":[[52152,52180]],"78569":[[52152,52180]],"78587":[[52152,52180]],"78570":[[52152,52180]],"78595":[[52152,52180]],"78573":[[52152,52180]],"78592":[[52152,52180]],"78593":[[52152,52180]],"78575":[[52152,52180]],"78589":[[52152,52180]],"78582":[[52152,52180]],"78585":[[52152,52180]],"78576":[[52152,52180]],"78577":[[52152,52180]],"78578":[[52152,52180]],"78591":[[52152,52180]],"78567":[[52152,52180]],"78574":[[52152,52180]],"78588":[[52152,52180]],"78583":[[52152,52180]],"78580":[[52152,52180]],"78590":[[52152,52180]],"78584":[[52152,52180]]},"18":{"157155":[[104317,104324]],"157151":[[104317,104324]],"157156":[[104317,104324]],"157171":[[104330,104337]],"157167":[[104323,104337]],"157172":[[104330,104337]],"157160":[[104323,104333]],"157164":[[104323,104333]],"157154":[[104317,104324]],"157173":[[104330,104337]],"157163":[[104323,104333]],"157159":[[104323,104333]],"157162":[[104323,104333]],"157166":[[104323,104337]],"157168":[[104323,104337]],"157161":[[104323,104333]],"157169":[[104323,104337]],"157153":[[104317,104324]],"157170":[[104330,104337]],"157152":[[104317,104324]],"157165":[[104323,104333]],"157150":[[104317,104324]]},"19":{"314322":[[208648,208666]],"314326":[[208648,208666]],"314304":[[208635,208646]],"314327":[[208648,208666]],"314323":[[208648,208666]],"314301":[[208635,208646]],"314308":[[208635,208646]],"314333":[[208648,208666]],"314324":[[208648,208666]],"314331":[[208648,208666]],"314328":[[208648,208666]],"314329":[[208648,208666]],"314303":[[208635,208646]],"314336":[[208648,208673]],"314338":[[208648,208673]],"314325":[[208648,208666]],"314306":[[208635,208646]],"314305":[[208635,208646]],"314312":[[208635,208646]],"314311":[[208635,208646]],"314309":[[208635,208646]],"314342":[[208662,208673]],"314330":[[208648,208666]],"314332":[[208648,208666]],"314334":[[208648,208673]],"314335":[[208648,208673]],"314307":[[208635,208646]],"314337":[[208648,208673]],"314344":[[208662,208673]],"314339":[[208662,208673]],"314310":[[208635,208646]],"314343":[[208662,208673]],"314341":[[208662,208673]],"314302":[[208635,208646]],"314340":[[208662,208673]],"314321":[[208648,208666]]},"20":{"628666":[[417305,417324]],"628616":[[417274,417290]],"628655":[[417305,417324]],"628657":[[417305,417324]],"628614":[[417274,417290]],"628660":[[417305,417324]],"628610":[[417274,417290]],"628618":[[417274,417290]],"628607":[[417274,417290]],"628652":[[417305,417324]],"628613":[[417274,417290]],"628653":[[417305,417324]],"628664":[[417305,417324]],"628667":[[417305,417324]],"628685":[[417328,417343]],"628621":[[417274,417290]],"628615":[[417274,417290]],"628658":[[417305,417324]],"628676":[[417328,417343]],"628673":[[417328,417343]],"628659":[[417305,417324]],"628683":[[417328,417343]],"628679":[[417328,417343]],"628682":[[417328,417343]],"628681":[[417328,417343]],"628686":[[417328,417343]],"628651":[[417305,417324]],"628680":[[417328,417343]],"628656":[[417305,417324]],"628654":[[417305,417324]],"628662":[[417305,417324]],"628617":[[417274,417290]],"628608":[[417274,417290]],"628678":[[417328,417343]],"628619":[[417274,417290]],"628674":[[417328,417343]],"628609":[[417274,417290]],"628661":[[417305,417324]],"628675":[[417328,417343]],"628606":[[417274,417290]],"628665":[[417305,417324]],"628668":[[417305,417324]],"628684":[[417328,417343]],"628620":[[417274,417290]],"628611":[[417274,417290]],"628677":[[417328,417343]],"628663":[[417305,417324]],"628612":[[417274,417290]],"628672":[[417328,417343]]},"21":{"1257369":[[834656,834687]],"1257360":[[834656,834687]],"1257241":[[834549,834580]],"1257213":[[834549,834580]],"1257346":[[834656,834687]],"1257215":[[834549,834580]],"1257218":[[834549,834580]],"1257228":[[834549,834580]],"1257315":[[834611,834648]],"1257233":[[834549,834580]],"1257336":[[834611,834648]],"1257239":[[834549,834580]],"1257364":[[834656,834687]],"1257324":[[834611,834648]],"1257367":[[834656,834687]],"1257371":[[834656,834687]],"1257238":[[834549,834580]],"1257332":[[834611,834648]],"1257319":[[834611,834648]],"1257220":[[834549,834580]],"1257231":[[834549,834580]],"1257334":[[834611,834648]],"1257327":[[834611,834648]],"1257304":[[834611,834648]],"1257361":[[834656,834687]],"1257354":[[834656,834687]],"1257359":[[834656,834687]],"1257322":[[834611,834648]],"1257355":[[834656,834687]],"1257356":[[834656,834687]],"1257226":[[834549,834580]],"1257344":[[834656,834687]],"1257357":[[834656,834687]],"1257305":[[834611,834648]],"1257242":[[834549,834580]],"1257350":[[834656,834687]],"1257230":[[834549,834580]],"1257309":[[834611,834648]],"1257317":[[834611,834648]],"1257335":[[834611,834648]],"1257348":[[834656,834687]],"1257214":[[834549,834580]],"1257313":[[834611,834648]],"1257312":[[834611,834648]],"1257234":[[834549,834580]],"1257222":[[834549,834580]],"1257314":[[834611,834648]],"1257373":[[834656,834687]],"1257325":[[834611,834648]],"1257225":[[834549,834580]],"1257352":[[834656,834687]],"1257351":[[834656,834687]],"1257329":[[834611,834648]],"1257345":[[834656,834687]],"1257219":[[834549,834580]],"1257306":[[834611,834648]],"1257372":[[834656,834687]],"1257229":[[834549,834580]],"1257308":[[834611,834648]],"1257370":[[834656,834687]],"1257318":[[834611,834648]],"1257349":[[834656,834687]],"1257316":[[834611,834648]],"1257358":[[834656,834687]],"1257347":[[834656,834687]],"1257216":[[834549,834580]],"1257221":[[834549,834580]],"1257366":[[834656,834687]],"1257311":[[834611,834648]],"1257321":[[834611,834648]],"1257235":[[834549,834580]],"1257365":[[834656,834687]],"1257333":[[834611,834648]],"1257223":[[834549,834580]],"1257236":[[834549,834580]],"1257232":[[834549,834580]],"1257307":[[834611,834648]],"1257310":[[834611,834648]],"1257240":[[834549,834580]],"1257330":[[834611,834648]],"1257331":[[834611,834648]],"1257227":[[834549,834580]],"1257362":[[834656,834687]],"1257363":[[834656,834687]],"1257237":[[834549,834580]],"1257368":[[834656,834687]],"1257328":[[834611,834648]],"1257224":[[834549,834580]],"1257302":[[834611,834648]],"1257353":[[834656,834687]],"1257217":[[834549,834580]],"1257326":[[834611,834648]],"1257320":[[834611,834648]],"1257323":[[834611,834648]],"1257303":[[834611,834648]]}};
+const tpHas=(z,x,y)=>{const c=TP_COV[z],r=c&&c[x];if(!r)return false;for(const [a,b] of r)if(y>=a&&y<=b)return true;return false};
+const tpUrl=(z,x,y)=>TP_TILE_BASE+z+'/'+x+'/'+y+'.webp';
+const TP_IMG={},TP_PEND={},TP_HI={},TP_PLAIN='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#2c8fd6"/></svg>');
+// sharp tiles on high-density screens: a 512 px tile made from the four painted children one zoom deeper (same geometry)
+function tpHi(z,x,y){const ks=[[0,0],[1,0],[0,1],[1,1]].map(([a,b])=>[z+1,2*x+a,2*y+b]);if(!ks.every(k=>tpHas(...k)))return null;
+  const key=z+'/'+x+'/'+y;if(TP_HI[key]&&TP_HI[key]!=='p')return TP_HI[key];
+  if(!TP_HI[key]){TP_HI[key]='p';Promise.all(ks.map(k=>new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=tpUrl(...k)}))).then(ims=>{
+    if(ims.some(i=>!i)){delete TP_HI[key];return}const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+    ims.forEach((im,i)=>g.drawImage(im,(i%2)*256,(i>>1)*256));TP_HI[key]=c.toDataURL('image/jpeg',.88);
+    if(TM){const e=TM.tiles['s'+key];if(e&&e.src!==TP_HI[key])e.src=TP_HI[key]}})}
+  return null}
+function tpTile(z,x,y,n){x=((x%n)+n)%n;if(tpHas(z,x,y))return((window.devicePixelRatio||1)>1.4&&tpHi(z,x,y))||tpUrl(z,x,y);
+  // no painted tile at this zoom here: magnify the nearest painted ancestor (same geometry, only softer)
+  for(let dz=1;dz<=8&&z-dz>=12;dz++){const az=z-dz,ax=x>>dz,ay=y>>dz,ak=az+'/'+ax+'/'+ay;if(!tpHas(az,ax,ay))continue;
+    let im=TP_IMG[ak];if(!im){im=TP_IMG[ak]=new Image();im.src=tpUrl(az,ax,ay)}
+    if(!(im.complete&&im.naturalWidth)){(TP_PEND[ak]=TP_PEND[ak]||[]).push([z,x,y]);im.onload=()=>{const l=TP_PEND[ak]||[];delete TP_PEND[ak];
+      if(TM)l.forEach(([zz,xx,yy])=>{const e=TM.tiles['s'+zz+'/'+xx+'/'+yy];if(e)e.src=tpTile(zz,xx,yy,2**zz)})};return TP_PLAIN}
+    const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),s=256>>dz,ox=(x-(ax<<dz))*s,oy=(y-(ay<<dz))*s;
+    g.imageSmoothingQuality='high';g.drawImage(im,ox,oy,s,s,0,0,256,256);return c.toDataURL('image/jpeg',.86)}
+  return TP_PLAIN}
+const tileUrl=(u,z,x,y,n)=>u.startsWith('tp://')?tpTile(z,x,y,n):u.replace('{s}','abcd'[(x+y)&3]).replace('{z}',z).replace('{x}',((x%n)+n)%n).replace('{y}',y);
 const T_LBL='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 const wx=(lng,z)=>(lng+180)/360*TS*2**z;
 const wy=(lat,z)=>{const s=Math.sin(lat*Math.PI/180);return(.5-Math.log((1+s)/(1-s))/(4*Math.PI))*TS*2**z};
@@ -3274,10 +3439,10 @@ function fitPts(pts,pad,zCap){const t=TM;if(!pts.length)return{lat:34.4425,lng:3
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),a=Math.min(...la),b=Math.max(...la),c=Math.min(...ln),d=Math.max(...ln);
   const dx=wx(d,0)-wx(c,0),dy=wy(a,0)-wy(b,0);let z=15;
   if(dx>0||dy>0)z=Math.log2(Math.min(dx>0?(t.w-2*pad)/dx:1e9,dy>0?(t.h-2*pad)/dy:1e9))-1;
-  z=Math.max(10,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}
+  z=Math.max(TP_ZMIN,Math.min(zCap||15,z));return{lat:(a+b)/2,lng:(c+d)/2,z}}
 function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!gFail)return initGMap();
   const t=TM={el,tl:$('#rtl'),mk:$('#rmk'),w:el.clientWidth||400,h:el.clientHeight||340,lat:34.4425,lng:35.834,z:14,tiles:{},ptr:new Map(),moved:false,anim:0,pd:0,off:[],marks:[],need:new Set(),zt:14};
-  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{const f=fitPts(allActiveMerchants().map(llOf),44);f.z+=TRIPOLI_ZOOM_BOOST;return f})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=v.z;
+  t.pick=!!el.dataset.pick;const firstPick=t.pick&&S.reg.lat==null;const v=t.pick?{lat:S.reg.lat!=null?S.reg.lat:DEF_LL.lat,lng:S.reg.lng!=null?S.reg.lng:DEF_LL.lng,z:S.reg.lat!=null?(S.reg.z||17):16.5}:(S.mv||(()=>{return tpHomeView()})());if(t.pick)pickSet(v.lat,v.lng);t.lat=v.lat;t.lng=v.lng;t.z=Math.max(TP_ZMIN,v.z);
   const on=(o,ev,f,op)=>{o.addEventListener(ev,f,op);t.off.push(()=>o.removeEventListener(ev,f,op))};
   on(el,'pointerdown',e=>{if(e.target.closest('.mchip,.zb'))return;cancelAnimationFrame(t.anim);t.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});t.sx=e.clientX;t.sy=e.clientY;
     if(t.ptr.size===1)t.moved=false;if(t.ptr.size===2){const[a,b]=[...t.ptr.values()];t.pd=Math.hypot(a.x-b.x,a.y-b.y);t.moved=true}});
@@ -3290,17 +3455,17 @@ function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!
   on(window,'pointerup',up);on(window,'pointercancel',up);
   on(el,'wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();const r=el.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,t.z-e.deltaY*.01)},{passive:false});
   on(el,'dblclick',e=>{if(e.target.closest('.mchip,.zb'))return;const r=el.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,t.z+1)});
-  on(el,'click',e=>{if(t.moved||e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions'))return;if(S.sel)clearMapSel()}); // زر ✕ في شارة المسار يلغي المسار فقط ويُبقي المحل مختاراً
+  on(el,'click',e=>{if(t.moved||e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions'))return;tpnBgTap(e)}); // V3.4: one step back, never a full reset // زر ✕ في شارة المسار يلغي المسار فقط ويُبقي المحل مختاراً
   if(window.ResizeObserver){const ro=new ResizeObserver(()=>{drawMap();_plbQ()});ro.observe(el);t.off.push(()=>ro.disconnect())}
   TPP.mark('map-init');buildMarks();drawMap();
   if(firstPick)locateMe();}
-function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(10,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
+function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,nz));tpFreeMark(t,nz);const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
   t.lng=wlng(wx(lng,nz)-(px-t.w/2),nz);t.lat=wlat(wy(lat,nz)-(py-t.h/2),nz);t.z=nz;drawMap();saveView()}
-function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
+function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;if(!t._tpKeepFree)t._tpFree=false;t._tpReqAt=performance.now();z=Math.max(TP_ZMIN,z);cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
   const st=n=>{if(TM!==t)return;const k=Math.min(1,(n-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;t.lat=a.lat+(lat-a.lat)*e;t.lng=a.lng+(lng-a.lng)*e;t.z=a.z+(z-a.z)*e;t.flying=k<1;drawMap();if(k<1)t.anim=requestAnimationFrame(st);else saveView()};
   t.anim=requestAnimationFrame(st)}
 function drawMap(){const t=TM;if(!t)return;t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
-  const sat=S.mapStyle==='sat',zt=Math.max(8,Math.min(sat?17:19,t.zcap||99,Math.round(t.z))),sc=2**(t.z-zt),cx=wx(t.lng,zt),cy=wy(t.lat,zt),n=2**zt;
+  const sat=S.mapStyle==='sat',zt=Math.max(8,Math.min(sat?17:20,t.zcap||99,Math.round(t.z))),sc=2**(t.z-zt),cx=wx(t.lng,zt),cy=wy(t.lat,zt),n=2**zt;
   const x0=Math.floor((cx-t.w/2/sc)/TS),x1=Math.floor((cx+t.w/2/sc)/TS),y0=Math.max(0,Math.floor((cy-t.h/2/sc)/TS)),y1=Math.min(n-1,Math.floor((cy+t.h/2/sc)/TS));
   const need=new Set();
   for(const[nm,urls]of(sat?[['i',[T_IMG]],['l',[T_LBL]]]:[['s',T_STREET]]))for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){
@@ -3335,12 +3500,15 @@ function buildMarks(){const t=TM;if(!t)return;t.mk.innerHTML='';t.marks=[];const
   if(!t.pick)add('<div class="me"></div>',S.userLL.lat,S.userLL.lng,2);drawMarks()}
 const AREA_MIN_CLUSTER=3; // منطقة عدد محلاتها الظاهرة أقل من هذا الرقم تُعرض محلاتها مباشرة دون أي تجميع
 function areaLL(name){const a=areaDir().find(x=>x[0]===name);return a?{lat:a[1],lng:a[2]}:null}
-const CLUSTER_MAXZ=21; // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
+const CLUSTER_MAXZ=20; /* approved maximum zoom */ // سقف تكبير خاص بفتح التجمّعات فقط (أعلى من سقف التكبير اليدوي العادي)، يمنع التكبير من التمادي إلى ما لا نهاية
 const CLUSTER_SPLIT_THRESHOLD=6; // إذا تجاوز عدد محلات التجمّع هذا الرقم، يُقسَّم إلى دبّوسين متقاربين بدل تكبير الخريطة لفصل الجميع دفعة واحدة
-const CLUSTER_SPLIT_GAP=22; // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
+const CLUSTER_SPLIT_GAP=56; /* wider gold pins */ // التباعد بالبكسل بين دبّوسي التقسيم على الشاشة
 const CLUSTER_FIRST_TAP_EXTRA_ZOOM=1; // درجة تكبير إضافية واحدة عند أول فتح لتجمّع (فوق الصيغة المعتمدة)، تُخفَّض تلقائياً بالقدر اللازم فقط إن كانت ستقصّ أي محل من المجموعة؛ لا تُطبَّق عند التبديل بين تجمّعين مفتوحين
 const CLUSTER_SMALL_EXTRA_ZOOM=2; // تجمّعات صغيرة (أقل من 6 محلات) تُفتح بتكبير إضافي درجتين فوق الدرجة الأساسية عند أول فتح، لأن محلاتها القليلة تحتاج مسافة أكبر بينها على الشاشة لتتوضح
 // حجم الدبّوس الفردي يكبر تدريجياً كلما اقترب المستخدم من مستوى الشارع (دون تحريك طرف الدبّوس عن إحداثيته الحقيقية)، فيما تبقى فقاعات التجمّعات بحجمها الثابت
+const TP_ZMIN=13; /* approved minimum zoom: the artistic Tripoli overview */
+/* opening / reset view: always the artistic Tripoli overview, centred on the six regional pins (not on the shops' average position) */
+function tpHomeView(){const m=TPA.m,P=TPA.pins,us=P.map(p=>p[1]),vs=P.map(p=>p[2]),u=(Math.min(...us)+Math.max(...us))/2,v=(Math.min(...vs)-470+Math.max(...vs))/2;const X=m[0]*u+m[2]*v+m[4],Y=m[1]*u+m[3]*v+m[5];return{lat:wlat(Y,14),lng:wlng(X,14),z:TP_ZMIN}}
 const PIN_ZOOM_LO=12,PIN_ZOOM_HI=20,PIN_SCALE_LO=1,PIN_SCALE_HI=1.65; // مدى التكبير اليدوي الأقصى مُدَّد بدرجتين إضافيتين (كان PIN_ZOOM_HI=18) حيثما يدعم ذلك الجهاز/مزوّد الخريطة تقنياً؛ isMaxPinZoom وisNearMaxPinZoom يُعاد حسابهما تلقائياً من PIN_ZOOM_HI فلا يحتاجان أي تعديل منفصل، وكذلك حدّا التكبير اليدوي في zoomAt وzoomMap أدناه (يُشيران إلى PIN_ZOOM_HI لا رقم ثابت)
 function pinZoomScale(z){const k=Math.max(0,Math.min(1,(z-PIN_ZOOM_LO)/(PIN_ZOOM_HI-PIN_ZOOM_LO)));return +(PIN_SCALE_LO+(PIN_SCALE_HI-PIN_SCALE_LO)*k).toFixed(3)}
 // عند الوصول لأعلى مستوى تكبير مدعوم (PIN_ZOOM_HI)، تُكبَّر الدبابيس الفردية (لا فقاعات التجمّعات) درجة إضافية فوق سقف pinZoomScale العادي، لإظهار الشعار/الأيقونة بوضوح أكبر
@@ -3384,7 +3552,7 @@ function clusterFitZoom(pts,prefZ,w,h,pad){
   const dx=wx(d,0)-wx(c,0),dy=wy(a,0)-wy(b,0);
   if(dx<=0&&dy<=0)return prefZ; // كل النقاط متطابقة عملياً (أو شبه ذلك) على مستوى البكسل العالمي
   const maxZforFit=Math.log2(Math.min(dx>0?(w-2*pad)/dx:1e9,dy>0?(h-2*pad)/dy:1e9));
-  return Math.max(10,Math.min(prefZ,maxZforFit))}
+  return Math.max(TP_ZMIN,Math.min(prefZ,maxZforFit))}
 // كل دبّوس يُعرض عند إحداثياته الجغرافية الحقيقية تماماً. الاستثناء الوحيد: محلّان بنفس الإحداثيات الفعلية حرفياً (فرق أقل من ~1م، أي نفس المبنى عملياً) يصيران متراكبين بشكل غير قابل للّمس مهما كان مستوى التكبير؛ هذين فقط (وليس أي دبّوسين متقاربين لمجرد أن التكبير الحالي قرّبهما بصرياً) نوزّعهما بإزاحة بسيطة حول موضعهما الحقيقي المشترك نفسه، دون تغيير الإحداثيات المخزَّنة إطلاقاً
 function declutterExact(pts){const key=p=>p.lat.toFixed(5)+','+p.lng.toFixed(5),groups={};
   pts.forEach(p=>{const k=key(p);(groups[k]=groups[k]||[]).push(p)});
@@ -3491,6 +3659,7 @@ function drawPinClusters(t,X,Y){
       d.firstChild.onclick=()=>pinTap(pt.p.id);d.style.zIndex=on?9:7;t.pinLayer.appendChild(d)})};
   t.pinLayer.innerHTML='';
   if(S.route&&S.route.id){const selected=t.pins.find(p=>p.id===S.route.id);if(selected)drawSingle(selected);return}
+  if(t.z>=TP_DETAIL_Z-.05){tpDrawDetail(t,X,Y,pinHtml);if(labelZoomOk||S.sel)resolveLabelCollisions(t);return}
   // التجميع حسب "منطقة" المحل المسجّلة تحديداً (كما بشاشة الإدارة «مناطق طرابلس»)، لا حسب تقارب الدبابيس على الشاشة
   const splitIds=new Set(splitGroups.flatMap(g=>g.ids));
   const byArea={};
@@ -3504,7 +3673,7 @@ function drawPinClusters(t,X,Y){
     const x=t.w/2+wx(coord.lng,t.z)-X,y=t.h/2+wy(coord.lat,t.z)-Y;
     const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
     const ids=group.map(p=>p.id),clr=AREA_COLORS[areaName]||'var(--navy)';
-    d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
+    d.innerHTML=`<div class="pn cluster ${isOpen?'open':''}" style="--c:${clr}" data-area="${esc(areaName)}"><i class="pnbody"></i><i class="pnring"></i><b>${group.length}</b></div>`;
     d.firstChild.onclick=()=>clusterTap(ids,areaName);d.style.zIndex=isOpen?4:5;
     t.pinLayer.appendChild(d);
     if(isOpen)drawOpenGroup(group)}); // التجمّع المفتوح: محلاته الفردية تظهر عند مواقعها الحقيقية على الخريطة
@@ -3514,12 +3683,33 @@ function drawPinClusters(t,X,Y){
     const isOpen=!!(og&&og.type==='split'&&og.gid===gr.gid);
     const d=document.createElement('div');d.className='mk';
     d.style.transform=`translate(${Math.round(cx)}px,${Math.round(cy)}px)`;
-    d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
+    d.innerHTML=`<div class="pn cluster split ${isOpen?'open':''}" style="--c:${AREA_COLORS[gr.area]||'var(--navy)'}" data-area="${esc(gr.area)}"><i class="pnbody"></i><i class="pnring"></i><b>${gr.ids.length}</b></div>`;
     d.firstChild.onclick=()=>openSplitGroup(gr.gid);d.style.zIndex=isOpen?5:6;
     t.pinLayer.appendChild(d);
     if(isOpen){const grpPins=t.pins.filter(p=>gr.ids.includes(p.id));drawOpenGroup(grpPins)}})
   if(labelZoomOk||S.sel||(S.route&&S.route.id))resolveLabelCollisions(t)}
 // عند تطابق تسميتين أو أكثر بصرياً (أسماء متجاورة تتراكب على الشاشة)، تُبقى تسمية المحل المحدَّد (أو وجهة خط السير) ظاهرة دوماً كأولوية أولى، وتُخفى التسميات الأخرى المتعارضة معها فقط — دون أي تغيير بموضع الدبّوس نفسه أو قابليته للمس
+/* ===== PREVIEW: detail zoom (19-20). No area/split clusters: each shop at its true position. Pins whose tips are closer
+   than TP_STACK_PX on screen (same building, or a few metres apart) are drawn as ONE approved pin with a small count badge;
+   tapping it opens a short list of the shops' names. Choosing a shop = the app's own first tap (pinTap). While a shop of the
+   stack is selected, tapping the stack pin continues the app's normal sequence for that shop (2nd tap route, 3rd tap store page). ===== */
+const TP_DETAIL_Z=19,TP_STACK_PX=26;
+function tpStacks(t,X,Y){const pts=t.pins.map(p=>({p,x:t.w/2+wx(p.lng,t.z)-X,y:t.h/2+wy(p.lat,t.z)-Y}));const out=[];
+  pts.forEach(q=>{const s=out.find(s=>s.some(o=>Math.hypot(o.x-q.x,o.y-q.y)<TP_STACK_PX));if(s)s.push(q);else out.push([q])});return out}
+function tpDrawDetail(t,X,Y,pinHtml){
+  tpStacks(t,X,Y).forEach(st=>{const sel=st.find(q=>q.p.id===S.sel),top=sel||st[0],on=!!sel;
+    const d=document.createElement('div');d.className='mk';d.style.transform=`translate(${Math.round(top.x)}px,${Math.round(top.y)}px)`;
+    d.innerHTML=pinHtml(top.p,on,false);
+    if(st.length>1){d.firstChild.insertAdjacentHTML('beforeend',`<em class="tpCount" aria-hidden="true">${st.length}</em>`);d.firstChild.setAttribute('aria-label',st.length+' محلات في هذا الموقع')}
+    d.firstChild.onclick=e=>{if(st.length===1||sel){pinTap(top.p.id);return}if(TM&&TM.moved)return;e.stopPropagation();tpPick(st.map(q=>q.p))};
+    d.style.zIndex=on?9:(st.length>1?8:7);t.pinLayer.appendChild(d)})}
+function tpPick(list){document.querySelectorAll('.tpPick').forEach(e=>e.remove());
+  const md=document.createElement('div');md.className='tpPick';md.setAttribute('role','dialog');md.setAttribute('aria-label','اختر المحل');
+  md.innerHTML=`<div class="tpPickSheet"><div class="tpPickHead"><b>${list.length} محلات في هذا الموقع</b><button type="button" class="tpPickX" aria-label="إغلاق">✕</button></div>
+   <div class="tpPickList">${list.map(p=>`<button type="button" class="tpPickRow" data-id="${esc(p.id)}"><span class="tpPickDot" style="--c:${p.c}">${p.ic||''}</span><span class="tpPickTxt"><b>${esc(p.name)}</b><small>${esc((M(p.id)?CAT(effCat(M(p.id))):[])[1]||'')}</small></span><span class="tpPickGo">›</span></button>`).join('')}</div></div>`;
+  const close=()=>md.remove();md.onclick=e=>{if(e.target===md)close()};md.querySelector('.tpPickX').onclick=close;
+  md.querySelectorAll('.tpPickRow').forEach(b=>b.onclick=()=>{const id=b.dataset.id;close();pinTap(id)});
+  document.body.appendChild(md)}
 function resolveLabelCollisions(t){
   const els=[...t.pinLayer.querySelectorAll('.pnname')];if(els.length<2)return;
   els.forEach(el=>el.style.display='');
@@ -3539,7 +3729,130 @@ function drawMarks(){const t=TM;if(!t)return;if(TPP.on&&!TPP.has('first-pins'))r
       cluster.forEach((c,i)=>{c.x=cx+(i-(cluster.length-1)/2)*GAP;c.y=cy})}});
   raw.forEach(r=>{r.m.d.style.transform=`translate(${Math.round(r.x)}px,${Math.round(r.y)}px)`});
   if(t.pinLayer)drawPinClusters(t,X,Y);
+  tpArtSync(t,X,Y);
 }
+/* ===== PREVIEW v9 (from v8): artistic opening view + the approved gold pin family (visual only, except the v6.2 empty-map close) =====
+   - Regional pins (zoom 13): gold pin, per-area heritage engraving, live area name + live total count (gpRegional).
+   - Cluster pins (the app's own .pn.cluster elements): same gold pin, geometric ornament, live count; the area name appears
+     under the pin only where it fits. The app's markup, handlers and clustering are untouched; the gold artwork is layered in.
+   - Unchanged from v6.2: artwork cross-fade 13.35-14.15, regional pins gliding to their area's cluster spot and handing over
+     at about 13.95, empty-map tap closing only the expanded cluster, hidden pin of an expanded cluster. */
+const TPA_Z0=13.35,TPA_Z1=14.15,GP_TIPX=576/1199,GP_TIPY=1210/1312,GP_AR=1312/1199;
+const GP_RW=104,GP_CW=74;           // regional pin width at zoom 13; cluster pin width at zoom 14 (CSS px)
+function tpGpFit(L){const go=()=>L.querySelectorAll('.gp .gpN,.gp .gpK').forEach(e=>{if(!e.clientWidth)return;e.style.fontSize='';
+    const rg=document.createRange(),tw=()=>{rg.selectNodeContents(e);return rg.getBoundingClientRect().width},bw=e.getBoundingClientRect().width*.94;
+    let f=parseFloat(getComputedStyle(e).fontSize),n=0;while(tw()>bw&&f>5&&n++<60){f-=.25;e.style.fontSize=f+'px'}});
+  go();requestAnimationFrame(go);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go)}
+function gpRegionalH(n,c){const k=String(c).length>1?' two':'',lo=GP_R[n]||GP_R['التل'];return `<span class="gp" style="--w:${GP_RW}px"><img src="${tpMapSrc(lo)}" data-lo="${lo}" onerror="tpMapImgFail(this)" alt="" draggable="false"><b class="gpN">${esc(n)}</b><i class="gpK${k}">${c} متجر</i></span>`}
+const tpaSm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k)};
+function tpaAlpha(z){return 1-tpaSm((z-TPA_Z0)/(TPA_Z1-TPA_Z0))}
+function tpaBigScale(z){return +(GP_CW/GP_RW+(1-GP_CW/GP_RW)*(1-tpaSm((z-13.05)/.9))).toFixed(3)}   // 104 px -> 74 px by 13.95
+function tpaClusterScale(z){return +(.84+.16*(1-tpaSm((z-14)/2))).toFixed(3)}                     // 74 px at 14 -> 62 px from 16
+// the six regional areas of the opening map: the five main areas + Azmi Bek (its own shopping area)
+const TPA_REGIONS=()=>{const az=(SUBAREAS.find(a=>a[0]==='عزمي بك')||[0,34.44008,35.83607]);return TAREAS.map(a=>[a[0],a[2],a[3]]).concat([['عزمي بك',az[1],az[2]]])};
+// regional area of a merchant: an exact regional name stays itself; any other area (sub-area/street name saved at registration,
+// e.g. «شارع مار مارون») goes to the NEAREST of the six regional areas, by that area's point (or the shop's own GPS if unknown)
+function tpaBigOf(p){const a=p.area||'',R=TPA_REGIONS();if(R.some(r=>r[0]===a))return a;
+  const c=areaLL(a)||(p.lat!=null?{lat:p.lat,lng:p.lng}:null);if(!c)return '';
+  let best='',bd=1e18;R.forEach(r=>{const d=hav(c,{lat:r[1],lng:r[2]});if(d<bd){bd=d;best=r[0]}});return best}
+function tpaBigTap(n){const t=TM;if(!t)return;const fz=!!t._tpFree;t._tpFree=false;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length){const ll=TPA_REGIONS().find(r=>r[0]===n);if(ll){cancelAnimationFrame(t.anim);flyTo(ll[1],ll[2],15,650)}return}
+  S._mapOpenGroup=null;S._mapSplitGroups=[];if(S.areaSel){S.areaSel=null;const row=$('#catrow');if(row)row.innerHTML=catsHtml()}
+  const areas=[...new Set(ps.map(p=>p.area||''))];
+  if(areas.length===1&&ps.length>=AREA_MIN_CLUSTER&&areaLL(areas[0])){clusterTap(ps.map(p=>p.id),areas[0]);return}
+  cancelAnimationFrame(t.anim);clusterCenterView(ps.map(p=>({lat:p.lat,lng:p.lng})),Math.min(CLUSTER_MAXZ,(fz?13:t.z)+3),650)}
+function tpaBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
+  if(e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions,#tpBig,button,a,input,.tpPick,#storeSheet,.attr'))return;
+  if(S.sel||(S.route&&S.route.id))return;
+  const og=S._mapOpenGroup;if(!og)return;
+  if(og.type==='split')S._mapOpenGroup={type:'area',area:og.area,split:true};
+  else if(og.type==='area'&&!og.split)S._mapOpenGroup=null;else return;
+  drawMarks()}
+// v8: split pins — first tap from the closed split view zooms exactly two levels above the zoom at which the split appeared
+// (capped at 20), centred on that group's shops, and opens it through the app's own openSplitGroup. Switching to the other
+// half or re-opening after an empty-map close re-centres without stacking further zoom. Taps during the fly are ignored.
+const _tpOpenSplit=openSplitGroup;
+openSplitGroup=function(gid){const t=TM;if(!t)return _tpOpenSplit(gid);
+  if(t._tpLock&&performance.now()<t._tpLock)return;
+  const og=S._mapOpenGroup,g=(S._mapSplitGroups||[]).find(x=>x.gid===gid),closing=!!(og&&og.type==='split'&&og.gid===gid);
+  _tpOpenSplit(gid);if(!g||closing)return;
+  t._tpLock=performance.now()+750;
+  const pts=g.ids.map(id=>{const m=M(id);return m?llOf(m):null}).filter(Boolean);if(!pts.length)return;
+  const base=S._tpSplitZ||t.z,z=Math.min(PIN_ZOOM_HI,Math.max(t.z,base+2));
+  t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;const bc=clusterBBoxCenter(pts);
+  flyTo(adjustLatForUsableCenter(bc.lat,bc.lng,z,t.el,t.h),bc.lng,z,650)};
+// v9: shops of an opened cluster that sit too close on screen are fanned out a little (screen space only); each moved pin
+// keeps a fine gold leader line and a dot at its true GPS point. The selected shop stays exactly on its true point.
+function tpaSpread(t,X,Y){const og=S._mapOpenGroup;if(!t.pinLayer)return;
+  if(!og||!(og.type==='split'||(og.type==='area'&&!og.split))||(S.route&&S.route.id)||t.z>=18.95)return;
+  const mks=[...t.pinLayer.querySelectorAll('.mk')].filter(m=>{const p=m.firstElementChild;return p&&p.classList.contains('pn')&&!p.classList.contains('cluster')&&(m.style.zIndex==='7'||m.style.zIndex==='9')});
+  if(mks.length<2)return;
+  const P=mks.map((m,i)=>{const id=m.firstElementChild.dataset.id,pin=(t.pins||[]).find(p=>String(p.id)===String(id));
+    const tx=pin?t.w/2+wx(pin.lng,t.z)-X:0,ty=pin?t.h/2+wy(pin.lat,t.z)-Y:0,r=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(m.style.transform)||[0,tx,ty];
+    return{m,tx,ty,x:+r[1],y:+r[2],fix:String(id)===String(S.sel),i}});
+  const D=34*pinZoomScale(t.z),MAX=2.4*D;
+  for(let it=0;it<40;it++){let moved=false;
+    for(let a=0;a<P.length;a++)for(let b=a+1;b<P.length;b++){const A=P[a],B=P[b];let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy);
+      if(d>=D)continue;moved=true;if(d<.01){const an=(a*2.4+b*1.3);dx=Math.cos(an);dy=Math.sin(an)*.4;d=Math.hypot(dx,dy)}
+      const push=(D-d)/(A.fix||B.fix?1:2)+.5,ux=dx/d,uy=dy/d*.6;               // mostly sideways, a little vertical
+      if(!A.fix){A.x-=ux*push;A.y-=uy*push}if(!B.fix){B.x+=ux*push;B.y+=uy*push}}
+    P.forEach(p=>{const ox=p.x-p.tx,oy=p.y-p.ty,o=Math.hypot(ox,oy);if(o>MAX){p.x=p.tx+ox/o*MAX;p.y=p.ty+oy/o*MAX}});
+    if(!moved)break}
+  let svg='';P.forEach(p=>{p.m.style.transform=`translate(${p.x.toFixed(0)}px,${p.y.toFixed(0)}px)`;
+    if(Math.hypot(p.x-p.tx,p.y-p.ty)>3)svg+=`<line x1="${p.tx.toFixed(1)}" y1="${p.ty.toFixed(1)}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#a87a1c" stroke-width="1.4" stroke-dasharray="2 2"/>`;
+    svg+=`<circle cx="${p.tx.toFixed(1)}" cy="${p.ty.toFixed(1)}" r="2.6" fill="#ffd23f" stroke="#5a3608" stroke-width="1"/>`});
+  const L=document.createElementNS('http://www.w3.org/2000/svg','svg');L.setAttribute('class','tpLeads');L.innerHTML=svg;t.pinLayer.appendChild(L)}
+// v8: keep the unopened half of a split visibly apart from the opened half's shops (screen-space only; GPS untouched)
+function tpaSeparate(t){const og=S._mapOpenGroup;if(!t.pinLayer)return;
+  if(og&&og.type==='area'&&og.split&&!S._tpSplitZ&&!t.flying)S._tpSplitZ=t.z;
+  if(!og||!(og.type==='split'||(og.type==='area'&&og.split)))S._tpSplitZ=null;
+  if(!og||og.type!=='split')return;
+  const shops=[...t.pinLayer.querySelectorAll('.mk')].filter(m=>{const p=m.firstElementChild;return p&&p.classList.contains('pn')&&!p.classList.contains('cluster')&&(m.style.zIndex==='7'||m.style.zIndex==='9')});
+  if(!shops.length)return;let U=null;
+  shops.forEach(m=>m.querySelectorAll('.pn,.pnname').forEach(e=>{if(e.offsetParent===null)return;const r=e.getBoundingClientRect();U=U?{l:Math.min(U.l,r.left),r:Math.max(U.r,r.right),t:Math.min(U.t,r.top),b:Math.max(U.b,r.bottom)}:{l:r.left,r:r.right,t:r.top,b:r.bottom}}));
+  if(!U)return;const G=10,uc=(U.l+U.r)/2;
+  t.pinLayer.querySelectorAll('.pn.cluster.split:not(.open)').forEach(p=>{const mk=p.parentElement,r=p.getBoundingClientRect();
+    if(r.right<U.l-G||r.left>U.r+G||r.bottom<U.t-G||r.top>U.b+G)return;
+    const dx=((r.left+r.right)/2<uc)?(U.l-G-r.right):(U.r+G-r.left);
+    const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(mk.style.transform);if(!m)return;
+    mk.style.transform=`translate(${(+m[1]+dx).toFixed(0)}px,${m[2]}px)`;p.classList.add('tpShift')})}
+function tpaNameTags(t){if(!t.pinLayer)return;const cl=[...t.pinLayer.querySelectorAll('.pn.cluster')];if(!cl.length)return;
+  if(t.z<13.8){cl.forEach(e=>e.classList.remove('tpNamed'));return}
+  const mr=t.el.getBoundingClientRect(),pins=[...t.pinLayer.querySelectorAll('.pn')].filter(e=>e.offsetParent!==null).map(e=>({e,r:e.getBoundingClientRect()}));
+  const hit=(a,b)=>!(a.r<b.left||a.l>b.right||a.b<b.top||a.t>b.bottom),kept=[];
+  cl.filter(e=>e.offsetParent!==null).sort((a,b)=>(+(b.querySelector('b')||{}).textContent||0)-(+(a.querySelector('b')||{}).textContent||0)).forEach(e=>{const r=e.getBoundingClientRect(),n=e.dataset.area||'',w=n.length*6.6+20,cx=r.left+r.width*GP_TIPX;
+    const tag={l:cx-w/2,r:cx+w/2,t:r.bottom+2,b:r.bottom+22};
+    const ok=n&&tag.l>mr.left+4&&tag.r<mr.right-4&&tag.b<mr.bottom-4&&!pins.some(p=>p.e!==e&&hit(tag,p.r))&&!kept.some(k=>hit(tag,{left:k.l,right:k.r,top:k.t,bottom:k.b}));
+    e.classList.toggle('tpNamed',!!ok);if(ok)kept.push(tag)})}
+function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
+  tpnSync(t);
+  const a=S.mapStyle==='sat'?0:tpaAlpha(t.z),s=2**(t.z-14),m=TPA.m;
+  t.el.classList.add('tpv6');t.el.style.setProperty('--tpcs',tpaClusterScale(t.z));
+  let im=document.getElementById('tpArt');
+  if(!im||im.parentNode!==t.tl){im=document.createElement('img');im.id='tpArt';im.alt='';im.draggable=false;im.decoding='async';im.src=TPA_IMG;t.tl.appendChild(im)}
+  if(a<=.002)im.style.display='none';
+  else{im.style.display='';im.style.opacity=a.toFixed(3);
+    im.style.transform=`matrix(${m[0]*s},${m[1]*s},${m[2]*s},${m[3]*s},${(m[4]*s-X+t.w/2).toFixed(2)},${(m[5]*s-Y+t.h/2).toFixed(2)})`}
+  tpaSpread(t,X,Y);tpaSeparate(t);
+  const busy=!!(S.route&&S.route.id)||S.mapStyle==='sat';
+  if(t._tpFree&&t.z<=13.08)t._tpFree=false;const fr=!!t._tpFree&&!busy;
+  const hand=tpaSm((t.z-13.85)/.2),pa=busy?0:(fr?1:1-hand),ca=busy?1:(fr?0:hand);
+  if(t.pinLayer){t.pinLayer.style.opacity=ca<.998?ca.toFixed(3):'';t.pinLayer.style.pointerEvents=ca<.5?'none':''}
+  tpaNameTags(t);
+  let L=document.getElementById('tpBig');
+  if(!L||L.parentNode!==t.mk){L=document.createElement('div');L.id='tpBig';L._sig='';t.mk.appendChild(L)}
+  if(pa<=.002){L.style.display='none';return}
+  L.style.display='';L.style.opacity=pa.toFixed(3);L.classList.toggle('off',pa<.5);
+  const cnt={};(t.pins||[]).forEach(p=>{const b=tpaBigOf(p);(cnt[b]=cnt[b]||[]).push(p.id)});
+  const sig=TPA.pins.map(([n])=>n+':'+((cnt[n]||[]).length)).join('|');
+  if(L._sig!==sig){L._sig=sig;
+    L.innerHTML=TPA.pins.map(([n,u,v])=>{cnt[n]=cnt[n]||[];return [n,u,v]}).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
+    L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)});tpGpFit(L)}
+  const g=tpaSm((t.z-13.05)/.8),bs=fr?tpaFreeScale(t.z):tpaBigScale(t.z);
+  L.querySelectorAll('.tpBigPin').forEach(d=>{const u=+d.dataset.u,v=+d.dataset.v,ll=areaLL(d.dataset.n);
+    let x=(m[0]*u+m[2]*v+m[4])*s-X+t.w/2,y=(m[1]*u+m[3]*v+m[5])*s-Y+t.h/2;
+    if(ll&&g>0){const rx=t.w/2+wx(ll.lng,t.z)-X,ry=t.h/2+wy(ll.lat,t.z)-Y;x+=(rx-x)*g;y+=(ry-y)*g}
+    d.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${bs})`})}
+
 function setMapStyle(){S.mapStyle=S.mapStyle==='sat'?'street':'sat';document.querySelectorAll('.mstyle').forEach(b=>b.textContent=S.mapStyle==='sat'?'🗺️ خريطة الطرق':'🛰️ قمر صناعي');
   if(GM&&GM.ok)GM.map.setMapTypeId(S.mapStyle==='sat'?'hybrid':'roadmap');
   if(TM){TM.tl.innerHTML='';TM.tiles={};TM.okc=0;TM.fail=0;TM.zcap=0;TM.okz={};TM.fz={};const e=$('#merr');if(e)e.style.display='none';drawMap()}}
@@ -3598,17 +3911,17 @@ async function showRoute(id,mode){const m=M(id);if(!m)return;const b=llOf(m);
 const ROUTE_FIT_MIN_Z=12.5;
 function routeFitView(R,dest){const t=TM;if(!t)return;
   t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
-  const r=clusterTargetRect(t.el,t.h),PAD_X=40,PAD_Y=Math.max(20,Math.round((r.bottom-r.top)*0.08)),pts=R.coords.map(c=>({lat:c[0],lng:c[1]}));
+  const r=clusterTargetRect(t.el,t.h),PAD_X=Math.max(40,Math.round(tpGrowRouteH()*28/33.8/2)+14),PAD_Y=Math.max(20,Math.round((r.bottom-r.top)*0.08)),pts=R.coords.map(c=>({lat:c[0],lng:c[1]}));
   const la=pts.map(p=>p.lat),ln=pts.map(p=>p.lng),dx=wx(Math.max(...ln),0)-wx(Math.min(...ln),0),dy=wy(Math.min(...la),0)-wy(Math.max(...la),0);
   // ملء الشاشة فقط: اسم المحل الظاهر أسفل دبّوس الوجهة (~30px) يُحجز له مكان فوق صف أزرار «Google Maps / تسوّق هنا» كي لا يلامسها؛ الخريطة المدمجة دون تغيير
   const LB=t.el.classList.contains('tp23-fullscreen')?30:0;
-  const pv=pinVisualH(17)*PIN_ROUTE_SCALE,aw=t.w-2*PAD_X,ah=r.bottom-r.top-2*PAD_Y-pv-LB;
+  const pv=tpGrowRouteH()+6,aw=t.w-2*PAD_X,ah=r.bottom-r.top-2*PAD_Y-pv-LB;
   let z=(aw>0&&ah>0&&(dx>0||dy>0))?Math.log2(Math.min(dx>0?aw/dx:1e9,dy>0?ah/dy:1e9)):17;z=Math.min(17,z);
   const midY=(r.top+r.bottom)/2+pv/2-LB/2;
   if(z<ROUTE_FIT_MIN_Z){z=ROUTE_MIN_Z;flyTo(wlat(wy(dest.lat,z)-(midY-t.h/2),z),dest.lng,z,700);return}
   const c={lat:(Math.min(...la)+Math.max(...la))/2,lng:(Math.min(...ln)+Math.max(...ln))/2};
   flyTo(wlat(wy(c.lat,z)-(midY-t.h/2),z),c.lng,z,700)}
-function clearRoute(){S.route=null;routeUi()}
+function clearRoute(){const had=!!S.route;S.route=null;routeUi();if(TM)try{if(had)tpGrowRouteCancelled();drawMap()}catch(e){}}
 // Directions always appear ON this map (Google navigation needs a separate app/window).
 // Google Maps provides turn-by-turn navigation; our own map remains the route preview.
 // رابط ملاحة Google Maps الرسمي (Maps URLs API): الوجهة = إحداثيات المحل المحفوظة نفسها بلا تقريب، ووسيلة التنقّل = وسيلة المسار المعروض (مشي/سيارة)؛
@@ -3616,7 +3929,7 @@ function clearRoute(){S.route=null;routeUi()}
 function googleNavUrl(m,mode){const d=llOf(m);
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(d.lat+','+d.lng)}&travelmode=${mode==='driving'?'driving':'walking'}&dir_action=navigate`}
 // أزرار ما بعد ظهور المسار داخل الخريطة: «توجّه عبر Google Maps» دائماً، و«تسوّق هنا» في وضع ملء الشاشة فقط (نفس الضغطة الثالثة على الدبّوس). لا تظهر قبل اكتمال رسم مسار فعلي
-const tp30GoogleNavButton=()=>`<div id="tpRouteActions" class="tpRouteActions" style="display:none"><button type="button" id="tpGoShop" class="mchip tpRouteBtn tpGoShop" style="display:none" onclick="tpGoShop()" aria-label="توجّه للمحل">${ic('walk',16)}<span>توجّه للمحل</span></button><a id="tp30GoogleNav" class="mchip tpRouteBtn tpGoogleNav" target="_blank" rel="noopener noreferrer" aria-label="توجّه عبر Google Maps">${ic('nav',16)}<span>توجّه عبر Google Maps</span></a><button type="button" id="tpShopHere" class="mchip tpRouteBtn tpShopHere" onclick="tpShopHere()" aria-label="تسوّق هنا">${ic('bag',16)}<span>تسوّق هنا</span></button></div>`;
+const tp30GoogleNavButton=()=>`<div id="tpRouteActions" class="tpRouteActions" style="display:none"><button type="button" id="tpGoShop" class="mchip tpRouteBtn tpGoShop" style="display:none" onclick="tpGoShop()" aria-label="توجّه للمتجر">${ic('walk',16)}<span>توجّه للمتجر</span></button><a id="tp30GoogleNav" class="mchip tpRouteBtn tpGoogleNav" target="_blank" rel="noopener noreferrer" aria-label="توجّه عبر Google Maps">${ic('nav',16)}<span>توجّه عبر Google Maps</span></a><button type="button" id="tpShopHere" class="mchip tpRouteBtn tpShopHere" onclick="tpShopHere()" aria-label="تسوّق هنا">${ic('bag',16)}<span>تسوّق هنا</span></button></div>`;
 // ملء الشاشة فقط: بعد أول ضغطة على دبّوس محل يظهر «توجّه للمحل» — يحسب مسار المشي نفسه تماماً كالضغطة الثانية على الدبّوس
 function tpGoShop(){if(S.sel&&M(S.sel)&&!(S.route&&S.route.id===S.sel))showRoute(S.sel,'foot')}
 function tpShopHere(){const id=S.route&&S.route.id;if(!id||!M(id))return;toggleMapFullscreen(false);openStore(id)} // مطابق تماماً للضغطة الثالثة على الدبّوس في ملء الشاشة
@@ -3629,7 +3942,7 @@ function refreshGoogleNavButton(){
   box.style.display=(visible||showGo)?'flex':'none';
   if(link){link.style.display=visible?'':'none';if(visible)link.href=googleNavUrl(merchant,R.mode);else link.removeAttribute('href')}
   if(shop)shop.style.display=visible?'':'none';
-  if(go){go.style.display=showGo?'':'none';const busy=!!(showGo&&R&&R.loading&&R.id===sel.id);go.disabled=busy;go.classList.toggle('busy',busy);const sp=go.querySelector('span');if(sp)sp.textContent=busy?'جارٍ حساب المسار…':'توجّه للمحل'}
+  if(go){go.style.display=showGo?'':'none';const busy=!!(showGo&&R&&R.loading&&R.id===sel.id);go.disabled=busy;go.classList.toggle('busy',busy);const sp=go.querySelector('span');if(sp)sp.textContent=busy?'جارٍ حساب المسار…':'توجّه للمتجر'}
 }
 function routeUi(){const R0=S.route;if(!R0)S.rcard=null;else if(R0.coords)S.rcard=R0.id; // البطاقة تبقى بوضع «المسار» أثناء إعادة الحساب عند تبديل الوسيلة (لا ارتداد مؤقت لأزرار اختيار المسار)
   refreshCardUi();refreshGoogleNavButton();const R=S.route,c=$('#rtchip');
@@ -3675,7 +3988,149 @@ function pinTap(id){if(TM&&TM.moved)return;
   }
   refreshGoogleNavButton();setTimeout(ensureMapCardVisible,230);syncStoreGallery(id)}
 function clearMapSel(){S.sel=null;S.sheetFull=false;S.route=null;routeUi();S._mapOpenGroup=null;S._mapSplitGroups=[];updateMap(true,TRIPOLI_ZOOM_BOOST)} // إغلاق صفحة المحل (بأي من مرحلتيها) يعيد الخريطة لوضعية زوم طرابلس نفسها، فتعود الدبابيس المفتوحة إلى تجمّعاتها أيضاً
-const zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(10,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
+let zoomMap=d=>{if(GM&&GM.ok)return GM.map.setZoom(GM.map.getZoom()+d);if(TM)flyTo(TM.lat,TM.lng,Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,TM.z+d)),300)};
+/* ===== Map step-back navigation (V3.4 candidate). Display/navigation only: no data, QR, points or account logic. =====
+   Every forward map step (regional pin, cluster, split pin, shop selection, route start) records the state BEFORE it:
+   open cluster/split groups, selected shop, route on/off, and the exact view (centre + zoom).
+   A tap on genuinely empty map goes back exactly one step and restores that state and view:
+   route → selected shop (card kept) → open cluster → closed split pins → regional view → Tripoli overview (no further action).
+   «−» at the zoom where a map step was entered goes back that step (route, shop, cluster, region); otherwise it zooms out one level.
+   Zooming far out of an open cluster (pinch or «−») closes that cluster, so a cluster pin never shows with its own shops.
+   Routes are cancelled only by the explicit route controls or by a step back (empty-map tap or «−» at the route's zoom). */
+const TPN={stack:[],depth:0,MAX:12,resets:0};
+const tpnView=()=>TM?{lat:TM.lat,lng:TM.lng,z:TM.z}:null;
+const tpnClone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+function tpnSnap(){return{og:tpnClone(S._mapOpenGroup),split:tpnClone(S._mapSplitGroups||[]),sel:S.sel||null,route:!!(S.route&&S.route.id),view:tpnView()}}
+const tpnSig=s=>JSON.stringify([s.og,(s.split||[]).map(g=>[g.ids,g.off]),s.sel,s.route]);
+function tpnKind(a,b){if(a.route!==b.route)return'route';if(a.sel!==b.sel)return'sel';if(tpnSig({og:a.og,split:a.split})!==tpnSig({og:b.og,split:b.split}))return'cluster';return'view'}
+function tpnPush(before,kind){const top=TPN.stack[TPN.stack.length-1];
+  // choosing another shop while one is selected: keep a single «selected» step (back leaves the selection)
+  if(kind==='sel'&&top&&top.kind==='sel'&&before.sel&&S.sel&&!before.route)return;
+  if(top&&tpnSig(top.snap)===tpnSig(before)&&top.kind===kind&&kind!=='view')return;      // repeated tap: no duplicate step
+  const e={snap:before,kind,entryZ:null};TPN.stack.push(e);setTimeout(()=>{if(e.entryZ==null&&TM&&!TM.flying)e.entryZ=TM.z},900);if(TPN.stack.length>TPN.MAX)TPN.stack.shift()}
+// wrap a forward action: record the state before it, if the action really changed the logical state (or always, for view steps)
+function tpnWrap(name,always){const f=window[name];if(typeof f!=='function'||f._tpn)return;
+  const w=function(){if(TPN.depth||!TM)return f.apply(this,arguments);const before=tpnSnap(),r0=TPN.resets;TPN.depth++;
+    let r;try{r=f.apply(this,arguments)}finally{TPN.depth--}
+    if(TPN.resets!==r0)return r;const after=tpnSnap(),k=tpnKind(before,after);if(k!=='view'||always)tpnPush(before,k);return r};
+  w._tpn=1;window[name]=w;try{eval(name+'=w')}catch(e){}}
+// routes are asynchronous: record the step when a route starts for a shop that has none (switching walk/drive is not a new step)
+(function(){const f=showRoute;showRoute=window.showRoute=function(id,mode){
+  if(TM&&!(S.route&&S.route.id===id)){const b=tpnSnap();b.route=false;b.sel=S.sel||null;tpnPush(b,'route')}return f.apply(this,arguments)}})();
+// a second quick tap right after a cluster opens must not select the shop that just appeared under the finger
+['clusterTap','openSplitGroup'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;const w=function(){const r=f.apply(this,arguments);if(TM)TM._tpnOpenAt=performance.now();return r};window[n]=w;try{eval(n+'=w')}catch(e){}});
+(function(){const f=pinTap;const w=function(id){if(TM&&TM._tpnOpenAt&&performance.now()-TM._tpnOpenAt<600)return;return f.apply(this,arguments)};window.pinTap=w;try{pinTap=w}catch(e){}})();
+['clusterTap','openSplitGroup','pinTap'].forEach(n=>tpnWrap(n,false));tpnWrap('tpaBigTap',true);
+// explicit full resets keep their behaviour and start a fresh history
+['resetMapFilter','clearMapSel'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;const w=function(){TPN.stack=[];TPN.resets++;return f.apply(this,arguments)};window[n]=w;try{eval(n+'=w')}catch(e){}});
+function tpnRestore(s,moveView){
+  const hadRoute=!!(S.route&&S.route.id);if(hadRoute&&!s.route)clearRoute();
+  const selChanged=(S.sel||null)!==(s.sel||null);S.sel=s.sel;if(selChanged){S.sheetFull=false;try{refreshCardUi(false)}catch(e){}try{refreshGoogleNavButton()}catch(e){}}
+  S._mapOpenGroup=tpnClone(s.og);S._mapSplitGroups=tpnClone(s.split)||[];
+  if(moveView&&s.view&&TM){cancelAnimationFrame(TM.anim);flyTo(s.view.lat,s.view.lng,s.view.z,550)}else drawMarks()}
+// one step back (empty-map tap or «−» at a step's entry zoom). Returns true when something went back.
+function tpStepBack(){if(!TM)return false;
+  while(TPN.stack.length){const e=TPN.stack.pop(),cur=tpnSnap();
+    const sameState=tpnSig(e.snap)===tpnSig(cur),v=e.snap.view,c=cur.view,sameView=v&&c&&Math.abs(v.z-c.z)<.05&&Math.abs(v.lat-c.lat)<1e-5&&Math.abs(v.lng-c.lng)<1e-5;
+    if(sameState&&sameView)continue;                                 // a step that changed nothing (e.g. a route that failed): skip it
+    tpnRestore(e.snap,true);return true}
+  // no recorded step (e.g. the map was opened at a deeper state): derive one step back from the current state, no view jump
+  const og=S._mapOpenGroup;
+  if(S.route&&S.route.id){clearRoute();return true}
+  if(S.sel){tpnRestore(Object.assign(tpnSnap(),{sel:null}),false);return true}
+  if(og&&og.type==='split'){S._mapOpenGroup={type:'area',area:og.area,split:true};drawMarks();return true}
+  if(og&&og.type==='area'){S._mapOpenGroup=null;S._mapSplitGroups=[];drawMarks();return true}
+  return false}                                                       // Tripoli overview: nothing to go back to
+// empty-map tap: ignore taps on any control, card, pin, list, or on/near the drawn route line
+function tpnOnRoute(e){const R=S.route;if(!R||!R.coords||!TM)return false;const r=TM.el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,X=wx(TM.lng,TM.z),Y=wy(TM.lat,TM.z);
+  const P=R.coords.map(([la,ln])=>[TM.w/2+wx(ln,TM.z)-X,TM.h/2+wy(la,TM.z)-Y]);
+  for(let i=1;i<P.length;i++){const[a,b]=[P[i-1],P[i]],dx=b[0]-a[0],dy=b[1]-a[1],L=dx*dx+dy*dy||1,k=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/L));
+    if(Math.hypot(x-(a[0]+k*dx),y-(a[1]+k*dy))<16)return true}return false}
+function tpnBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
+  if(e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions,#tpBig,button,a,input,select,textarea,.tpPick,#storeSheet,#mapcard,.attr,.tpCityBtn,.tp23-fullscreen-btn,.pnname'))return;
+  if(tpnOnRoute(e))return;
+  tpStepBack()}
+// «−» follows the steps: at the zoom where the current map step was entered (route, selected shop, cluster or region) it goes
+// back that one step — route → selected shop → cluster → split pins → overview; otherwise it zooms out one level as before
+(function(){const f=zoomMap;const w=function(d){
+  if(d<0&&TM){const top=TPN.stack[TPN.stack.length-1];
+    if(top&&top.entryZ!=null&&TM.z<=top.entryZ+.05&&tpStepBack())return}
+  return f(d)};window.zoomMap=w;try{zoomMap=w}catch(e){}})();
+// keep the state consistent with the zoom (called on every map draw): note each step's settled zoom; after pinching or zooming
+// far out of an open cluster, close it (logical state only, the view stays where the customer put it)
+/* ===== V3.5 (Staging): category image inside individual shop pins + progressive enlargement =====
+   1) Category image: every individual shop pin (miniature gold pin) shows the image of the shop's PRIMARY category in place of
+      the category icon — same pin, same gold frame/shine/shadow and size; only the inner image changes. Lookup by slug
+      (assets/map/cat/<slug>.webp); if the primary category has no image, its parent category's image is used; with neither, the
+      current icon stays. A shop logo that is currently shown keeps priority. Regional and cluster pins are untouched.
+   2) Progressive enlargement (all individual shop pins): normal → selected (one step, ×1.45, above neighbours) → route
+      («توجّه للمتجر», one more step). The pin grows from its tip, so it keeps pointing at the shop's exact location. The route
+      view zooms the map out, so the route size is anchored to the size the pin had when selected (≥ ×1.18 of it). Cancelling
+      the route, stepping back or choosing another shop returns to normal sizes (the map redraws the pins). */
+const TP_CAT_SLUGS=new Set('abayas,ac,accessories,antiques,baby_wear,bags_hand,bags_school,bags_travel,bakery,beauty,beautycenters,beautysupplies,belts,bookings,boys_wear,cafe,carparts,carpets,carrent,carrental,carservices,carshowroom,chandeliers,chocolate,clinics,curtains,decor,doctors,drinks,earphones,electrical,electronics,electronics_acc,fabrics,fashion,fashion_accessories,food,fuel,furniture,girls_wear,glasses,grocery,handbags,headwear,hijab,home,homeappliances,homeelec,homeware,hospitals,hotels,insurance,islamic_wear,jalabiyas,jewelry,kidswear,knitwear_ready,knitwear_unisex,labs,linens,main_auto,main_beauty,main_electronics,main_fashion,main_food,main_health,main_home,main_jewelry,main_travel,menswear,mobile,modest,naturaldrinks,nuts,oriental,perfume,pharma,salons,sewing_supplies,shoes,shoes_kids,shoes_men,shoes_sport,shoes_women,sportswear,sportswear_kids,sportswear_men,sportswear_women,supplements,sweets,tourism,travel,travelbags,vegetables,wallets,watches,wedding_dresses,womenswear,wool_jackets,wool_kids,wool_knitwear,wool_sweaters'.split(','));
+const TP_CAT_ALIAS={earbuds:'earphones',headphones:'earphones',wedding:'wedding_dresses',bridal:'wedding_dresses',restaurants:'food',coffee:'cafe',clothes:'fashion'};
+/* Map images from Supabase Storage (public bucket map-assets, folder v3.6.1/). Off until v3.6.1/manifest.json is published there with
+   {"version":"v3.6.1"}; then pins/<rN>.webp and cat/<slug>.webp are read from Storage. Any image that fails falls back to the local file. */
+const TP_MAP_REMOTE='https://lqbhfkowqaqlgcrdybvv.supabase.co/storage/v1/object/public/map-assets/v3.6.1/',TP_MAP_VER='v3.6.1';
+let TP_MAP_ON=null;                                   // null/false: local files; object: published manifest
+function tpMapSrc(lo){if(!TP_MAP_ON||!lo)return lo;let m=lo.match(/^assets\/map\/pins\/(r\d)\.[0-9a-f]{10}\.webp$/);
+  if(m)return TP_MAP_ON.pins&&TP_MAP_ON.pins.indexOf(m[1])>=0?TP_MAP_REMOTE+'pins/'+m[1]+'.webp':lo;
+  m=lo.match(/^assets\/map\/cat\/([a-z0-9_]+)\.webp$/);
+  return m&&TP_MAP_ON.categories&&TP_MAP_ON.categories.indexOf(m[1])>=0?TP_MAP_REMOTE+'cat/'+m[1]+'.webp':lo}
+function tpMapImgFail(i){const lo=i.dataset.lo;if(lo&&i.getAttribute('src')!==lo)i.src=lo}
+(function(){if(typeof fetch!=='function')return;let c=null;try{c=new AbortController();setTimeout(()=>c.abort(),4000)}catch(e){}
+  fetch(TP_MAP_REMOTE+'manifest.json',{cache:'no-cache',signal:c&&c.signal}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||j.version!==TP_MAP_VER||!Array.isArray(j.pins)||!Array.isArray(j.categories))return;TP_MAP_ON=j;
+    try{const L=document.getElementById('tpBig');if(L)L._sig='';if(typeof TM!=='undefined'&&TM&&TM.pinLayer){TM.pinLayer.querySelectorAll('.tpCatImg').forEach(x=>x.remove());drawMap()}}catch(e){}
+  }).catch(()=>{})})();
+function tpCatImgOf(m){if(!m||!m.cat)return null;const cats=(typeof S!=='undefined'&&S.cats)||[];
+  let slug=m.cat,c=cats.find(x=>x.slug===slug);
+  for(let i=0;i<4&&slug;i++){const b=String(slug).toLowerCase();
+    const k=TP_CAT_SLUGS.has(b)?b:TP_CAT_ALIAS[b];if(k&&TP_CAT_SLUGS.has(k))return'assets/map/cat/'+k+'.webp';
+    if(!c||c.parent_id==null)break;c=cats.find(x=>x.id===c.parent_id);slug=c&&c.slug}
+  return null}
+function tpCatDress(t){if(!t||!t.pinLayer)return;
+  t.pinLayer.querySelectorAll('.pn:not(.cluster):not(.ref)[data-id]').forEach(e=>{if(e.querySelector('.tpCatImg'))return;
+    const img=e.querySelector('.pnimg');
+    if(img&&img.style.display!=='none'&&!(img.complete&&!img.naturalWidth)){   // the app's own logo (selected / route): keep it;
+      if(!img._tpw){img._tpw=1;img.addEventListener('error',()=>tpCatDress(t))}return}    // if it fails to load, use the category image
+    if(img)img.style.display='none';
+    const m=M(e.dataset.id),logo=m&&typeof safeLogoUrl==='function'?safeLogoUrl(m.logo):'',catLo=tpCatImgOf(m),cat=catLo&&tpMapSrc(catLo),src=logo||cat;if(!src)return;
+    // a shop with its own logo shows the logo at every stage (the category image is only for shops without one)
+    e.classList.add('tpCatPin');const im=new Image();im.className='tpCatImg'+(logo?' tpLogo':'');im.alt='';im.draggable=false;im.decoding='async';
+    im.onerror=()=>{if(logo&&cat&&im.src.indexOf(cat)<0){im.classList.remove('tpLogo');im.src=cat;return}
+      if(catLo&&cat!==catLo&&im.src.indexOf(catLo)<0){im.classList.remove('tpLogo');im.src=catLo;return}im.remove();e.classList.remove('tpCatPin')};
+    im.src=src;e.appendChild(im)})}
+const TP_GROW_SEL=1.45,TP_GROW_ROUTE=1.9,TP_GROW_STEP=1.18,TP_GROW_SEL_MAX=2.6,TP_GROW_MAX=3.1; // caps keep the pin reasonable at the highest zoom on small phones
+function tpGrowRouteScale(zs,t){const g=t&&t._tpGrowSel&&S.route&&t._tpGrowSel.id===S.route.id?t._tpGrowSel.s*TP_GROW_STEP:0;
+  return Math.min(TP_GROW_MAX,Math.max(zs*TP_GROW_ROUTE,g))}
+function tpGrowDress(t){if(!t||!t.pinLayer)return;
+  if(t._tpNoGrow&&(S.sel!==t._tpNoGrow.id||Math.abs(t.z-t._tpNoGrow.z)>.05))t._tpNoGrow=null;   // another shop, a step back or a zoom → normal rules
+  t.pinLayer.querySelectorAll('.pn:not(.cluster):not(.ref)[data-id]').forEach(e=>{e.classList.add('tpGrow');
+    const zs=parseFloat(e.style.getPropertyValue('--zs'))||1;
+    if(e.classList.contains('route'))e.style.transform=`scale(${tpGrowRouteScale(zs,t).toFixed(3)})`;
+    else if(e.classList.contains('sel')&&t._tpNoGrow&&t._tpNoGrow.id===e.dataset.id)e.style.transform=`scale(${zs.toFixed(3)})`; // route cancelled: normal size
+    else if(e.classList.contains('sel')){const k=Math.max(zs*1.12,Math.min(TP_GROW_SEL_MAX,zs*TP_GROW_SEL));t._tpGrowSel={id:e.dataset.id,s:k};e.style.transform=`scale(${k.toFixed(3)})`}
+    else e.style.transform=''})}
+// height (px) the destination pin will take in the route view — used by routeFitView so the enlarged pin stays fully on screen
+function tpGrowRouteH(){return 33.8*tpGrowRouteScale(pinZoomScale(17),TM)}
+// cancelling the route returns the selected pin to its normal size (the shop card stays open); called by clearRoute
+function tpGrowRouteCancelled(){if(typeof TM!=='undefined'&&TM&&S.sel)TM._tpNoGrow={id:S.sel,z:TM.z}}
+/* V3.6.1: free hand zoom on the opening (regional) map */
+function tpaFreeScale(z){return +Math.min(1.45,1+.3*Math.max(0,z-13)).toFixed(3)}
+function tpFreeAtRoot(){return !TPN.stack.length&&!S.sel&&!(S.route&&S.route.id)&&!S._mapOpenGroup&&S.mapStyle!=='sat'}
+function tpFreeMark(t,nz){if(t.pick)return;if(nz<=13.08){t._tpFree=false;return}
+  if(!t._tpFree&&nz>t.z&&t.z<13.85&&tpFreeAtRoot())t._tpFree=true}
+(function(){const f=zoomMap;zoomMap=function(d){const t=TM;if(t&&t._tpFree){t._tpKeepFree=1;try{return f(d)}finally{t._tpKeepFree=0}}return f(d)}})();
+(function(){const f=tpStepBack;tpStepBack=function(){const r=f.apply(this,arguments),t=TM;
+  if(t&&!t.pick&&tpFreeAtRoot()&&((t.req&&performance.now()-(t._tpReqAt||0)<80)?t.req.z:t.z)>13.1)t._tpFree=true;return r}})();
+function tpnSync(t){tpCatDress(t);tpGrowDress(t);try{const g=document.getElementById('tpGoShop'),sel=S.sel&&M(S.sel);if(g&&(g.style.display!=='none')!==!!(sel&&!(S.route&&S.route.id)))refreshGoogleNavButton()}catch(e){}
+  if(!t||t.flying)return;const top=TPN.stack[TPN.stack.length-1];if(!top)return;
+  if(top.entryZ==null){top.entryZ=t.z;return}
+  if((t.ptr&&t.ptr.size)||S.sel||(S.route&&S.route.id))return;
+  if((top.kind==='cluster')&&t.z<top.entryZ-1.25){TPN.stack.pop();tpnRestore(top.snap,false)}}
+window.addEventListener('popstate',()=>setTimeout(()=>{try{refreshGoogleNavButton();if(TM)drawMarks()}catch(e){}},0));
+
 const goPort=()=>{if(GM&&GM.ok){GM.map.panTo(PORT);GM.map.setZoom(16);return}if(TM)flyTo(PORT.lat,PORT.lng,15.6,800)};
 const fitAll=()=>{if(GM)return gFit();if(!TM)return;const v=fitPts(visibleMerchants().map(llOf),44);flyTo(v.lat,v.lng,v.z,700)};
 function locateMe(silent){const done=(lat,lng,msg,real,failed)=>{S.userLL={lat,lng};S.userReal=!!real;const rr=S.route&&S.route.id&&!S.pickMode&&!(TM&&TM.pick)?S.route:null;if(GM&&GM.ok){gBuild();if(!rr){GM.map.panTo({lat,lng});GM.map.setZoom(16)}}if(TM){buildMarks();if(!rr)flyTo(lat,lng,16,800)}if(rr)showRoute(rr.id,rr.mode);else if(S.sel)refreshCardUi();if(msg)toast(msg);
@@ -4029,7 +4484,8 @@ function tripoliOffersV(){
   ${!promoActive()&&collectedCount(S.phone)>=S.collectPics.length?'<p class="muted">لا توجد عروض إضافية حالياً. تابعنا لمعرفة العروض القادمة!</p>':''}`}
 function homeV(c){const u=unread();
   // تمت إزالة شريط البحث الأبيض المستقل أسفل البانر مباشرة (كان مكرِّراً لوظيفة البحث الموجودة أصلاً ضمن زر "بحث وفئات" الذهبي)؛ البحث عن محل بالاسم ما زال متاحاً بالكامل من خلال "بحث وفئات" ← "حسب الفئة التجارية" (catSearchInput يطابق أسماء المحلات أيضاً، وليس الفئات فقط)
-  return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button><button type="button" class="qrsHero" onclick="qrsOpen()" aria-label="امسح QR المحل">${QRS_IC}<span>امسح QR</span></button></div>
+  return `<div class="hero2" style="background-image:url(${HERO})"><button class="bell" onclick="openNotes()" aria-label="الإشعارات">${ic('bell')}${notifBadge(u)}</button></div>
+  <div class="qrsRowHome"><button type="button" class="qrsHero" onclick="qrsOpen()" aria-label="Scan QR"><span>Scan</span>${QRS_IC}</button><button type="button" class="tpCityBtn" onclick="resetMapFilter()" aria-label="Tripoli"><span>Tripoli</span>${TRIPOLI_MAP_IC}</button></div>
   <button class="bal2" onclick="S.tab='wallet';render()"><div class="g"><span class="bag">🛍️</span><div style="font-size:12.5px;line-height:1.3;font-weight:700">استخدم نقاطك في<br>المحلات المشاركة</div></div><div class="sep"></div>
   <div class="g" style="flex:none"><div><div style="font-size:10.5px;opacity:.9">رصيدك من النقاط</div><div class="n">${fmt(c.points)} <span style="font-size:11.5px;color:var(--yellow)">نقطة</span></div></div><div class="wr">${ic('wallet',18)}</div></div></button>
   <div class="cats2" id="catrow">${catsHtml()}</div>
@@ -4487,7 +4943,7 @@ function mfDupReqIds(id){const r=S.custReq.find(x=>x.id===id);if(!r)return[id];c
 function useCustReq(id){const r=S.custReq.find(x=>x.id===id);if(!r||r.used)return;
  mfReset();S.mf.phone=r.phone;S.mf.items=[{n:'فاتورة الزبون',p:String(r.invoice),q:1}];if(r.offer)S.mf.offer=r.offer;S.mf.reqId=id;
  S.sub='new';render()}
-function reqRow(r){const c=S.customers[r.phone];return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:'زبون'}</b>${r.dupN>1?` <span style="display:inline-block;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap" title="أرسل الزبون نفس الطلب أكثر من مرة، ويُعالَج مرة واحدة">${r.dupN===2?'أُرسل مرتين':`أُرسل ${numIso(String(r.dupN))} مرات`}</span>`:''}<div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
+function reqRow(r){const c=custKnown(r.phone);return `<div class="row" style="padding:6px 0"><div><b>🛒 ${c?c.name:(esc(custName(r.phone))||'زبون')}</b>${r.dupN>1?` <span style="display:inline-block;background:#fff4d6;color:#8a5a00;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap" title="أرسل الزبون نفس الطلب أكثر من مرة، ويُعالَج مرة واحدة">${r.dupN===2?'أُرسل مرتين':`أُرسل ${numIso(String(r.dupN))} مرات`}</span>`:''}<div class="muted ltr" style="direction:ltr;text-align:right">+961 ${r.phone} · ${ago(r.at)}</div></div><div style="text-align:left"><b style="color:var(--ok);font-size:16px">${usd(r.invoice)}</b><button class="btn sm blue" style="display:block;margin-top:4px" onclick='useCustReq(${JSON.stringify(r.id)})'>ابدأ العملية</button></div></div>`}
 const reqGrouped=m=>custReqGroups(m.id).map(g=>Object.assign({},g.first,{dupN:g.ids.length}));
 function reqBanner(m){const l=reqGrouped(m);if(!l.length)return'';
  return `<div class="card" style="border-right:4px solid var(--ok)">${l.map(reqRow).join('<div style="border-top:1px solid var(--line)"></div>')}</div>`}
@@ -4517,7 +4973,7 @@ function mopsV(m){const f=S.mopf,all=S.tx.filter(t=>t.mid===m.id&&(S.mper==='all
   return topbar('العمليات')+`<button class="btn blue" style="margin-bottom:12px" onclick="startNew()">+ عملية جديدة</button>`+reqSectionV(m)+chips([['all','الكل'],['PENDING','بانتظار التأكيد'],['DONE','مكتملة'],['BAD','ملغاة']],f,'setMopf')+chips([['all','كل الفترات'],['day','اليوم'],['week','الأسبوع']],S.mper,'setMper')+`<div class="card">${l.length?l.map(opRow).join(''):'<p class="muted">لا توجد عمليات في هذا القسم.</p>'}</div>`}
 
 function mdetailV(m){const t=S.tx.find(x=>x.id===S.detailId);if(!t)return subHead('تفاصيل العملية');
-  const c=S.customers[t.phone]||{name:t.phone},st=t.status,left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000)),ln='padding:8px 0;border-bottom:1px solid var(--line)';
+  const c=custKnown(t.phone)||{name:esc(custName(t.phone))||t.phone},st=t.status,left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000)),ln='padding:8px 0;border-bottom:1px solid var(--line)';
   const items=(t.items||[]).length?`<div class="card"><h3>الأصناف</h3>${t.items.map(i=>`<div class="row" style="padding:3px 0"><span>${i.n} × ${i.q}</span><b>${usd(i.p*i.q)}</b></div>`).join('')}</div>`:'';
   const banner=st==='PENDING'?`<div class="prev"><b>العملية بانتظار تأكيد الزبون</b><div>سيصل الزبون إشعار للتأكيد · تنتهي المهلة خلال ${left} د</div></div>`:st==='CONFIRMED'?`<div class="prev" style="background:#d9f3e5"><b>أكّد الزبون العملية</b></div>`:`<div class="alert">${st==='EXPIRED'?'انتهت مهلة تأكيد الزبون':'العملية ملغاة'}</div>`;
   return subHead('تفاصيل العملية')+`<div class="card row" style="justify-content:flex-start;gap:12px"><span class="avatar" style="width:46px;height:46px;flex:none">${ic('user',22)}</span><div><b>${c.name}</b><div class="ltr muted">+961 ${t.phone}</div><div class="muted">${dtm(t.at)}</div></div></div>
@@ -4645,6 +5101,8 @@ function qrsOpen(){qrsClose();const md=document.createElement('div');md.classNam
    <p class="small qrsNote">المسح يفتح صفحة المحل فقط، ولا يرسل أي طلب ولا يغيّر نقاطك.</p></div>`;
   document.body.appendChild(md);qrsLoadLib()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&qrsStream)qrsStop()});
+try{document.addEventListener('touchstart',function(){},{passive:true})}catch(e){} // iOS Safari: lets :active pressed states show on buttons (no effect on gestures)
+const TRIPOLI_MAP_IC='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 4.5 3.5 6.6v13l5.5-2.1 6 2.1 5.5-2.1V9.2"/><path d="M9 4.5v13M15 13v6.6"/><path d="M17.6 2.6a3.1 3.1 0 0 0-3.1 3.1c0 2.3 3.1 5.4 3.1 5.4s3.1-3.1 3.1-5.4a3.1 3.1 0 0 0-3.1-3.1z"/><circle cx="17.6" cy="5.7" r="1"/></svg>';
 const QRS_IC='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 9h2v2H9zM13 13h2v2h-2zM13 9h2M9 13v2"/></svg>';
 const qrUrl=mid=>location.href.split('#')[0]+'#q-'+mid;
 function copyQrLink(mid){const u=qrUrl(mid);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(()=>toast('تم نسخ الرابط')).catch(()=>toast(u));else toast(u)}
@@ -4823,20 +5281,20 @@ async function delOffer(id){const res=await sbRpc('merchant_delete_offer',{p_off
 function mfReset(){S.mf={step:1,phone:'',items:[{n:'',p:'',q:1}],redeem:false,txId:null,offer:null,reqId:null}}
 mfReset();
 const mfTotal=()=>+S.mf.items.reduce((a,i)=>a+(parseFloat(i.p)||0)*(parseInt(i.q)||0),0).toFixed(2);
-const ciText=v=>{const p=norm(v);if(p.length<7)return'';const c=S.customers[p];return c?`${c.name} · متاح ${fmt(avail(p))} نقطة`:'رقم غير مسجّل'};
+const ciText=v=>{const p=norm(v);if(p.length<7)return'';const c=custKnown(p);if(c)return `${c.name} · متاح ${fmt(avail(p))} نقطة`;const n=custName(p);return n?`${n} · يتحقق الخادم من الحساب والرصيد عند الإرسال`:'يتحقق الخادم من الرقم عند إرسال العملية'};
 function opickHtml(){const m=M(S.merchantId),f=S.mf,p=norm(f.phone),offs=liveOffers().filter(o=>o.mid===m.id&&o.type!=='product');
   if(!offs.length)return'<p class="muted" style="margin:0">لا توجد عروض فعّالة لدى المحل. يمكنك نشر عرض من تبويب «العروض».</p>';
   return [null,...offs].map(o=>{const on=(f.offer||null)===(o?o.id:null),cl=o&&S.claims.some(c=>c.phone===p&&c.oid===o.id);
    return `<div class="oc ${on?'on':''}" onclick="pickOffer(${o?`'${o.id}'`:'null'})"><div><b>${o?o.title:'بدون عرض'}</b>${o?`<div class="muted">${OTL[o.type]||''}${o.min?` · حد أدنى $${o.min}`:''}${o.first?' · للزائر الجديد':''}</div>`:''}</div>${cl?'<span class="badge b3">فعّله الزبون</span>':''}</div>`}).join('')}
 function pickOffer(id){S.mf.offer=id;const e=$('#opick');if(e)e.innerHTML=opickHtml()}
-function vipBox(p){const m=M(S.merchantId);if(!/^\d{7,8}$/.test(p)||!S.customers[p])return'';const on=isVip(m,p);
+function vipBox(p){const m=M(S.merchantId);if(!/^\d{7,8}$/.test(p)||!custKnown(p))return'';const on=isVip(m,p);
  if(on)return `<div class="row" style="padding-top:8px;border-top:1px solid var(--line);margin-top:6px"><div><b>👑 زبون VIP</b><div class="muted">تقبل منه حتى ${fmt(vipCap(m,p))} نقطة في العملية (بدل ${m.redeemPct||5}% عادة)</div></div><button class="btn sm ghost" style="color:var(--bad)" onclick="clearVip('${p}')">إلغاء VIP</button></div>`;
  return `<div style="padding-top:8px;border-top:1px solid var(--line);margin-top:6px"><div class="muted" style="margin-bottom:6px">👑 اجعله VIP واكتب عدد النقاط التي تريد قبولها منه في العملية</div><div style="display:flex;gap:8px"><div class="field" style="flex:1;margin:0"><input id="vipn" type="number" min="1" inputmode="numeric" dir="ltr" placeholder="مثال: 2000"></div><button class="btn sm" onclick="setVip('${p}')">تفعيل VIP</button></div></div>`}
 function mfPhone(v){S.mf.phone=v;const e=$('#ci');if(e)e.textContent=ciText(v);const k=$('#opick');if(k)k.innerHTML=opickHtml();const vb=$('#vipbox');if(vb)vb.innerHTML=vipBox(norm(v))}
 function mfTot(){$('#tot').textContent=usd(mfTotal())}
 function mfNext(){const p=norm(S.mf.phone),m=M(S.merchantId);
   if(!phoneOk(S.mf.phone))return toast('رقم الهاتف غير صحيح');if(p===m.phone)return toast('لا يمكن تسجيل عملية على رقم المحل نفسه');
-  if(!S.customers[p])return toast('هذا الرقم غير مسجّل في التطبيق');if(S.customers[p].status!=='active')return toast('حساب الزبون مجمّد');
+  {const c=custKnown(p);if(c&&c.status!=='active')return toast('حساب الزبون مجمّد')} // unknown here: create_transaction validates the customer
   if(!S.mf.items.every(i=>i.n.trim()&&parseFloat(i.p)>0&&parseInt(i.q)>0))return toast('أكمل اسم الصنف والسعر والكمية لكل صنف قبل المتابعة');
   if(!(mfTotal()>0))return toast('أدخل سعر صنف واحد على الأقل');
   if(reserved(p)>0)return toast('لدى الزبون عملية قيد التأكيد');
@@ -4860,7 +5318,9 @@ async function mfSend(){const f=S.mf;if(f.sending)return;
   // the other copies of the same customer request (same phone, amount and offer) are closed too, with the existing merchant RPC
   for(const rid of reqIds){if(rid===orig&&!f.reqId)continue; // createTx already closed the request it started from
    const r=await sbRpc('merchant_close_request',{p_request_id:rid,p_merchant_id:mid});const x=S.custReq.find(q=>q.id===rid);if(r&&x)x.used=true}
-  mfReset();S.sub=null;S.tab='mops';S.mopf='PENDING';render();window.scrollTo(0,0);toast('تم إرسال العملية إلى الزبون، بانتظار تأكيده')}
+  const exact=!!custKnown(p)||!f.redeem,sent=exact?null:S.tx.find(t=>t.id===f.txId);
+  mfReset();S.sub=null;S.tab='mops';S.mopf='PENDING';render();window.scrollTo(0,0);
+  toast(sent?`تم إرسال العملية بانتظار تأكيد الزبون · نقاط مستخدمة ${fmt(sent.redeemPts)} · المطلوب نقداً ${usd(sent.net)}`:'تم إرسال العملية إلى الزبون، بانتظار تأكيده')}
 function mnewView(m){const f=S.mf,k=CAT(m.cat);
   if(f.step===3){const t=S.tx.find(x=>x.id===f.txId);if(!t||t.mid!==m.id){mfReset();return mnewView(m)}}
   const bar=`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:48px;height:48px;font-size:22px;background:${k[3]}22">${k[2]}</span><div><b>${m.name}</b><div><span class="badge b1">نسبة الحسم ${rdPct(m)}%</span></div></div></div>`;
@@ -4874,13 +5334,14 @@ function mnewView(m){const f=S.mf,k=CAT(m.cat);
   <button class="btn ghost sm" onclick="S.mf.items.push({n:'',p:'',q:1});render()">+ إضافة صنف</button>
   <div class="row" style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px"><b>إجمالي الفاتورة</b><b id="tot" style="font-size:20px;color:var(--navy)">${usd(mfTotal())}</b></div></div>
   <button class="btn blue" onclick="mfNext()">متابعة</button>`;
-  if(f.step===2){const p=norm(f.phone),c=S.customers[p],inv=mfTotal(),o=f.offer?S.offers.find(x=>x.id===f.offer):null,r=calc(inv,m.pct,f.redeem,p,m,o),ln='padding:9px 0;border-bottom:1px solid var(--line)';
+  if(f.step===2){const p=norm(f.phone),c=custKnown(p),inv=mfTotal(),o=f.offer?S.offers.find(x=>x.id===f.offer):null,r=calc(inv,m.pct,f.redeem,p,m,o),ln='padding:9px 0;border-bottom:1px solid var(--line)',ex=!!c||!f.redeem; // ex: preview exact (no customer balance needed, or a trusted one is known)
    return `<div class="top"><button class="back" style="margin:0" onclick="if(!S.mf.sending){S.mf.step=1;render()}">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">تفاصيل النقاط</h3><div style="width:34px"></div></div>
-   <div class="muted" style="margin-bottom:8px">${c.name} · <span class="ltr">+961 ${p}</span> · متاح ${fmt(avail(p))} نقطة</div>
+   <div class="muted" style="margin-bottom:8px">${c?c.name:(esc(custName(p))||'زبون')} · <span class="ltr">+961 ${p}</span> · ${c?`متاح ${fmt(avail(p))} نقطة`:'الرصيد يتحقق منه الخادم'}</div>
    <div class="card"><div class="row" style="${ln}"><span>قيمة الفاتورة</span><b style="font-size:20px">${usd(inv)}</b></div>${offerRows(o,r,ln)}
-   <div class="row" style="${ln}"><div><div>النقاط المستخدمة (من رصيد الزبون)</div><div class="muted">${isVip(m,p)?`زبون VIP · حتى ${fmt(vipCap(m,p))} نقطة 👑`:`سقف المحل للدفع بالنقاط: حتى ${rdPct(m,p)}% من قيمة الفاتورة (هذا منفصل عن أي عرض خصم نقدي مُطبّق أعلاه)`}</div></div><div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue)">${fmt(r.redeemPts)} نقطة</b><button class="sw ${f.redeem?'on':''}" aria-label="استخدام النقاط" onclick="S.mf.redeem=!S.mf.redeem;render()"></button></div></div>
-   <div class="row" style="${ln}"><span>المبلغ المطلوب دفعه</span><b style="font-size:20px">${usd(r.net)}</b></div>${r.earn/RATE>wallet(m.id).avail?`<div class="alert" style="margin-top:10px"><b>⚠️ رصيد غير كافٍ</b><div>محفظتك التشغيلية لا تكفي لمنح ${fmt(r.earn)} نقطة لهذا الزبون (المتاح ${mpt(wallet(m.id).avail)}).</div><button class="btn sm" style="margin-top:8px" onclick="S.resumeTx=1;openBuy(1)">اشترِ نقاطاً لإتمام العملية</button></div>`:''}
-   <div class="row" style="padding:9px 0"><div><div>النقاط الجديدة</div><div class="muted">تُحسب على المبلغ النقدي فقط${r.bonus?` · منها ${fmt(r.bonus)} من العرض`:''}</div></div><b style="font-size:19px;color:var(--ok)">${fmt(r.earn)} نقطة</b></div></div>
+   <div class="row" style="${ln}"><div><div>النقاط المستخدمة (من رصيد الزبون)</div><div class="muted">${isVip(m,p)?`زبون VIP · حتى ${fmt(vipCap(m,p))} نقطة 👑`:`سقف المحل للدفع بالنقاط: حتى ${rdPct(m,p)}% من قيمة الفاتورة (هذا منفصل عن أي عرض خصم نقدي مُطبّق أعلاه)`}</div></div><div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue)">${ex?`${fmt(r.redeemPts)} نقطة`:'تُحسب عند الإرسال'}</b><button class="sw ${f.redeem?'on':''}" aria-label="استخدام النقاط" onclick="S.mf.redeem=!S.mf.redeem;render()"></button></div></div>
+   <div class="row" style="${ln}"><span>المبلغ المطلوب دفعه</span><b style="font-size:20px">${ex?usd(r.net):`حتى ${usd(r.net)}`}</b></div>${r.earn/RATE>wallet(m.id).avail?`<div class="alert" style="margin-top:10px"><b>⚠️ رصيد غير كافٍ</b><div>محفظتك التشغيلية لا تكفي لمنح ${fmt(r.earn)} نقطة لهذا الزبون (المتاح ${mpt(wallet(m.id).avail)}).</div><button class="btn sm" style="margin-top:8px" onclick="S.resumeTx=1;openBuy(1)">اشترِ نقاطاً لإتمام العملية</button></div>`:''}
+   <div class="row" style="padding:9px 0"><div><div>النقاط الجديدة</div><div class="muted">تُحسب على المبلغ النقدي فقط${r.bonus?` · منها ${fmt(r.bonus)} من العرض`:''}</div></div><b style="font-size:19px;color:var(--ok)">${ex?'':'حتى '}${fmt(r.earn)} نقطة</b></div></div>
+   ${ex?'':'<div class="prev" style="font-size:13px;margin-bottom:6px">رصيد الزبون غير متوفر على جهاز المحل. يحسب الخادم النقاط المستخدمة بدقة عند الإرسال، وتظهر لك القيم الفعلية، ولا تُعتمد العملية إلا بعد تأكيد الزبون.</div>'}
    <div class="prev" style="font-size:13px">سيتم خصم النقاط من رصيد الزبون، مع إضافة النقاط الجديدة بعد تأكيده العملية.</div>
    ${f.sendErr?`<div class="alert" style="margin:10px 0">${esc(f.sendErr)}</div>`:''}<button class="btn blue" ${f.sending?'disabled aria-busy="true"':''} onclick="mfSend()">${f.sending?'جارٍ الإرسال…':f.sendErr?'إعادة المحاولة':'تأكيد العملية'}</button>`}
   const t=S.tx.find(x=>x.id===f.txId),st=t.status,done=st==='CONFIRMED',bad=st==='CANCELLED'||st==='EXPIRED',left=Math.max(0,Math.ceil((EXPIRY-(Date.now()-t.at))/60000));
@@ -5232,7 +5693,7 @@ function adminMapV(m){if(!m)return`<div class="top"><button class="back" style="
  <div class="rmap" id="rmap" data-pick="1" style="height:360px"><div id="rtl"></div><div id="rmk"></div>
   <div class="cpin"><svg viewBox="0 0 40 50" width="40" height="50"><path d="M20 49C20 49 4 31 4 19a16 16 0 0 1 32 0c0 12-16 30-16 30z" fill="#ffc20e" stroke="#0c2a6b" stroke-width="3"/><circle cx="20" cy="19" r="6" fill="#0c2a6b"/></svg></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:12px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:50px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
  <div class="field">${ic('pin')}<span style="flex:1" id="regloc">${locTxt(m.lat,m.lng)}</span></div>
  <div class="field">${ic('pin')}<input id="elAddr" placeholder="العنوان" value="${m.addr||''}" oninput="S.reg.addr=this.value"></div>
  <div class="muted" style="margin:10px 0 4px;font-size:12.5px">منطقة المحل (اختر يدوياً للدقة، خصوصاً قرب حدود منطقتين متقاربتين):</div>
@@ -5243,7 +5704,7 @@ function adminMapV(m){if(!m)return`<div class="top"><button class="back" style="
  <div class="rmap" id="rmap" style="height:300px"><div id="rtl"></div><svg id="rsv"></svg><div id="rmk"></div>
   ${styleBtn('top:12px')}<button class="zb" style="top:58px" onclick="zoomMap(1)" aria-label="تكبير">+</button><button class="zb" style="top:96px" onclick="zoomMap(-1)" aria-label="تصغير">−</button>
   <button class="mchip mround" style="bottom:10px;right:10px" onclick="fitAll()" aria-label="توسيط">${SVG_TGT}</button>
-  <div class="attr">Esri, HERE, Garmin, OpenStreetMap contributors</div></div>
+  <div class="attr">© OpenStreetMap contributors · Tripoli Points · Esri (صور القمر الصناعي)</div></div>
  <div class="row" style="gap:6px"><button class="btn sm blue" style="flex:1" onclick="openMerchantMapEdit('${m.id}')">✏️ تعديل الموقع</button><a class="btn sm ghost" style="text-decoration:none;display:flex;justify-content:center;gap:6px;flex:1" target="_blank" href="${gmapUrl(m)}">${ic('nav',18)} خرائط Google</a></div>`}
 function qrQueueView(){const back=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0;font-size:18px">ملصقات QR بانتظار الطباعة</h3><div style="width:34px"></div></div>`;
   const all=adminMerchants().filter(m=>!m.posterPrinted);
@@ -5610,7 +6071,7 @@ function reuseLiveMap(live,fresh){
   fresh.replaceWith(live);
   const t=TM;
   // نفس منطق initRealMap عند عدم وجود عرض محفوظ (أول وصول للتجار): تأطير طرابلس على كل المحلات الفعّالة
-  if(!S.mv){const f=fitPts(allActiveMerchants().map(llOf),44);t.lat=f.lat;t.lng=f.lng;t.z=f.z+TRIPOLI_ZOOM_BOOST}
+  if(!S.mv){const f=tpHomeView();t.lat=f.lat;t.lng=f.lng;t.z=f.z}
   buildMarks();drawMap();routeUi()}
 setInterval(()=>{if(S.screen==='app'&&(sweep()||(S.mode==='admin'&&Date.now()>S.adminUntil)))renderDeferredIfTouching()},10000);
 // render() على تبويب الخريطة يستبدل كامل محتوى الصفحة ويعيد بناء الخريطة (مستمعات لمس جديدة) ويصفّر التمرير — إن حصل هذا أثناء لمس/سحب فعلي
