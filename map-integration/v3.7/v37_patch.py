@@ -46,7 +46,7 @@ function tpHoodEl(){const rm=document.getElementById('rmap');if(!rm)return null;
 function tpHoodDots(){const el=document.getElementById('tpHood');if(!el||el.hidden)return;const row=el.querySelector('.tpHoodRow'),d=el.querySelector('.tpHoodDots')||{};
   const n=Math.max(1,Math.ceil((row.scrollWidth-4)/Math.max(1,row.clientWidth))),p=Math.min(n-1,Math.round(Math.abs(row.scrollLeft)/Math.max(1,row.scrollWidth-row.clientWidth)*(n-1))||0);
   const h=Array.from({length:n},(_,i)=>`<span class="${i===p?'on':''}"></span>`).join('');if(d.innerHTML!==h)d.innerHTML=h;
-  const max=row.scrollWidth-row.clientWidth-2,pos=Math.abs(row.scrollLeft);el.querySelector('.tpHoodNext').disabled=pos>=max;el.querySelector('.tpHoodPrev').disabled=pos<=1}
+  const max=row.scrollWidth-row.clientWidth-2,pos=Math.abs(row.scrollLeft);el.querySelector('.tpHoodNext').disabled=pos>=max-8;el.querySelector('.tpHoodPrev').disabled=pos<=8}
 function tpHoodScroll(dir){const row=document.querySelector('#tpHood .tpHoodRow');if(!row)return;row.scrollBy({left:-dir*row.clientWidth*.8,behavior:'smooth'})}
 function tpHoodBase(){const t=TM,rm=document.getElementById('rmap');if(!t||!rm||!rm.classList.contains('tp23-fullscreen'))return false;
   return !TPN.stack.length&&!S.sel&&!(S.route&&S.route.id)&&!S._mapOpenGroup&&S.mapStyle!=='sat'&&t.z<13.1&&!t._tpFree}   // free hand zoom = the customer is exploring: strip out of the way
@@ -97,27 +97,33 @@ function tpSelNudge(n){const t=TM;if(!t||!t.pinLayer||!S.sel||(S.route&&S.route.
 """
 R("function tpnSync(t){", js.replace('__HOOD__', json.dumps([[n, i] for n, i in HOOD], ensure_ascii=False)) + "function tpnSync(t){tpHoodSync();")
 css = """<style>/* V3.7 — full-screen map: «أحياء وشوارع» strip, bottom bar, regional pins without counts */
-.rmap .tpHood{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:8px;right:52px;max-width:560px;background:none;border:0;box-shadow:none;
+.rmap .tpHood{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:6px;right:52px;max-width:560px;background:none;border:0;box-shadow:none;
  font-family:'Tajawal',var(--gpFont,sans-serif);animation:tpHoodIn .22s ease-out}
 .rmap .tpHood[hidden],.rmap .tpHoodShow[hidden]{display:none!important}
 @keyframes tpHoodIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.tpHoodHide{position:absolute;z-index:3;left:-2px;top:-6px;width:22px;height:22px;border-radius:50%;border:1.4px solid #e2b33f;background:linear-gradient(180deg,#123f95,#0a2766);
- color:#f2c14e;display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.tpHoodHide{position:absolute;z-index:3;left:50%;bottom:-11px;transform:translateX(-50%);width:34px;height:13px;border-radius:0 0 9px 9px;border:1px solid #d4a63a;border-top:0;
+ background:linear-gradient(180deg,#fffaf0,#efdcb4);color:#7a5412;display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.tpHoodHide svg{width:12px;height:10px}
 .tpHoodHide svg,.tpHoodShow svg,.tpHoodArr svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .tpHoodBody{position:relative;display:flex;align-items:center;gap:0}
 .tpHoodRow{flex:1;display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
  scrollbar-width:none;padding:3px 3px 5px;overscroll-behavior-x:contain;touch-action:pan-x}
 .tpHoodRow::-webkit-scrollbar{display:none}
 .tpHoodCard{position:relative;flex:0 0 auto;width:62px;height:82px;scroll-snap-align:start;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;
- border:1.5px solid rgba(255,255,255,.95);background:#d9d2c0;box-shadow:0 3px 8px rgba(0,20,60,.38);font:inherit}
+ border:1.5px solid #f4ecd8;background:#d9d2c0;box-shadow:0 3px 8px rgba(0,20,60,.32);font:inherit}
 .tpHoodCard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.tpHoodCard span{position:absolute;left:0;right:0;bottom:0;padding:12px 3px 4px;background:linear-gradient(180deg,rgba(5,20,50,0),rgba(5,20,50,.82));
- color:#fff;font-weight:800;font-size:10px;line-height:1.12;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)}
-.tpHoodCard.on{border:2.5px solid #f2b827;box-shadow:0 0 0 2px rgba(242,184,39,.35),0 4px 10px rgba(120,80,0,.45)}
-.tpHoodCard.on span{background:linear-gradient(180deg,rgba(242,184,39,0),rgba(214,150,10,.95));color:#2a1708;text-shadow:0 1px 0 rgba(255,240,200,.6)}
+/* name plate: the regional pins' cream ribbon — same font (Tajawal ExtraBold), dark brown, thin gold edge, light shine, overlapping the photo */
+.tpHoodCard span{position:absolute;left:3px;right:3px;bottom:3px;min-height:21px;padding:4px 2px 3px;display:flex;align-items:center;justify-content:center;
+ border-radius:50% 50% 7px 7px/7px 7px 7px 7px;border:1px solid #d4a63a;
+ background:linear-gradient(180deg,#fffcf3 0%,#f8eed6 50%,#eedcb3 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 -1px 4px rgba(50,30,0,.28);
+ font-family:'Tajawal',var(--gpFont,sans-serif);font-weight:800;font-size:9.6px;line-height:1.08;color:#2a1708;text-align:center;
+ text-shadow:0 1px 0 rgba(255,250,236,.9);overflow-wrap:anywhere}
+.tpHoodCard.on{border:2px solid transparent;background:linear-gradient(#d9d2c0,#d9d2c0) padding-box,linear-gradient(135deg,#fff4c8 0%,#e8b02a 30%,#fbe7a3 52%,#c88d14 75%,#ffe9a6 100%) border-box;
+ box-shadow:0 0 0 1.5px rgba(242,184,39,.35),0 4px 11px rgba(140,90,0,.45)}
+.tpHoodCard.on span{border-color:#c8901a;background:linear-gradient(180deg,#fff7dc 0%,#fde7a8 55%,#f1c862 100%)}
 .tpHoodArr{position:relative;z-index:2;flex:0 0 22px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;
  border:1px solid #e5d6b0;background:#fff;color:#0a2766;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.tpHoodArr.tpHoodNext{margin-left:-4px}.tpHoodArr.tpHoodPrev{margin-right:-4px;background:linear-gradient(180deg,#ffd970,#f2b827);border-color:#c8901a}
+.tpHoodArr.tpHoodNext{margin-left:-4px}.tpHoodArr.tpHoodPrev{margin-right:-4px}
 .tpHoodArr:disabled{opacity:0;pointer-events:none}
 .rmap .tpHoodShow{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:12px;display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 12px;
  border-radius:14px;border:1.4px solid #e2b33f;background:linear-gradient(180deg,#123f95,#0a2766);color:#fff;font:800 13px 'Tajawal',sans-serif;
