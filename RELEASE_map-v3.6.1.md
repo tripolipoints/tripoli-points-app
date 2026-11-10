@@ -34,3 +34,21 @@ No change to coordinates, area data, registration, QR, transactions, points, Tre
 - The previous main is kept as branch `backup/main-before-map-v3.6.1-20261110` (`a6c4e79`).
 - To revert in git, run `git revert -m 1 <merge commit>`, or reset main to the backup branch.
 - To roll back the site, redeploy the previous Netlify deploy (Deploys → the earlier deploy → "Publish deploy").
+
+# Map V3.7.4 on main (2026-11-10)
+
+Approved on Netlify Staging (feature/fullmap-hoods-v3.7.1) and merged without a new Staging cycle. Full-screen map only:
+
+- **«أحياء وشوارع» strip.**
+  - 14 real street photos as portrait cards, with a cream name plate in the regional pins' font.
+  - The selected card has a gold frame.
+  - One arrow per side, placed beside the cards. A hide/show tab sits under the strip.
+  - The strip shows only in the base regional view. A card flies to that street and records a map step.
+- **Bottom navigation bar** is visible on the full-screen map. The map ends at its top edge. A tab closes the full-screen map first.
+- **Regional pins on the full-screen map** show no shop count. The «أبو سمراء» pin is labelled «أبي سمراء» (display only).
+- **Sharper pins:** الميناء, عزمي بك and أبي سمراء are rebuilt at 2× (new hashed files). Supabase Storage folder `v3.6.1` still holds the earlier versions of these three, so the app always serves them locally (`TP_MAP_LOCAL_ONLY`).
+- **«شارع قاديشا»** coordinates are corrected to 34.44083330909316, 35.83399872214594.
+- **Close-shop nudge:** if the enlarged selected pin covers a close neighbour, the map zooms in slightly (at most +0.9).
+- **Close button:** SVG X, centred.
+
+Previous main: `backup/main-before-map-v3.7-20261110` (`f9c085c`).
