@@ -1997,6 +1997,13 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 .rmap.tpv6 .pn.tpGrow.route{transform:scale(calc(var(--zs,1) * 1.9))}
 .rmap.tpv6 .pn.tpGrow.sel~.pnname,.rmap.tpv6 .pn.tpGrow.route~.pnname{top:calc(3px + 6px)}
 </style>
+<style>/* V3.6.1: «−» and «✕» drawn as centred marks (same size and weight as the «+» icon) */
+.zb[aria-label="تصغير"]{font-size:0!important}
+.zb[aria-label="تصغير"]::before{content:"";display:block;width:9.75px;height:1.95px;border-radius:2px;background:currentColor}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn{font-size:0!important}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn::before,.rmap.tp23-fullscreen .tp23-fullscreen-btn::after{content:"";position:absolute;left:50%;top:50%;width:15px;height:2.3px;border-radius:2px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn::after{transform:translate(-50%,-50%) rotate(-45deg)}
+</style>
 </head>
 <body>
 <div class="app" id="app"><div id="tpBoot" style="position:fixed;inset:0;background:#0b2d6b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;font-family:'Tajawal','DejaVu Sans',system-ui,sans-serif;z-index:1"><div style="font-size:30px;font-weight:800;letter-spacing:.3px;direction:ltr">Tripoli<span style="color:#ffc20e">Points</span></div><div class="tpBootSpin" style="width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,194,14,.25);border-top-color:#ffc20e"></div><style>.tpBootSpin{animation:tpBootSpin .9s linear infinite}@keyframes tpBootSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.tpBootSpin{animation:none}}</style></div></div>
@@ -2006,7 +2013,7 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>/* Tripoli Points artistic map: artwork (copy of the approved Treasures of Tripoli map) and gold pins */
-const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 1036], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.webp", "التل": "assets/map/pins/r1.webp", "عزمي بك": "assets/map/pins/r2.webp", "القبة": "assets/map/pins/r3.webp", "ضم والفرز": "assets/map/pins/r4.webp", "أبو سمراء": "assets/map/pins/r5.webp"};</script>
+const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 973], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.webp", "التل": "assets/map/pins/r1.webp", "عزمي بك": "assets/map/pins/r2.webp", "القبة": "assets/map/pins/r3.webp", "ضم والفرز": "assets/map/pins/r4.webp", "أبو سمراء": "assets/map/pins/r5.webp"};</script>
 <script>
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 // هذه مفاتيح عامة (anon) مخصصة للاستخدام من المتصفح؛ الحماية الحقيقية هي قفل الجداول (RLS) وبوابات RPC بقاعدة البيانات، وليست سرّية هذه المفاتيح.
@@ -3452,9 +3459,9 @@ function initRealMap(){destroyMap();const el=$('#rmap');if(!el)return;if(GKEY&&!
   if(window.ResizeObserver){const ro=new ResizeObserver(()=>{drawMap();_plbQ()});ro.observe(el);t.off.push(()=>ro.disconnect())}
   TPP.mark('map-init');buildMarks();drawMap();
   if(firstPick)locateMe();}
-function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,nz));const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
+function zoomAt(px,py,nz){const t=TM;if(!t)return;nz=Math.max(TP_ZMIN,Math.min(PIN_ZOOM_HI,nz));tpFreeMark(t,nz);const z0=t.z,X=wx(t.lng,z0)+px-t.w/2,Y=wy(t.lat,z0)+py-t.h/2,lng=wlng(X,z0),lat=wlat(Y,z0);
   t.lng=wlng(wx(lng,nz)-(px-t.w/2),nz);t.lat=wlat(wy(lat,nz)-(py-t.h/2),nz);t.z=nz;drawMap();saveView()}
-function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;z=Math.max(TP_ZMIN,z);cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
+function flyTo(lat,lng,z,ms){const t=TM;if(!t)return;if(!t._tpKeepFree)t._tpFree=false;t._tpReqAt=performance.now();z=Math.max(TP_ZMIN,z);cancelAnimationFrame(t.anim);t.req={lat,lng,z};const a={lat:t.lat,lng:t.lng,z:t.z},t0=performance.now();ms=ms||700;
   const st=n=>{if(TM!==t)return;const k=Math.min(1,(n-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;t.lat=a.lat+(lat-a.lat)*e;t.lng=a.lng+(lng-a.lng)*e;t.z=a.z+(z-a.z)*e;t.flying=k<1;drawMap();if(k<1)t.anim=requestAnimationFrame(st);else saveView()};
   t.anim=requestAnimationFrame(st)}
 function drawMap(){const t=TM;if(!t)return;t.w=t.el.clientWidth||t.w;t.h=t.el.clientHeight||t.h;
@@ -3748,11 +3755,11 @@ const TPA_REGIONS=()=>{const az=(SUBAREAS.find(a=>a[0]==='عزمي بك')||[0,34
 function tpaBigOf(p){const a=p.area||'',R=TPA_REGIONS();if(R.some(r=>r[0]===a))return a;
   const c=areaLL(a)||(p.lat!=null?{lat:p.lat,lng:p.lng}:null);if(!c)return '';
   let best='',bd=1e18;R.forEach(r=>{const d=hav(c,{lat:r[1],lng:r[2]});if(d<bd){bd=d;best=r[0]}});return best}
-function tpaBigTap(n){const t=TM;if(!t)return;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length){const ll=TPA_REGIONS().find(r=>r[0]===n);if(ll){cancelAnimationFrame(t.anim);flyTo(ll[1],ll[2],15,650)}return}
+function tpaBigTap(n){const t=TM;if(!t)return;const fz=!!t._tpFree;t._tpFree=false;const ps=(t.pins||[]).filter(p=>tpaBigOf(p)===n);if(!ps.length){const ll=TPA_REGIONS().find(r=>r[0]===n);if(ll){cancelAnimationFrame(t.anim);flyTo(ll[1],ll[2],15,650)}return}
   S._mapOpenGroup=null;S._mapSplitGroups=[];if(S.areaSel){S.areaSel=null;const row=$('#catrow');if(row)row.innerHTML=catsHtml()}
   const areas=[...new Set(ps.map(p=>p.area||''))];
   if(areas.length===1&&ps.length>=AREA_MIN_CLUSTER&&areaLL(areas[0])){clusterTap(ps.map(p=>p.id),areas[0]);return}
-  cancelAnimationFrame(t.anim);clusterCenterView(ps.map(p=>({lat:p.lat,lng:p.lng})),Math.min(CLUSTER_MAXZ,t.z+3),650)}
+  cancelAnimationFrame(t.anim);clusterCenterView(ps.map(p=>({lat:p.lat,lng:p.lng})),Math.min(CLUSTER_MAXZ,(fz?13:t.z)+3),650)}
 function tpaBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
   if(e.target.closest('.mchip,.zb,.pn,#rtchip,#tpRouteActions,#tpBig,button,a,input,.tpPick,#storeSheet,.attr'))return;
   if(S.sel||(S.route&&S.route.id))return;
@@ -3827,7 +3834,8 @@ function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
     im.style.transform=`matrix(${m[0]*s},${m[1]*s},${m[2]*s},${m[3]*s},${(m[4]*s-X+t.w/2).toFixed(2)},${(m[5]*s-Y+t.h/2).toFixed(2)})`}
   tpaSpread(t,X,Y);tpaSeparate(t);
   const busy=!!(S.route&&S.route.id)||S.mapStyle==='sat';
-  const hand=tpaSm((t.z-13.85)/.2),pa=busy?0:1-hand,ca=busy?1:hand;
+  if(t._tpFree&&t.z<=13.08)t._tpFree=false;const fr=!!t._tpFree&&!busy;
+  const hand=tpaSm((t.z-13.85)/.2),pa=busy?0:(fr?1:1-hand),ca=busy?1:(fr?0:hand);
   if(t.pinLayer){t.pinLayer.style.opacity=ca<.998?ca.toFixed(3):'';t.pinLayer.style.pointerEvents=ca<.5?'none':''}
   tpaNameTags(t);
   let L=document.getElementById('tpBig');
@@ -3839,7 +3847,7 @@ function tpArtSync(t,X,Y){if(!t||t.pick||!t.tl||!t.mk)return;
   if(L._sig!==sig){L._sig=sig;
     L.innerHTML=TPA.pins.map(([n,u,v])=>{cnt[n]=cnt[n]||[];return [n,u,v]}).map(([n,u,v])=>`<div class="tpBigPin" data-n="${esc(n)}" data-u="${u}" data-v="${v}"><button type="button" class="tpBigBtn" data-n="${esc(n)}" aria-label="${esc(n)}: ${cnt[n].length} متجر">${gpRegionalH(n,cnt[n].length)}</button></div>`).join('');
     L.querySelectorAll('.tpBigBtn').forEach(b=>b.onclick=e=>{e.stopPropagation();if(TM&&TM.moved)return;tpaBigTap(b.dataset.n)});tpGpFit(L)}
-  const g=tpaSm((t.z-13.05)/.8),bs=tpaBigScale(t.z);
+  const g=tpaSm((t.z-13.05)/.8),bs=fr?tpaFreeScale(t.z):tpaBigScale(t.z);
   L.querySelectorAll('.tpBigPin').forEach(d=>{const u=+d.dataset.u,v=+d.dataset.v,ll=areaLL(d.dataset.n);
     let x=(m[0]*u+m[2]*v+m[4])*s-X+t.w/2,y=(m[1]*u+m[3]*v+m[5])*s-Y+t.h/2;
     if(ll&&g>0){const rx=t.w/2+wx(ll.lng,t.z)-X,ry=t.h/2+wy(ll.lat,t.z)-Y;x+=(rx-x)*g;y+=(ry-y)*g}
@@ -4093,6 +4101,14 @@ function tpGrowDress(t){if(!t||!t.pinLayer)return;
 function tpGrowRouteH(){return 33.8*tpGrowRouteScale(pinZoomScale(17),TM)}
 // cancelling the route returns the selected pin to its normal size (the shop card stays open); called by clearRoute
 function tpGrowRouteCancelled(){if(typeof TM!=='undefined'&&TM&&S.sel)TM._tpNoGrow={id:S.sel,z:TM.z}}
+/* V3.6.1: free hand zoom on the opening (regional) map */
+function tpaFreeScale(z){return +Math.min(1.45,1+.3*Math.max(0,z-13)).toFixed(3)}
+function tpFreeAtRoot(){return !TPN.stack.length&&!S.sel&&!(S.route&&S.route.id)&&!S._mapOpenGroup&&S.mapStyle!=='sat'}
+function tpFreeMark(t,nz){if(t.pick)return;if(nz<=13.08){t._tpFree=false;return}
+  if(!t._tpFree&&nz>t.z&&t.z<13.85&&tpFreeAtRoot())t._tpFree=true}
+(function(){const f=zoomMap;zoomMap=function(d){const t=TM;if(t&&t._tpFree){t._tpKeepFree=1;try{return f(d)}finally{t._tpKeepFree=0}}return f(d)}})();
+(function(){const f=tpStepBack;tpStepBack=function(){const r=f.apply(this,arguments),t=TM;
+  if(t&&!t.pick&&tpFreeAtRoot()&&((t.req&&performance.now()-(t._tpReqAt||0)<80)?t.req.z:t.z)>13.1)t._tpFree=true;return r}})();
 function tpnSync(t){tpCatDress(t);tpGrowDress(t);try{const g=document.getElementById('tpGoShop'),sel=S.sel&&M(S.sel);if(g&&(g.style.display!=='none')!==!!(sel&&!(S.route&&S.route.id)))refreshGoogleNavButton()}catch(e){}
   if(!t||t.flying)return;const top=TPN.stack[TPN.stack.length-1];if(!top)return;
   if(top.entryZ==null){top.entryZ=t.z;return}
