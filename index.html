@@ -2031,8 +2031,8 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 .tpHoodCard.on span{border-color:#c8901a;background:linear-gradient(180deg,#fff7dc 0%,#fde7a8 55%,#f1c862 100%)}
 .tpHoodArr{position:relative;z-index:2;flex:0 0 22px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;
  border:1px solid #e5d6b0;background:#fff;color:#0a2766;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.tpHoodArr.tpHoodNext{margin-left:-4px}.tpHoodArr.tpHoodPrev{margin-right:-4px}
-.tpHoodArr:disabled{opacity:0;pointer-events:none}
+.tpHoodArr.tpHoodNext{margin-left:4px}.tpHoodArr.tpHoodPrev{margin-right:4px}
+.tpHoodArr:disabled{visibility:hidden;pointer-events:none}
 .rmap .tpHoodShow{position:absolute;z-index:40;top:calc(var(--tpHoodTop,78px));left:12px;display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 12px;
  border-radius:14px;border:1.4px solid #e2b33f;background:linear-gradient(180deg,#123f95,#0a2766);color:#fff;font:800 13px 'Tajawal',sans-serif;
  box-shadow:0 4px 12px rgba(10,30,70,.3);cursor:pointer}
@@ -2041,6 +2041,10 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 body.tp23-map-open .nav{z-index:2147483600!important;visibility:visible!important}
 body.tp23-map-open{background:#0c2a68!important}
 body > .rmap.tp23-fullscreen.tpNavOn{bottom:var(--tpNavH,0px)!important;height:calc(100dvh - var(--tpNavH,0px))!important}
+/* full-screen close button: SVG cross centred in the yellow square (replaces the text glyph and the V3.6.1 drawn bars) */
+.rmap.tp23-fullscreen .tp23-fullscreen-btn{display:grid!important;place-items:center!important;padding:0!important;line-height:0!important}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn::before,.rmap.tp23-fullscreen .tp23-fullscreen-btn::after{content:none!important;display:none!important}
+.rmap.tp23-fullscreen .tp23-fullscreen-btn .tpXic{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:2.7;stroke-linecap:round}
 /* regional pins on the full-screen map: name only, centred in the ribbon */
 .rmap.tp23-fullscreen .gp .gpK{display:none!important}
 .rmap.tp23-fullscreen .gp .gpN{top:49.2%}
@@ -4204,7 +4208,10 @@ function tpNavH(){const nav=document.querySelector('.nav');if(!nav||getComputedS
   if(TM){TM._tpFsFramed=null;TM._tpFsHome=null}
   const r=f.apply(this,arguments);const on=!!(rm&&rm.classList.contains('tp23-fullscreen'));
   if(rm){const nh=on?tpNavH():0;rm.classList.toggle('tpNavOn',on&&nh>0);document.body.style.setProperty('--tpNavH',nh+'px')}
+  tpFsCloseIcon(rm,on);
   if(on)setTimeout(()=>{tpHoodSync();requestAnimationFrame(()=>requestAnimationFrame(tpFsFrame))},60);else tpHoodSync();return r}})();
+function tpFsCloseIcon(rm,on){const b=rm&&rm.querySelector('.tp23-fullscreen-btn');if(!b)return;
+  if(on)b.innerHTML='<svg class="tpXic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';else if(b.querySelector('.tpXic'))b.textContent='⛶'}
 // a tab in the bottom bar closes the full-screen map first, then works as usual
 document.addEventListener('click',e=>{if(!document.body.classList.contains('tp23-map-open'))return;if(e.target.closest&&e.target.closest('.nav'))toggleMapFullscreen(false)},true);
 addEventListener('resize',()=>{const rm=document.getElementById('rmap');if(rm&&rm.classList.contains('tp23-fullscreen')){const nh=tpNavH();rm.classList.toggle('tpNavOn',nh>0);document.body.style.setProperty('--tpNavH',nh+'px')}});
