@@ -11,7 +11,7 @@ const TP_CAT_SLUGS=new Set('__SLUGS__'.split(','));
 const TP_CAT_ALIAS={earbuds:'earphones',headphones:'earphones',wedding:'wedding_dresses',bridal:'wedding_dresses',restaurants:'food',coffee:'cafe',clothes:'fashion'};
 function tpCatImgOf(m){if(!m||!m.cat)return null;const cats=(typeof S!=='undefined'&&S.cats)||[];
   let slug=m.cat,c=cats.find(x=>x.slug===slug);
-  for(let i=0;i<4&&slug;i++){const b=String(slug).toLowerCase().replace(/^(stg|test|demo)_/,'');   // Staging test slugs: stg_cafe → cafe
+  for(let i=0;i<4&&slug;i++){const b=String(slug).toLowerCase();
     const k=TP_CAT_SLUGS.has(b)?b:TP_CAT_ALIAS[b];if(k&&TP_CAT_SLUGS.has(k))return'assets/map/cat/'+k+'.webp';
     if(!c||c.parent_id==null)break;c=cats.find(x=>x.id===c.parent_id);slug=c&&c.slug}
   return null}

@@ -2013,7 +2013,7 @@ body > .rmap.tp23-fullscreen .zb[style*="top:50px"],.rmap.tp23-fullscreen .zb[st
 <div id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>/* Tripoli Points artistic map: artwork (copy of the approved Treasures of Tripoli map) and gold pins */
-const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 973], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.webp", "التل": "assets/map/pins/r1.webp", "عزمي بك": "assets/map/pins/r2.webp", "القبة": "assets/map/pins/r3.webp", "ضم والفرز": "assets/map/pins/r4.webp", "أبو سمراء": "assets/map/pins/r5.webp"};</script>
+const TPA={"m": [0.4447187334603318, 0.028730908786325542, 0.004260689974422141, 0.4421368495369816, 2514248.4414508776, 1668840.6362063445], "w": 1536, "h": 1930, "pins": [["الميناء", 337, 677], ["عزمي بك", 760, 739], ["التل", 1045, 973], ["القبة", 1444, 1164], ["ضم والفرز", 615, 1333], ["أبو سمراء", 1133, 1600]]};const TPA_IMG="assets/map/art.webp";const GP_R={"الميناء": "assets/map/pins/r0.983cd47280.webp", "التل": "assets/map/pins/r1.01483b69cd.webp", "عزمي بك": "assets/map/pins/r2.7c5c58d1b0.webp", "القبة": "assets/map/pins/r3.fe8ac6af61.webp", "ضم والفرز": "assets/map/pins/r4.33f29f8bdb.webp", "أبو سمراء": "assets/map/pins/r5.0ad8903496.webp"};</script>
 <script>
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 // هذه مفاتيح عامة (anon) مخصصة للاستخدام من المتصفح؛ الحماية الحقيقية هي قفل الجداول (RLS) وبوابات RPC بقاعدة البيانات، وليست سرّية هذه المفاتيح.
@@ -3743,7 +3743,7 @@ function tpGpFit(L){const go=()=>L.querySelectorAll('.gp .gpN,.gp .gpK').forEach
     const rg=document.createRange(),tw=()=>{rg.selectNodeContents(e);return rg.getBoundingClientRect().width},bw=e.getBoundingClientRect().width*.94;
     let f=parseFloat(getComputedStyle(e).fontSize),n=0;while(tw()>bw&&f>5&&n++<60){f-=.25;e.style.fontSize=f+'px'}});
   go();requestAnimationFrame(go);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go)}
-function gpRegionalH(n,c){const k=String(c).length>1?' two':'';return `<span class="gp" style="--w:${GP_RW}px"><img src="${GP_R[n]||GP_R['التل']}" alt="" draggable="false"><b class="gpN">${esc(n)}</b><i class="gpK${k}">${c} متجر</i></span>`}
+function gpRegionalH(n,c){const k=String(c).length>1?' two':'',lo=GP_R[n]||GP_R['التل'];return `<span class="gp" style="--w:${GP_RW}px"><img src="${tpMapSrc(lo)}" data-lo="${lo}" onerror="tpMapImgFail(this)" alt="" draggable="false"><b class="gpN">${esc(n)}</b><i class="gpK${k}">${c} متجر</i></span>`}
 const tpaSm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k)};
 function tpaAlpha(z){return 1-tpaSm((z-TPA_Z0)/(TPA_Z1-TPA_Z0))}
 function tpaBigScale(z){return +(GP_CW/GP_RW+(1-GP_CW/GP_RW)*(1-tpaSm((z-13.05)/.9))).toFixed(3)}   // 104 px -> 74 px by 13.95
@@ -4069,9 +4069,23 @@ function tpnBgTap(e){const t=TM;if(!t||t.moved||t.pick)return;
       the route, stepping back or choosing another shop returns to normal sizes (the map redraws the pins). */
 const TP_CAT_SLUGS=new Set('abayas,ac,accessories,antiques,baby_wear,bags_hand,bags_school,bags_travel,bakery,beauty,beautycenters,beautysupplies,belts,bookings,boys_wear,cafe,carparts,carpets,carrent,carrental,carservices,carshowroom,chandeliers,chocolate,clinics,curtains,decor,doctors,drinks,earphones,electrical,electronics,electronics_acc,fabrics,fashion,fashion_accessories,food,fuel,furniture,girls_wear,glasses,grocery,handbags,headwear,hijab,home,homeappliances,homeelec,homeware,hospitals,hotels,insurance,islamic_wear,jalabiyas,jewelry,kidswear,knitwear_ready,knitwear_unisex,labs,linens,main_auto,main_beauty,main_electronics,main_fashion,main_food,main_health,main_home,main_jewelry,main_travel,menswear,mobile,modest,naturaldrinks,nuts,oriental,perfume,pharma,salons,sewing_supplies,shoes,shoes_kids,shoes_men,shoes_sport,shoes_women,sportswear,sportswear_kids,sportswear_men,sportswear_women,supplements,sweets,tourism,travel,travelbags,vegetables,wallets,watches,wedding_dresses,womenswear,wool_jackets,wool_kids,wool_knitwear,wool_sweaters'.split(','));
 const TP_CAT_ALIAS={earbuds:'earphones',headphones:'earphones',wedding:'wedding_dresses',bridal:'wedding_dresses',restaurants:'food',coffee:'cafe',clothes:'fashion'};
+/* Map images from Supabase Storage (public bucket map-assets, folder v3.6.1/). Off until v3.6.1/manifest.json is published there with
+   {"version":"v3.6.1"}; then pins/<rN>.webp and cat/<slug>.webp are read from Storage. Any image that fails falls back to the local file. */
+const TP_MAP_REMOTE='https://lqbhfkowqaqlgcrdybvv.supabase.co/storage/v1/object/public/map-assets/v3.6.1/',TP_MAP_VER='v3.6.1';
+let TP_MAP_ON=null;                                   // null/false: local files; object: published manifest
+function tpMapSrc(lo){if(!TP_MAP_ON||!lo)return lo;let m=lo.match(/^assets\/map\/pins\/(r\d)\.[0-9a-f]{10}\.webp$/);
+  if(m)return TP_MAP_ON.pins&&TP_MAP_ON.pins.indexOf(m[1])>=0?TP_MAP_REMOTE+'pins/'+m[1]+'.webp':lo;
+  m=lo.match(/^assets\/map\/cat\/([a-z0-9_]+)\.webp$/);
+  return m&&TP_MAP_ON.categories&&TP_MAP_ON.categories.indexOf(m[1])>=0?TP_MAP_REMOTE+'cat/'+m[1]+'.webp':lo}
+function tpMapImgFail(i){const lo=i.dataset.lo;if(lo&&i.getAttribute('src')!==lo)i.src=lo}
+(function(){if(typeof fetch!=='function')return;let c=null;try{c=new AbortController();setTimeout(()=>c.abort(),4000)}catch(e){}
+  fetch(TP_MAP_REMOTE+'manifest.json',{cache:'no-cache',signal:c&&c.signal}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||j.version!==TP_MAP_VER||!Array.isArray(j.pins)||!Array.isArray(j.categories))return;TP_MAP_ON=j;
+    try{const L=document.getElementById('tpBig');if(L)L._sig='';if(typeof TM!=='undefined'&&TM&&TM.pinLayer){TM.pinLayer.querySelectorAll('.tpCatImg').forEach(x=>x.remove());drawMap()}}catch(e){}
+  }).catch(()=>{})})();
 function tpCatImgOf(m){if(!m||!m.cat)return null;const cats=(typeof S!=='undefined'&&S.cats)||[];
   let slug=m.cat,c=cats.find(x=>x.slug===slug);
-  for(let i=0;i<4&&slug;i++){const b=String(slug).toLowerCase().replace(/^(stg|test|demo)_/,'');   // Staging test slugs: stg_cafe → cafe
+  for(let i=0;i<4&&slug;i++){const b=String(slug).toLowerCase();
     const k=TP_CAT_SLUGS.has(b)?b:TP_CAT_ALIAS[b];if(k&&TP_CAT_SLUGS.has(k))return'assets/map/cat/'+k+'.webp';
     if(!c||c.parent_id==null)break;c=cats.find(x=>x.id===c.parent_id);slug=c&&c.slug}
   return null}
@@ -4081,10 +4095,11 @@ function tpCatDress(t){if(!t||!t.pinLayer)return;
     if(img&&img.style.display!=='none'&&!(img.complete&&!img.naturalWidth)){   // the app's own logo (selected / route): keep it;
       if(!img._tpw){img._tpw=1;img.addEventListener('error',()=>tpCatDress(t))}return}    // if it fails to load, use the category image
     if(img)img.style.display='none';
-    const m=M(e.dataset.id),logo=m&&typeof safeLogoUrl==='function'?safeLogoUrl(m.logo):'',cat=tpCatImgOf(m),src=logo||cat;if(!src)return;
+    const m=M(e.dataset.id),logo=m&&typeof safeLogoUrl==='function'?safeLogoUrl(m.logo):'',catLo=tpCatImgOf(m),cat=catLo&&tpMapSrc(catLo),src=logo||cat;if(!src)return;
     // a shop with its own logo shows the logo at every stage (the category image is only for shops without one)
     e.classList.add('tpCatPin');const im=new Image();im.className='tpCatImg'+(logo?' tpLogo':'');im.alt='';im.draggable=false;im.decoding='async';
-    im.onerror=()=>{if(logo&&cat&&im.src.indexOf(cat)<0){im.classList.remove('tpLogo');im.src=cat;return}im.remove();e.classList.remove('tpCatPin')};
+    im.onerror=()=>{if(logo&&cat&&im.src.indexOf(cat)<0){im.classList.remove('tpLogo');im.src=cat;return}
+      if(catLo&&cat!==catLo&&im.src.indexOf(catLo)<0){im.classList.remove('tpLogo');im.src=catLo;return}im.remove();e.classList.remove('tpCatPin')};
     im.src=src;e.appendChild(im)})}
 const TP_GROW_SEL=1.45,TP_GROW_ROUTE=1.9,TP_GROW_STEP=1.18,TP_GROW_SEL_MAX=2.6,TP_GROW_MAX=3.1; // caps keep the pin reasonable at the highest zoom on small phones
 function tpGrowRouteScale(zs,t){const g=t&&t._tpGrowSel&&S.route&&t._tpGrowSel.id===S.route.id?t._tpGrowSel.s*TP_GROW_STEP:0;
