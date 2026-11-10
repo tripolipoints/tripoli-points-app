@@ -2149,7 +2149,7 @@ Object.assign(S,{hidePend:{},storeId:null,doneId:null,sub:null,offerId:null,txf:
   {id:'p5',name:'جامع طينال',note:'أحد أجمل المساجد المملوكية في المدينة',img:'assets/img/treasure-p5.a0ca4ca1e1.jpg'},
   {id:'p6',name:'ساعة التل',note:'الساعة العثمانية الشهيرة في ساحة التل',img:'assets/img/treasure-p6.188c9cea02.jpg'},
   {id:'p7',name:'جزر النخيل',note:'محمية طبيعية بحرية قبالة سواحل طرابلس',img:'assets/img/treasure-p7.915ba280b1.jpg'},
-  {id:'p8',name:'خان الخياطين',note:'خان مملوكي أثري وسط الأسواق القديمة',img:''},
+  {id:'p8',name:'خان الخياطين',note:'خان مملوكي أثري وسط الأسواق القديمة',img:'assets/img/treasure-p8.dec427a394.jpg'},
   {id:'p9',name:'قلعة طرابلس من الداخل',note:'باحات وأسوار القلعة الداخلية كما تبدو للزائر',img:'assets/img/treasure-p9.f5080fc565.jpg'},
   {id:'p10',name:'المولوية',note:'تكية المولوية الأثرية، معلم ثقافي وديني في قلب المدينة',img:'assets/img/treasure-p10.a4e1a591ed.jpg'},
   {id:'p11',name:'معرض طرابلس الدولي',note:'معرض رشيد كرامي، تحفة معمارية لأوسكار نيماير',img:'assets/img/treasure-p11.ea2afec8be.jpg'}],
@@ -2640,6 +2640,7 @@ async function syncCustomerData(p){
   if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
   if(offs){S.offers=S.offers.filter(o=>!o.db);offs.forEach(o=>S.offers.push(mapOfferRow(o)));TPP.mark('offers-data');ofvWarm()}
   if(prof&&prof.ok)hydrateCustomer(prof.customer);
+  if(tx)tpTreasureCheck(p);
   render({bg:true});txBannerCheck();
 }
 function mapOfferRow(o){return{id:o.id,mid:o.mid,title:o.title,badge:o.badge,at:o.at,days:o.days,active:o.active,type:o.type,val:o.val,gift:o.gift_text,pts:o.pts,per:o.per,oldPrice:o.old_price,newPrice:o.new_price,img:o.img_url,specs:o.specs,min:o.min,first:o.first,db:true}}
@@ -3235,6 +3236,14 @@ const liveOffers=()=>S.offers.filter(o=>{const m=M(o.mid);return o.active&&m&&m.
 // ===== كنوز طرابلس (تحفيز الزبون لتجربة محلات متعددة) =====
 function collectedMids(p){const seen=new Set(),l=[];S.tx.filter(t=>t.phone===p&&t.status==='CONFIRMED').sort((a,b)=>a.at-b.at).forEach(t=>{if(!seen.has(t.mid)){seen.add(t.mid);l.push(t.mid)}});return l}
 const collectedCount=p=>Math.min(collectedMids(p).length,S.collectPics.length);
+/* «صورة جديدة!»: after the server's transactions arrive, a count higher than the last one this phone saw opens the popup with the
+   newest unlocked photo. The first check on a device only records the count (no popup for photos collected before). The count is
+   never lowered here, so data that has not loaded yet can't replay old photos. Without browser storage nothing is shown. */
+function tpTreasureCheck(p){if(!p||S.mode!=='customer'||!S.collectPics.length)return false;const k='tp_tr_seen_'+p,n=collectedCount(p);let seen;
+  try{seen=localStorage.getItem(k)}catch(e){return false}
+  if(seen===null||isNaN(+seen)){try{localStorage.setItem(k,String(n))}catch(e){}return false}
+  seen=+seen;if(n<=seen)return false;try{localStorage.setItem(k,String(n))}catch(e){return false}
+  if(S.sub==='collect')return false;S.newPicUnlock=S.collectPics[n-1];return true}
 function picTile(pic,unlocked){const canView=unlocked&&pic.img;return `<div class="card" style="padding:0;overflow:hidden;text-align:center">
   <div style="height:120px;display:flex;align-items:center;justify-content:center;position:relative;${canView?'cursor:pointer':''};${unlocked&&pic.img?`background:url(${pic.img}) center/cover`:unlocked?'background:linear-gradient(150deg,#0c2a6b,#1d63e0)':'background:#dfe4ee'}" ${canView?`onclick="viewPhoto('${pic.img}')"`:''}>
    ${unlocked?(pic.img?'':`<span style="font-size:30px">🏛️</span>`):`<span style="font-size:30px;filter:grayscale(1);opacity:.5">🔒</span>`}
@@ -3291,6 +3300,7 @@ function custTxRefresh(p){if(!p||S.mode!=='customer')return Promise.resolve();if
     if(tx){S.tx=S.tx.filter(t=>!(t.db&&t.phone===p));tx.forEach(r=>S.tx.push(mapTxRow(r,{mid:r.mid,phone:p})));sweep()}
     if(notes){S.notes=S.notes.filter(n=>!n.db);notes.forEach(n=>S.notes.push({id:n.id,phone:p,type:n.type,title:n.title,body:n.body,at:n.at,db:true}))}
     // re-render only when the data changed and the screen shows it (typing, scrolling and the map are left alone otherwise)
+    if(tx&&tpTreasureCheck(p)&&S.screen==='app'){render({bg:true});txBannerCheck();return}
     if(S.screen==='app'&&sig()!==before&&(S.sub==='notes'||S.sub==='txlog'||S.sub==='success'||(!S.sub&&(S.tab==='wallet'||S.tab==='acc'))))render({bg:true});
     txBannerCheck()}).catch(()=>{}).finally(()=>{_custTxBusy=null});return _custTxBusy}
 // ===== Compact purchase banner =====
@@ -4896,7 +4906,7 @@ function accV(c){const buys=S.tx.filter(t=>t.phone===S.phone&&t.status==='CONFIR
   return `<div style="text-align:center"><div class="avatar" style="margin:6px auto;width:72px;height:72px;cursor:pointer;${c.photo?`background:url(${c.photo}) center/cover`:''}" onclick="${c.photo?`viewPhoto('${c.photo}')`:`S.sub='info';render()`}">${c.photo?'':ic('user',36)}</div><b style="font-size:18px">${c.name}${c.last?' '+c.last:''}</b><div class="ltr muted" style="display:block">${dph(S.phone)}</div></div>
   <div class="stat3"><div><b>${fmt(c.points)}</b><span class="muted">نقطة</span></div><div><b>${buys}</b><span class="muted">عمليات شراء</span></div><div><b>${cl}</b><span class="muted">عروض مفعّلة</span></div></div>
   <div class="menu"><button onclick="S.sub='info';render()">${ic('user',20)}<span style="flex:1">معلوماتي الشخصية</span>${ic('chev',18)}</button>
-  <button onclick="S.sub='collect';render()">${ic('star',20)}<span style="flex:1">🏛️ كنوز طرابلس</span><span class="muted">${collectedCount(S.phone)}/${S.collectPics.length}</span>${ic('chev',18)}</button>
+  <button onclick="openTreasure()">${ic('star',20)}<span style="flex:1">🏛️ كنوز طرابلس</span><span class="muted">${collectedCount(S.phone)}/${S.collectPics.length}</span>${ic('chev',18)}</button>
   <button onclick="S.sub='favs';render()">${ic('heart',20)}<span style="flex:1">المحلات المفضلة</span>${ic('chev',18)}</button>
   <button onclick="toast('العربية هي اللغة المتاحة حالياً')">${ic('list',20)}<span style="flex:1">اللغة</span><span class="muted">العربية</span></button>
   <div class="mi">${ic('bell',20)}<span style="flex:1">الإشعارات</span><button class="sw ${S.notifOn?'on':''}" onclick="S.notifOn=!S.notifOn;render()" aria-label="الإشعارات"></button></div>
