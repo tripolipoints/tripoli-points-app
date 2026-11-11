@@ -42,7 +42,6 @@ insert into public.app_settings(key, value) values
   ('manual_code_fail_limit', 5),       -- invalid typed 8-digit codes per merchant per window before a lock
   ('scan_fail_window_min', 15),
   ('scan_lock_min', 15),
-  ('login_fail_limit', 5),             -- wrong PINs per account per window
   ('login_ip_fail_limit', 30),         -- wrong PINs per IP per window (all accounts)
   ('login_window_min', 15),
   ('login_lock_min', 15),
@@ -222,10 +221,14 @@ create function public._setting(p_key text, p_default numeric) returns numeric l
   select coalesce((select value from public.app_settings where key = p_key), p_default)
 $$;
 
+-- the caller's IP for limits and the log. The Edge Function (service_role key) forwards the app user's IP in
+-- x-tp-client-ip; that header is trusted only on service_role calls, so the app cannot fake it.
 create function public._client_ip() returns text language plpgsql stable set search_path = public, pg_temp as $$
-declare h jsonb; v text;
+declare h jsonb; c jsonb; v text;
 begin
   begin h := nullif(current_setting('request.headers', true), '')::jsonb; exception when others then h := null; end;
+  begin c := nullif(current_setting('request.jwt.claims', true), '')::jsonb; exception when others then c := null; end;
+  if c->>'role' = 'service_role' and h->>'x-tp-client-ip' ~ '^[0-9a-fA-F:.]{3,45}$' then return h->>'x-tp-client-ip'; end if;
   v := coalesce(h->>'cf-connecting-ip', split_part(coalesce(h->>'x-forwarded-for',''), ',', 1));
   return nullif(trim(v), '');
 end $$;
@@ -336,17 +339,20 @@ begin
 end $$;
 
 -- login guard shared by the three login functions: true = allowed to try
+-- account keys are the October ones ('customer:<phone>', 'merchant:<phone>', 'adminlogin:<username>'), shared with
+-- customer_verify_pin / merchant_verify_pin / admin_verify_pin / merchant_set_logo: wrong PINs on the old and the new
+-- login count together, 5 → 15 minutes (October _rl_* helpers). The per-IP limit is new and uses rate_counters.
 create function public._login_allowed(p_key text) returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
 declare ip text := public._client_ip();
 begin
-  if public._rl2_locked('login:' || p_key) then return false; end if;
+  if public._rl_locked(p_key) then return false; end if;
   if ip is not null and public._rl2_locked('loginip:' || ip) then return false; end if;
   return true;
 end $$;
 create function public._login_failed(p_key text) returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare ip text := public._client_ip(); w int := (public._setting('login_window_min', 15) * 60)::int; l int := (public._setting('login_lock_min', 15) * 60)::int;
 begin
-  perform public._rl2_hit('login:' || p_key, public._setting('login_fail_limit', 5)::int, w, l);
+  perform public._rl_record_fail(p_key);
   if ip is not null then perform public._rl2_hit('loginip:' || ip, public._setting('login_ip_fail_limit', 30)::int, w, l); end if;
 end $$;
 
@@ -385,7 +391,7 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'wrong_pin');
   end if;
   if coalesce(c.status,'active') <> 'active' then return jsonb_build_object('ok', false, 'reason', 'frozen'); end if;
-  perform public._rl2_reset('login:customer:' || p_phone);
+  perform public._rl_reset('customer:' || p_phone);
   perform public.customer_check_welcome_expiry(p_phone);
   select * into c from public.customers where phone = p_phone;
   s := public._issue_session('customer', p_phone, null, null, p_device);
@@ -397,7 +403,7 @@ language plpgsql security definer set search_path = public, extensions, pg_temp 
 declare r public.merchants; s jsonb;
 begin
   if p_phone is null or p_phone !~ '^\d{7,8}$' then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
-  if not public._login_allowed('merchant:' || p_phone) or public._rl_locked('merchant:' || p_phone) then
+  if not public._login_allowed('merchant:' || p_phone) then
     return jsonb_build_object('ok', false, 'reason', 'locked');
   end if;
   select * into r from public.merchants where phone = p_phone;
@@ -410,7 +416,7 @@ begin
   if r.status in ('frozen','excluded','rejected') then
     return jsonb_build_object('ok', true, 'merchant', public._merchant_json(r), 'session', null);   -- same as today: the app shows the status screen
   end if;
-  perform public._rl2_reset('login:merchant:' || p_phone);
+  perform public._rl_reset('merchant:' || p_phone);
   s := public._issue_session('merchant', null, r.id, null, p_device);
   return jsonb_build_object('ok', true, 'merchant', public._merchant_json(r)) || s;
 end $$;
@@ -420,59 +426,21 @@ language plpgsql security definer set search_path = public, extensions, pg_temp 
 declare a public.admin_users; s jsonb;
 begin
   if p_username is null or length(p_username) > 64 then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
-  if not public._login_allowed('admin:' || lower(p_username)) then return jsonb_build_object('ok', false, 'reason', 'locked'); end if;
+  if not public._login_allowed('adminlogin:' || lower(p_username)) then return jsonb_build_object('ok', false, 'reason', 'locked'); end if;
   select * into a from public.admin_users where username = p_username;
   if a.id is null or a.pin_hash is null or extensions.crypt(coalesce(p_pin,''), a.pin_hash) <> a.pin_hash then
-    perform public._login_failed('admin:' || lower(p_username));
+    perform public._login_failed('adminlogin:' || lower(p_username));
     perform public._ev('login_failed', 'admin', null, null, null, null, jsonb_build_object('username', left(p_username, 64)));
     return jsonb_build_object('ok', false, 'reason', 'wrong_pin');
   end if;
-  perform public._rl2_reset('login:admin:' || lower(p_username));
+  perform public._rl_reset('adminlogin:' || lower(p_username));
   s := public._issue_session('admin', null, null, a.id, p_device);
   perform public._ev('admin_login', 'admin', null, null, null, null, jsonb_build_object('admin', a.id));
   return jsonb_build_object('ok', true, 'admin', jsonb_build_object('id', a.id, 'username', a.username, 'is_primary', a.is_primary)) || s;
 end $$;
 
--- registration returns a session directly. The welcome gift is read from the server settings (app_text_settings
--- welcome_bonus / welcome_days), never from the browser: the current customer_register trusts the amount it is sent.
-create function public.customer_register_v2(p_phone text, p_pin text, p_terms_version text default null, p_device text default null) returns jsonb
-language plpgsql security definer set search_path = public, extensions, pg_temp as $$
-declare c public.customers; wb numeric; wd integer;
-begin
-  if p_phone is null or p_phone !~ '^\d{7,8}$' then return jsonb_build_object('ok', false, 'error', 'رقم الهاتف غير صحيح'); end if;
-  if p_pin is null or p_pin !~ '^\d{4}$' then return jsonb_build_object('ok', false, 'error', 'رمز الحماية يجب أن يكون 4 أرقام'); end if;
-  if not public._rl2_hit('register:' || coalesce(public._client_ip(), 'noip'), 20, 3600, 0) then
-    return jsonb_build_object('ok', false, 'error', 'محاولات كثيرة، حاول لاحقاً');
-  end if;
-  begin wb := nullif(trim((select value from public.app_text_settings where key = 'welcome_bonus')), '')::numeric; exception when others then wb := 0; end;
-  begin wd := nullif(trim((select value from public.app_text_settings where key = 'welcome_days')), '')::numeric::int; exception when others then wd := 0; end;
-  begin
-    perform public.customer_register(p_phone, p_pin, 'زبون جديد', greatest(0, least(coalesce(wb, 0), 100000)), greatest(0, coalesce(wd, 0)), p_terms_version);
-  exception when raise_exception then
-    return jsonb_build_object('ok', false, 'error', sqlerrm);
-  end;
-  select * into c from public.customers where phone = p_phone;
-  return jsonb_build_object('ok', true, 'customer', public._customer_json(c, true)) || public._issue_session('customer', p_phone, null, null, p_device);
-end $$;
-
-create function public.merchant_register_v2(p_name text, p_phone text, p_pin text, p_cat text, p_pct numeric, p_addr text, p_x numeric, p_y numeric,
-  p_lat numeric, p_lng numeric, p_photo_url text, p_redeem_pct numeric, p_extra_cats text[], p_terms_version text, p_area text, p_device text default null) returns jsonb
-language plpgsql security definer set search_path = public, extensions, pg_temp as $$
-declare r jsonb; m public.merchants;
-begin
-  if p_phone is null or p_phone !~ '^\d{7,8}$' then return jsonb_build_object('ok', false, 'error', 'رقم الهاتف غير صحيح'); end if;
-  if not public._rl2_hit('register:' || coalesce(public._client_ip(), 'noip'), 20, 3600, 0) then
-    return jsonb_build_object('ok', false, 'error', 'محاولات كثيرة، حاول لاحقاً');
-  end if;
-  begin
-    r := public.merchant_register(p_name, p_phone, p_pin, p_cat, p_pct, p_addr, p_x, p_y, p_lat, p_lng, p_photo_url, p_redeem_pct, p_extra_cats, p_terms_version, p_area);
-  exception when raise_exception then
-    return jsonb_build_object('ok', false, 'error', sqlerrm);
-  end;
-  select * into m from public.merchants where phone = p_phone;
-  return jsonb_build_object('ok', true, 'id', m.id, 'status', m.status, 'merchant', public._merchant_json(m))
-         || public._issue_session('merchant', null, m.id, null, p_device);
-end $$;
+-- registration: tp-auth-email-v1.sql (register_confirm) — the account is created only after the e-mail is verified,
+-- with the welcome gift read from the server settings. There is no other registration function.
 
 create function public.session_logout(p_session text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 begin
@@ -1022,13 +990,8 @@ begin
   return r;
 end $$;
 
-create function public.merchant_set_logo_v2(p_session text, p_logo_url text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare m public.merchants;
-begin
-  m := public._sess_merchant(p_session);
-  update public.merchants set logo_url = nullif(p_logo_url, '') where id = m.id returning * into m;
-  return jsonb_build_object('ok', true, 'logo_url', m.logo_url);
-end $$;
+-- merchant_set_logo is not wrapped: since October it checks phone + PIN with a lock, the session adds nothing.
+
 -- ----------------------------------------------------------------------------------------------------
 -- 8b) Merchant pass-through functions: the merchant is the session's, never an id sent by the browser
 -- ----------------------------------------------------------------------------------------------------
@@ -1225,14 +1188,6 @@ begin
   perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_reject_merchant_photo', 'admin', a.id, 'result', r));
   return r;
 end $$;
-create function public.admin_reset_merchant_pin_v2(p_session text, p_pin text, p_merchant_id uuid, p_new_pin text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare a public.admin_users; r jsonb;
-begin
-  a := public._sess_admin(p_session, true);
-  r := public.admin_reset_merchant_pin(a.id, p_pin, p_merchant_id, p_new_pin);
-  perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_reset_merchant_pin', 'admin', a.id, 'result', r));
-  return r;
-end $$;
 create function public.admin_resolve_topup_order_v2(p_session text, p_order_id uuid, p_approve boolean) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 declare a public.admin_users; r jsonb;
 begin
@@ -1394,7 +1349,7 @@ begin
   a := public._sess_admin(p_session, true);
   select x.lo, x.hi into lo, hi from (values
     ('qr_ttl_sec', 60, 900), ('qr_claim_ttl_sec', 60, 1800), ('qr_issue_per_hour', 5, 200), ('scan_fail_limit', 3, 100), ('manual_code_fail_limit', 3, 20),
-    ('scan_fail_window_min', 1, 120), ('scan_lock_min', 1, 240), ('login_fail_limit', 3, 20), ('login_ip_fail_limit', 10, 500), ('login_window_min', 1, 120),
+    ('scan_fail_window_min', 1, 120), ('scan_lock_min', 1, 240), ('login_ip_fail_limit', 10, 500), ('login_window_min', 1, 120),
     ('login_lock_min', 1, 240), ('session_days', 1, 90), ('session_max_days', 7, 365), ('admin_session_hours', 1, 72), ('tx_pending_sec', 60, 1800),
     ('tx_max_invoice', 10, 1000000), ('treasure_min_invoice', 0, 10000), ('profile_photo_max_kb', 30, 400), ('report_per_day', 1, 50),
     ('alert_same_shop_per_day', 2, 100), ('alert_merchant_per_hour', 5, 1000), ('alert_customer_shops_per_hour', 2, 50)) as x(k, lo, hi)
@@ -1464,10 +1419,10 @@ on conflict (slug) do nothing;
 --     then only the API functions (no leading underscore) are granted. Internal helpers stay unreachable.
 -- ----------------------------------------------------------------------------------------------------
 do $$ declare f regprocedure; begin
-  for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname = any (array['_alerts_after_confirm', '_b64url', '_claim_for', '_client_ip', '_customer_json', '_ev', '_expire_pending', '_issue_session', '_login_allowed', '_login_failed', '_merchant_json', '_rl2_hit', '_rl2_locked', '_rl2_reset', '_sess', '_sess_admin', '_sess_any', '_sess_customer', '_sess_merchant', '_setting', '_sha', '_tr_revoke_sessions', '_tr_unlocks_skip_legacy', '_tx_hash', '_tx_json', '_tx_quote', '_unlock_treasure', 'admin_add_category_v2', 'admin_approve_merchant_photo_v2', 'admin_delete_customer_v2', 'admin_delete_merchant_v2', 'admin_delete_offer_v2', 'admin_force_delete_customer_v2', 'admin_force_delete_merchant_v2', 'admin_list_all_offers_v2', 'admin_list_customers_v2', 'admin_list_merchants_v2', 'admin_login', 'admin_mark_order_collected_v2', 'admin_reject_merchant_photo_v2', 'admin_reset_merchant_pin_v2', 'admin_resolve_report_v2', 'admin_resolve_topup_order_v2', 'admin_review_info_change_v2', 'admin_security_feed_v2', 'admin_set_category_active_v2', 'admin_set_customer_status_v2', 'admin_set_merchant_category_v2', 'admin_set_merchant_photo_v2', 'admin_set_merchant_status_v2', 'admin_set_setting_v2', 'admin_settings_v2', 'admin_topup_merchant_v2', 'admin_topup_orders_v2', 'admin_treasure_list_v2', 'admin_treasure_upsert_v2', 'admin_update_category_v2', 'admin_update_merchant_location_v2', 'admin_update_offer_image_v2', 'admin_update_text_settings_v2', 'admin_warn_merchant_v2', 'admin_wipe_all_data_v2', 'customer_decide_tx_v2', 'customer_login', 'customer_notes_list_v2', 'customer_notes_mark_read_v2', 'customer_profile_v2', 'customer_qr_issue', 'customer_qr_status', 'customer_register_v2', 'customer_transactions_v2', 'customer_treasures_v2', 'customer_update_profile', 'merchant_add_offer_v2', 'merchant_cancel_tx', 'merchant_create_topup_order_v2', 'merchant_create_tx_v2', 'merchant_delete_offer_v2', 'merchant_gallery_add_v2', 'merchant_gallery_delete_v2', 'merchant_login', 'merchant_me_v2', 'merchant_notes_list_v2', 'merchant_notes_mark_read_v2', 'merchant_offers_v2', 'merchant_quote_v2', 'merchant_register_v2', 'merchant_request_info_change_v2', 'merchant_request_manual_topup_v2', 'merchant_scan_code', 'merchant_set_logo_v2', 'merchant_set_offer_active_v2', 'merchant_set_redeem_pct_v2', 'merchant_submit_photo_v2', 'merchant_topup_orders_v2', 'merchant_transactions_v2', 'merchant_update_page_v2', 'merchant_wallet_v2', 'report_tx', 'session_list', 'session_logout', 'session_logout_all', 'session_revoke', 'treasure_list']) loop
+  for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname = any (array['_alerts_after_confirm', '_b64url', '_claim_for', '_client_ip', '_customer_json', '_ev', '_expire_pending', '_issue_session', '_login_allowed', '_login_failed', '_merchant_json', '_rl2_hit', '_rl2_locked', '_rl2_reset', '_sess', '_sess_admin', '_sess_any', '_sess_customer', '_sess_merchant', '_setting', '_sha', '_tr_revoke_sessions', '_tr_unlocks_skip_legacy', '_tx_hash', '_tx_json', '_tx_quote', '_unlock_treasure', 'admin_add_category_v2', 'admin_approve_merchant_photo_v2', 'admin_delete_customer_v2', 'admin_delete_merchant_v2', 'admin_delete_offer_v2', 'admin_force_delete_customer_v2', 'admin_force_delete_merchant_v2', 'admin_list_all_offers_v2', 'admin_list_customers_v2', 'admin_list_merchants_v2', 'admin_login', 'admin_mark_order_collected_v2', 'admin_reject_merchant_photo_v2', 'admin_resolve_report_v2', 'admin_resolve_topup_order_v2', 'admin_review_info_change_v2', 'admin_security_feed_v2', 'admin_set_category_active_v2', 'admin_set_customer_status_v2', 'admin_set_merchant_category_v2', 'admin_set_merchant_photo_v2', 'admin_set_merchant_status_v2', 'admin_set_setting_v2', 'admin_settings_v2', 'admin_topup_merchant_v2', 'admin_topup_orders_v2', 'admin_treasure_list_v2', 'admin_treasure_upsert_v2', 'admin_update_category_v2', 'admin_update_merchant_location_v2', 'admin_update_offer_image_v2', 'admin_update_text_settings_v2', 'admin_warn_merchant_v2', 'admin_wipe_all_data_v2', 'customer_decide_tx_v2', 'customer_login', 'customer_notes_list_v2', 'customer_notes_mark_read_v2', 'customer_profile_v2', 'customer_qr_issue', 'customer_qr_status', 'customer_transactions_v2', 'customer_treasures_v2', 'customer_update_profile', 'merchant_add_offer_v2', 'merchant_cancel_tx', 'merchant_create_topup_order_v2', 'merchant_create_tx_v2', 'merchant_delete_offer_v2', 'merchant_gallery_add_v2', 'merchant_gallery_delete_v2', 'merchant_login', 'merchant_me_v2', 'merchant_notes_list_v2', 'merchant_notes_mark_read_v2', 'merchant_offers_v2', 'merchant_quote_v2', 'merchant_request_info_change_v2', 'merchant_request_manual_topup_v2', 'merchant_scan_code', 'merchant_set_offer_active_v2', 'merchant_set_redeem_pct_v2', 'merchant_submit_photo_v2', 'merchant_topup_orders_v2', 'merchant_transactions_v2', 'merchant_update_page_v2', 'merchant_wallet_v2', 'report_tx', 'session_list', 'session_logout', 'session_logout_all', 'session_revoke', 'treasure_list']) loop
     execute format('revoke all on function %s from public, anon, authenticated', f);
   end loop;
-  for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname = any (array['admin_add_category_v2', 'admin_approve_merchant_photo_v2', 'admin_delete_customer_v2', 'admin_delete_merchant_v2', 'admin_delete_offer_v2', 'admin_force_delete_customer_v2', 'admin_force_delete_merchant_v2', 'admin_list_all_offers_v2', 'admin_list_customers_v2', 'admin_list_merchants_v2', 'admin_login', 'admin_mark_order_collected_v2', 'admin_reject_merchant_photo_v2', 'admin_reset_merchant_pin_v2', 'admin_resolve_report_v2', 'admin_resolve_topup_order_v2', 'admin_review_info_change_v2', 'admin_security_feed_v2', 'admin_set_category_active_v2', 'admin_set_customer_status_v2', 'admin_set_merchant_category_v2', 'admin_set_merchant_photo_v2', 'admin_set_merchant_status_v2', 'admin_set_setting_v2', 'admin_settings_v2', 'admin_topup_merchant_v2', 'admin_topup_orders_v2', 'admin_treasure_list_v2', 'admin_treasure_upsert_v2', 'admin_update_category_v2', 'admin_update_merchant_location_v2', 'admin_update_offer_image_v2', 'admin_update_text_settings_v2', 'admin_warn_merchant_v2', 'admin_wipe_all_data_v2', 'customer_decide_tx_v2', 'customer_login', 'customer_notes_list_v2', 'customer_notes_mark_read_v2', 'customer_profile_v2', 'customer_qr_issue', 'customer_qr_status', 'customer_register_v2', 'customer_transactions_v2', 'customer_treasures_v2', 'customer_update_profile', 'merchant_add_offer_v2', 'merchant_cancel_tx', 'merchant_create_topup_order_v2', 'merchant_create_tx_v2', 'merchant_delete_offer_v2', 'merchant_gallery_add_v2', 'merchant_gallery_delete_v2', 'merchant_login', 'merchant_me_v2', 'merchant_notes_list_v2', 'merchant_notes_mark_read_v2', 'merchant_offers_v2', 'merchant_quote_v2', 'merchant_register_v2', 'merchant_request_info_change_v2', 'merchant_request_manual_topup_v2', 'merchant_scan_code', 'merchant_set_logo_v2', 'merchant_set_offer_active_v2', 'merchant_set_redeem_pct_v2', 'merchant_submit_photo_v2', 'merchant_topup_orders_v2', 'merchant_transactions_v2', 'merchant_update_page_v2', 'merchant_wallet_v2', 'report_tx', 'session_list', 'session_logout', 'session_logout_all', 'session_revoke', 'treasure_list']) loop
+  for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname = any (array['admin_add_category_v2', 'admin_approve_merchant_photo_v2', 'admin_delete_customer_v2', 'admin_delete_merchant_v2', 'admin_delete_offer_v2', 'admin_force_delete_customer_v2', 'admin_force_delete_merchant_v2', 'admin_list_all_offers_v2', 'admin_list_customers_v2', 'admin_list_merchants_v2', 'admin_login', 'admin_mark_order_collected_v2', 'admin_reject_merchant_photo_v2', 'admin_resolve_report_v2', 'admin_resolve_topup_order_v2', 'admin_review_info_change_v2', 'admin_security_feed_v2', 'admin_set_category_active_v2', 'admin_set_customer_status_v2', 'admin_set_merchant_category_v2', 'admin_set_merchant_photo_v2', 'admin_set_merchant_status_v2', 'admin_set_setting_v2', 'admin_settings_v2', 'admin_topup_merchant_v2', 'admin_topup_orders_v2', 'admin_treasure_list_v2', 'admin_treasure_upsert_v2', 'admin_update_category_v2', 'admin_update_merchant_location_v2', 'admin_update_offer_image_v2', 'admin_update_text_settings_v2', 'admin_warn_merchant_v2', 'admin_wipe_all_data_v2', 'customer_decide_tx_v2', 'customer_login', 'customer_notes_list_v2', 'customer_notes_mark_read_v2', 'customer_profile_v2', 'customer_qr_issue', 'customer_qr_status', 'customer_transactions_v2', 'customer_treasures_v2', 'customer_update_profile', 'merchant_add_offer_v2', 'merchant_cancel_tx', 'merchant_create_topup_order_v2', 'merchant_create_tx_v2', 'merchant_delete_offer_v2', 'merchant_gallery_add_v2', 'merchant_gallery_delete_v2', 'merchant_login', 'merchant_me_v2', 'merchant_notes_list_v2', 'merchant_notes_mark_read_v2', 'merchant_offers_v2', 'merchant_quote_v2', 'merchant_request_info_change_v2', 'merchant_request_manual_topup_v2', 'merchant_scan_code', 'merchant_set_offer_active_v2', 'merchant_set_redeem_pct_v2', 'merchant_submit_photo_v2', 'merchant_topup_orders_v2', 'merchant_transactions_v2', 'merchant_update_page_v2', 'merchant_wallet_v2', 'report_tx', 'session_list', 'session_logout', 'session_logout_all', 'session_revoke', 'treasure_list']) loop
     execute format('grant execute on function %s to anon, authenticated', f);
   end loop;
 end $$;

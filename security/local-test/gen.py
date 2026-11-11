@@ -45,7 +45,6 @@ A = [  # (name, params, call args — AID = the session admin, primary?, write?)
  ('admin_list_merchants', "", "", False, False),
  ('admin_mark_order_collected', "p_order_id uuid", "p_order_id", True, True),
  ('admin_reject_merchant_photo', "p_merchant_id uuid", "p_merchant_id", False, True),
- ('admin_reset_merchant_pin', "p_pin text, p_merchant_id uuid, p_new_pin text", "AID, p_pin, p_merchant_id, p_new_pin", True, True),
  ('admin_resolve_topup_order', "p_order_id uuid, p_approve boolean", "p_order_id, p_approve", True, True),
  ('admin_review_info_change', "p_merchant_id uuid, p_approve boolean", "p_merchant_id, p_approve", False, True),
  ('admin_set_category_active', "p_id uuid, p_active boolean", "p_id, p_active", False, True),
@@ -109,7 +108,7 @@ begin
   a := public._sess_admin(p_session, true);
   select x.lo, x.hi into lo, hi from (values
     ('qr_ttl_sec', 60, 900), ('qr_claim_ttl_sec', 60, 1800), ('qr_issue_per_hour', 5, 200), ('scan_fail_limit', 3, 100), ('manual_code_fail_limit', 3, 20),
-    ('scan_fail_window_min', 1, 120), ('scan_lock_min', 1, 240), ('login_fail_limit', 3, 20), ('login_ip_fail_limit', 10, 500), ('login_window_min', 1, 120),
+    ('scan_fail_window_min', 1, 120), ('scan_lock_min', 1, 240), ('login_ip_fail_limit', 10, 500), ('login_window_min', 1, 120),
     ('login_lock_min', 1, 240), ('session_days', 1, 90), ('session_max_days', 7, 365), ('admin_session_hours', 1, 72), ('tx_pending_sec', 60, 1800),
     ('tx_max_invoice', 10, 1000000), ('treasure_min_invoice', 0, 10000), ('profile_photo_max_kb', 30, 400), ('report_per_day', 1, 50),
     ('alert_same_shop_per_day', 2, 100), ('alert_merchant_per_hour', 5, 1000), ('alert_customer_shops_per_hour', 2, 50)) as x(k, lo, hi)

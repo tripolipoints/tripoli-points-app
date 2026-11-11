@@ -49,7 +49,7 @@ begin
   for i in 1..5 loop r := public.customer_login('70999903', '0000'); end loop;
   r := public.customer_login('70999903', '1234');
   perform pg_temp.ok('login: 5 wrong PINs lock the account even with the right PIN', r->>'reason' = 'locked', r::text);
-  perform public._rl2_reset('login:customer:70999903');
+  perform public._rl_reset('customer:70999903');
 
   r := public.customer_login('70999901', '1234', 'test-phone');
   tok := r->>'session'; perform pg_temp.set('c1', tok);
@@ -390,18 +390,7 @@ begin
     (select count(distinct event) from public.tx_events where event in ('qr_issued','scanned','scan_failed','tx_created','tx_confirmed','tx_expired','reported')) = 7);
 end $$;
 
--- ---------------------------------------------------------------- 8. registration gift comes from the server
-do $$
-declare r jsonb; old text;
-begin
-  select value into old from public.app_text_settings where key = 'welcome_bonus';
-  insert into public.app_text_settings(key, value) values ('welcome_bonus', '50'), ('welcome_days', '7') on conflict (key) do update set value = excluded.value;
-  r := public.customer_register_v2('70999904', '1234', 'v1');
-  perform pg_temp.ok('register: returns a session and uses the server gift (50), not the browser',
-    (r->>'ok')::boolean and r->>'session' like 'tps1_%' and (select points from public.customers where phone = '70999904') = 50, left(r::text, 160));
-  r := public.customer_register_v2('70999904', '1234');
-  perform pg_temp.ok('register: an existing number is refused cleanly', (r->>'ok')::boolean = false);
-end $$;
+-- (registration and its server-side welcome gift: tp-auth-email-v1-tests.sql)
 
 -- ---------------------------------------------------------------- 9. privileges as the public API role
 grant all on _t, _ctx to anon; grant usage on sequence _t_n_seq to anon;
