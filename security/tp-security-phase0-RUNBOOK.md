@@ -1,80 +1,100 @@
-# Tripoli Points — المرحلة 0 v1.3.1: خطوات التنفيذ على Supabase Staging
+# Tripoli Points — المرحلة 0 v1.3.1: خطوات التنفيذ على Supabase Staging (النسخة النهائية)
 
-- **المشروع:** Staging `axzlshimvtskkxknlwoz` فقط. لا Production قبل موافقة منفصلة بعد نجاح Staging.
-- **المدة:** حوالي 15 دقيقة. التطبيق يبقى شغالاً خلال التنفيذ.
-- **البيانات:** المرحلة 0 لا تكتب أي صف في الزبائن أو التجار أو المعاملات أو المحافظ أو النقاط أو الإعدادات.
-- **الملفات الخطرة:** لا تشغّل أي ملف اسمه يبدأ بـ `DANGEROUS`.
-
-## قبل التنفيذ
-
-1. **تحقق أنك على Staging.** في Supabase Dashboard، تأكد أن الرابط يحتوي `axzlshimvtskkxknlwoz`.
-2. **خذ نسخة احتياطية.** من Database → Backups تأكد من وجود نسخة من اليوم، أو خذ نسخة يدوية إذا كانت خطتك تسمح بذلك.
-3. **شغّل فحص الحالة v1.3.1 (قراءة فقط).** في SQL Editor → New query، الصق `tp-security-status-check.sql` كاملاً واضغط Run. احفظ النتيجة (Download CSV). يجب أن تظهر:
-   - صفوف `pre`: كل قيم عمود `applied` = `true`، وآخرها `VERDICT: … can be applied on this database` = `true`.
-   - صفوف `oct`: كلها `true`.
-   - إذا كان أي صف `pre` = `false`: **توقف** وأرسل لي الـ CSV. نص الصف يذكر السبب، مثل `DIFFERENT, fingerprint …` أو `extra: …`. ملف المرحلة 0 سيرفض التنفيذ في هذه الحالة على أي حال.
-4. **شغّل ملف الفحص (قراءة فقط)** `tp-security-staging-inspect.sql`. فيه 3 استعلامات، شغّل كل واحد وحده واحفظ CSV لكل نتيجة:
-   - تواقيع الدوال التي تلمسها المرحلة 0 وصلاحياتها الحالية.
-   - ما يستطيع المفتاح العام استدعاءه اليوم، وماذا ستفعل المرحلة 0 بكل دالة.
-   - أعداد طلبات شحن Whish خلال آخر 90 يوماً (أعداد فقط، بلا بيانات شخصية).
-   دوّن قيمة صفَّي `info | service_role can execute whish_…` من فحص الحالة. المرحلة 0 ستُبقيهما كما هما بالضبط.
-4b. **اختبر Whish على Staging قبل المرحلة 0.** نفّذ عملية شحن تجريبية وسجّل النتيجة كخط أساس للمقارنة. على Staging اليوم ليس عند `service_role` صلاحية على `whish_confirm_payment`، لذلك قد لا يتأكد الشحن حتى قبل المرحلة 0.
-
-## التنفيذ
-
-5. **شغّل ملف المرحلة 0.** في New query، الصق `tp-security-phase0-urgent.sql` كاملاً، من `begin;` إلى `commit;`، واضغط Run مرة واحدة.
-   - النجاح: تظهر في Notices ثلاث رسائل:
-     - `phase 0: N function(s) closed to the public key`
-     - `phase 0 self-check: 52 behavioural checks passed` (العدد الفعلي حسب قاعدتك)
-     - `phase 0 guard: no API key gained any access; N access(es) removed`
-   - الفشل: إذا ظهر `ERROR` أو `STOP`، فالملف تراجع عن كل شيء ولم يتغيّر أي شيء. انسخ رسالة الخطأ كاملة وأرسلها لي، ولا تعِد المحاولة بتعديل الملف.
-
-## التحقق بعد التنفيذ
-
-6. **أعد فحص الحالة.** شغّل `tp-security-status-check.sql` مرة ثانية. يجب أن تكون:
-   - كل صفوف `p0` = `t`. الصف `old register / offer / location overloads closed` قد يكون فارغاً إذا لم تكن تلك النسخ موجودة.
-   - كل صفوف `oct` = `t`.
-   - صفّا `service_role can execute whish_…` = نفس قيم الخطوة 4.
-7. **شغّل الفحص السلوكي.** في New query:
-   ```sql
-   select * from public._phase0_selfcheck() where not ok;
-   ```
-   النتيجة الصحيحة: **صفر صفوف**.
-8. **شغّل الاختبارات الكاملة.** الصق `tp-security-phase0-tests.sql` كاملاً واضغط Run.
-   - النتيجة في آخر جدولين: `failed = 0`. العدد المتوقع حوالي 70، وقد يختلف قليلاً حسب الدوال الموجودة.
-   - الاختبارات تنتهي بـ `ROLLBACK`، فلا يبقى منها أي حساب أو قفل أو نسخة.
-   - تحذير: الاختبارات تمسح الجداول وتعيدها داخل transaction، فتبقى مقفلة بضع ثوانٍ. لذلك تُشغَّل على Staging فقط، **ولا تُشغَّل على Production أبداً**.
-9. **شغّل ملف الرجوع بوضعه الافتراضي.** الصق `tp-security-phase0-urgent-rollback.sql` كما هو بلا أي تعديل.
-   - يجب أن تظهر الرسائل `no account named in v_keys: no lock released (default)` و`all … behavioural checks pass`.
-   - هذا يثبت أن تشغيل الرجوع العادي لا يغيّر شيئاً.
-10. **اختبر التطبيق على Staging يدوياً:**
-    - دخول زبون بـ PIN صحيح.
-    - دخول تاجر.
-    - دخول أدمن.
-    - شراء عادي: تاجر ينشئ وزبون يوافق.
-    - إذا كان Whish مفعّلاً على Staging: عملية شحن تجريبية.
-    - المتوقع: كل ذلك يعمل كما قبل.
-11. **اختبر القفل يدوياً (اختياري).** على حساب زبون تجريبي: 5 رموز خاطئة، ثم الرمز الصحيح يجب أن يُرفض لمدة 15 دقيقة. لفكّ القفل، راجع البند «زبون حقيقي مقفول» في جدول الأخطاء.
-12. **زر «مسح كل البيانات» في لوحة الأدمن.** يجب أن يعطي خطأ صلاحية، وهذا هو المقصود. لا تحاول تجاوزه.
-
-## خطة التعامل مع الأخطاء
-
-| ما حصل | ماذا تفعل |
+| | |
 |---|---|
-| `STOP: … differs from the reviewed version (fingerprint …)` | لم يتغيّر شيء. أرسل لي الـ fingerprint ونتيجة: `select pg_get_functiondef('public.customer_verify_pin(text,text)'::regprocedure);` (أو الدالة المذكورة في الرسالة). |
-| `STOP: the October 2026 fixes are missing` | لم يتغيّر شيء. يجب تطبيق ملفات أكتوبر أولاً. أرسل لي نتيجة فحص الحالة. |
-| `phase 0 self-check failed …` أو `STOP: protection missing at the end` | لم يتغيّر شيء. أرسل لي الرسالة كاملة، ففيها اسم الفحص الذي فشل. |
-| `permission denied to set role "anon"` | لم يتغيّر شيء. حساب SQL Editor لا يملك صلاحية تقمّص دور anon. أرسل لي نتيجة: `select rolname from pg_roles r where pg_has_role(current_user, r.oid, 'member');` |
-| `STOP: service_role … would lose access` | لم يتغيّر شيء. هذا يعني تعارضاً مع إعدادات Whish. أرسل لي الرسالة. |
-| بعد التنفيذ: زبون أو تاجر حقيقي مقفول | انتظر 15 دقيقة، أو في ملف الرجوع اكتب في `v_keys` المفتاح بالضبط (مثل `array['customer:70123456']`) واكتب السبب في `v_reason`، ثم شغّله. |
-| بعد التنفيذ: حسابات كثيرة مقفولة بسبب خطأ في التطبيق | أوقف السبب أولاً، ثم راسلني قبل استعمال `tp-security-DANGEROUS-unlock-all-pin-locks.sql`. |
-| بعد التنفيذ: الدخول لا يعمل لأحد | لا تشغّل أي ملف DANGEROUS. أرسل لي رسالة الخطأ من التطبيق (Console) ونتيجة الخطوة 7. الحل يكون بإعادة تشغيل ملف المرحلة 0 أو بتصحيح، وليس بإعادة فتح الدوال. |
-| بعد التنفيذ: شحن Whish لا يتأكد | قارن مع خط الأساس في الخطوة 4b. إذا كان لا يتأكد قبل المرحلة 0 أيضاً، فالسبب سابق لها (`service_role` = `false` على Staging). أرسل لي كود Edge Function الخاص بالتأكيد وسجلّه. إعطاء الصلاحية لـ `service_role` فقط قرار منفصل بموافقتك، ولا يُعطى لـ `anon` أبداً. |
-| مسح بالخطأ (فقط إذا شغّل المالك المسح من SQL Editor) | استخرج رقم النسخة: `select stamp, made_at from tp_backup.wipe_runs order by made_at desc;` ثم شغّل: `select public._tp_wipe_restore('<stamp>');` |
+| المشروع | Staging فقط: `axzlshimvtskkxknlwoz`. لا Production. |
+| الملف | `2_tp-security-phase0-urgent.sql` من `Tripoli_Points_Phase0_v1.3.1_Staging_0b6dfb8.zip`، ولم يتغيّر بعدها. MD5 الملف: `140f1b066f00ffc1392c62648553bdb3` |
+| المدة | حوالي 30 دقيقة مع النسخة الاحتياطية والفحوص. |
+| البيانات | المرحلة 0 لا تكتب أي صف في الزبائن أو التجار أو المحافظ أو الشحن أو المعاملات أو النقاط أو الإعدادات. ملف البصمة يثبت ذلك قبل وبعد. |
+| ممنوع | أي ملف `DANGEROUS`. المرحلة 1. البريد. QR. أي تغيير على Whish. |
 
-## ما لا يُفعل أبداً
+## أ) بوابة النسخة الاحتياطية: لا تنفيذ قبل اكتمالها
 
-- لا تشغّل `tp-security-DANGEROUS-reopen-phase0.sql`. كل سطوره معطّلة (comments)، ووجوده للتوثيق فقط.
-- لا تعطِ `anon` أو `authenticated` أي صلاحية على `customer_reset_pin` أو `whish_confirm_payment` أو `admin_wipe_all_data` أو `tp_backup`.
-- لا تحذف نسخة من `tp_backup` إلا بالأمر الصريح: `select public._tp_wipe_drop('<stamp>', 'DELETE COPY <stamp>');`
-- لا تشغّل `tp-security-phase0-tests.sql` على Production.
+ملف الرجوع **ليس نسخة احتياطية**: هو يفكّ الأقفال ويتحقق فقط. النسخة الاحتياطية الحقيقية تكون خارج قاعدة البيانات.
+
+**أ1. اعرف خطة مشروع Staging.** من Dashboard → Settings → Billing (أو شارة الخطة أعلى الصفحة):
+- **Pro أو أعلى:** يوجد نسخ يومي تلقائي (7 أيام في Pro). تأكد من Database → Backups أن آخر نسخة من **اليوم** أو أمس. انتبه: الاسترجاع من هنا يعيد **كل** المشروع إلى لحظة تلك النسخة، والمشروع يتوقف عن العمل أثناء الاسترجاع.
+- **Free:** لا يوجد نسخ تلقائي قابل للاسترجاع. **أ2 إلزامية.**
+
+**أ2. خذ نسخة يدوية لحظة التنفيذ (موصى بها في الحالتين)** على حاسوبك، عبر Supabase CLI مع Docker:
+1. Dashboard → Connect → انسخ **Direct connection string**. إذا كانت شبكتك بلا IPv6، انسخ **Session pooler** بدلاً منه. ضع كلمة سر قاعدة البيانات مكان `[YOUR-PASSWORD]`. إذا نسيتها: Database → Settings → Reset.
+2. في الطرفية:
+   ```bash
+   supabase db dump --remote="[CONNECTION_STRING]" -f staging_before_p0_roles.sql --role-only
+   supabase db dump --remote="[CONNECTION_STRING]" -f staging_before_p0_schema.sql
+   supabase db dump --remote="[CONNECTION_STRING]" -f staging_before_p0_data.sql --use-copy --data-only -x "storage.buckets_vectors" -x "storage.vector_indexes"
+   ```
+3. تأكد أن الملفات الثلاثة **ليست فارغة**، وأن `staging_before_p0_data.sql` يحتوي `COPY public.customers` و`COPY public.merchants` و`COPY public.topups`.
+4. احفظ الملفات في مكان خاص. فيها أرقام هواتف الزبائن ورموزهم المشفّرة، فلا ترسلها لأحد.
+
+**أ3. إثبات أن النسخة قابلة للاسترجاع** (موصى به). المقصود إمكانية الاسترجاع الفعلية، لا مجرد وجود الملف:
+1. أنشئ مشروع Supabase مؤقتاً وفارغاً (Free يكفي)، وانسخ Direct connection string الخاص به.
+2. استرجع إليه:
+   ```bash
+   psql --single-transaction --variable ON_ERROR_STOP=1 \
+     --file staging_before_p0_roles.sql --file staging_before_p0_schema.sql \
+     --command 'SET session_replication_role = replica' --file staging_before_p0_data.sql \
+     --dbname "[TEMP_PROJECT_CONNECTION_STRING]"
+   ```
+3. شغّل `0_tp-data-fingerprint.sql` على المشروع المؤقت وعلى Staging. يجب أن تتطابق صفوف الجزء 1 والجزء 2.
+4. احذف المشروع المؤقت بعد ذلك.
+
+**أ4. ملفات Storage** (الصور) لا تدخل في أي نسخة من النسخ السابقة. المرحلة 0 لا تلمس Storage إطلاقاً، فلا حاجة لنسخها من أجل هذه المرحلة.
+
+**البوابة:** تابع فقط إذا تحقق **أ1 (Pro مع نسخة حديثة)** أو **أ2**. والأفضل الاثنان مع أ3.
+
+## ب) قبل التنفيذ مباشرة (قراءة فقط)
+
+1. **اختر وقتاً هادئاً:** لا أحد يستعمل Staging خلال التنفيذ والفحوص، حتى تبقى البصمة نظيفة.
+2. **فحص الحالة:** SQL Editor → New query → الصق `1_tp-security-status-check.sql` → Run → Download CSV باسم `status_before.csv`.
+   - يجب أن يكون `VERDICT … = true`، وكل صفوف `pre` = `true`، وكل صفوف `oct` = `true`.
+   - إذا لم يتحقق ذلك: **توقف**.
+3. **بصمة البيانات:** New query → الصق `0_tp-data-fingerprint.sql` → Run → Download CSV باسم `fingerprint_before.csv`.
+
+## ج) التنفيذ
+
+4. New query → الصق `2_tp-security-phase0-urgent.sql` **كاملاً**، من `begin;` حتى `commit;` → Run **مرة واحدة**.
+5. **النجاح:** لا يظهر `ERROR`، وتظهر هذه الرسائل:
+   - `phase 0: N function(s) closed to the public key`
+   - `phase 0 self-check: 52 behavioural checks passed` (العدد الفعلي حسب قاعدتك)
+   - `phase 0 guard: no API key gained any access; N access(es) removed`
+6. **الفشل:** أي `ERROR` أو `STOP` معناه أن الملف تراجع عن **كل شيء**، فهو transaction واحدة، ولم يتغيّر شيء. **لا تعِد المحاولة ولا تعدّل الملف.** انسخ الرسالة كاملة وأرسلها لي (راجع جدول الأخطاء).
+
+## د) فحوصات ما بعد التنفيذ، بهذا الترتيب
+
+| # | الفحص | كيف | المطلوب |
+|---|---|---|---|
+| 7 | الحماية فعّالة | `1_tp-security-status-check.sql` → `status_after.csv` | كل صفوف `p0` = `true` (صف «old register … overloads» قد يكون `true` أو فارغاً)، وكل صفوف `oct` = `true` كما قبل، وصفّا `info` الخاصان بـ Whish كما قبل (`false`). |
+| 8 | الفحص السلوكي | `select * from public._phase0_selfcheck() where not ok;` | صفر صفوف. |
+| 9 | اختبارات Staging | `3_tp-security-phase0-tests.sql` كاملاً | آخر جدول: `failed = 0`، وحوالي 70 اختباراً. الملف ينتهي بـ ROLLBACK. تحذير: يقفل الجداول بضع ثوانٍ. **لا يُشغَّل على Production.** |
+| 10 | الرجوع الآمن لا يغيّر شيئاً | `4_tp-security-phase0-urgent-rollback.sql` **كما هو** | تظهر `no lock released (default)` و`all … behavioural checks pass`. |
+| 11 | لا فقدان بيانات ولا تغيير أرصدة | `0_tp-data-fingerprint.sql` → `fingerprint_after.csv` | مطابق **تماماً** لـ `fingerprint_before.csv` في الجزأين 1 و2. الجزء 3 (أقفال PIN) قد يتغيّر فقط إذا جرّب أحد الدخول. |
+| 12 | الدخول يعمل | من نسخة Staging من التطبيق | دخول زبون، دخول تاجر، دخول أدمن بـ PIN صحيح. |
+| 13 | القفل يعمل (اختياري) | حساب زبون تجريبي: 5 رموز خاطئة ثم الرمز الصحيح | الصحيح يُرفض لمدة 15 دقيقة. لفكّه قبل ذلك: الملف 4 مع `v_keys := array['customer:<الرقم>']` وسبب في `v_reason`. |
+| 14 | الشراء العادي | تاجر ينشئ معاملة وزبون يوافق | يعمل كما قبل. |
+| 15 | زر «مسح كل البيانات» | لوحة الأدمن | **خطأ صلاحية، وهذا مقصود.** |
+
+اختبارات أكتوبر لا تُشغَّل على Staging، لأنها تكتب بيانات ولا تنتهي بـ ROLLBACK. حماية أكتوبر يثبتها الفحص 7 (صفوف `oct`) والفحص 8، وقد طوبقت مخرجاتها محلياً بدون المرحلة 0 ومعها.
+
+أرسل لي: `status_before.csv` و`status_after.csv` و`fingerprint_before.csv` و`fingerprint_after.csv` ونتيجة الفحص 9 ورسائل الخطوة 5.
+
+## هـ) التعامل مع الأخطاء
+
+| ما حصل | الحالة | ماذا تفعل |
+|---|---|---|
+| `STOP: … differs from the reviewed version` / `October … missing` / `self-check failed` / `would give access` / `would lose access` / `protection missing at the end` | لم يتغيّر شيء | أرسل الرسالة كاملة. لا تعديل ولا إعادة. |
+| `permission denied to set role "anon"` | لم يتغيّر شيء | أرسل نتيجة صف `pre` الخاص بـ «act as anon». |
+| انقطع الاتصال أثناء التشغيل | إما طُبّق كله أو لم يُطبَّق شيء | شغّل فحص الحالة (الخطوة 7). إذا كانت `p0` كلها `false` فلم يُطبَّق، ويمكن التشغيل مرة أخرى. إذا كانت `true` فقد طُبّق؛ تابع الفحوص. |
+| الفحص 8 أو 9 فشل بعد تطبيق ناجح | الحماية مطبّقة | لا تشغّل أي ملف DANGEROUS. أرسل النتيجة. غالباً يكفي إعادة تشغيل الملف 2، فهو idempotent. |
+| الفحص 11: البصمة تختلف | — | قارن الجداول المختلفة: إذا استُعمل Staging أثناء ذلك فهو السبب. إذا لم يُستعمل، أرسل الملفين فوراً **ولا تستعمل التطبيق**؛ القرار التالي هو الاسترجاع من النسخة (أ2/أ3). |
+| الدخول لا يعمل لأحد (الفحص 12) | — | أرسل رسالة الخطأ من Console التطبيق ونتيجة الفحص 8. **لا تعِد فتح أي دالة.** |
+| حساب حقيقي مقفول | — | انتظر 15 دقيقة، أو استعمل الملف 4 مع اسم الحساب بالضبط وسبب. |
+| حسابات كثيرة مقفولة بخطأ | — | راسلني أولاً. الملف `DANGEROUS-unlock-all` يتطلّب عبارة تأكيد مكتوبة، ولا يُستعمل أثناء هجوم. |
+| كارثة بيانات (لن يسببها هذا الملف) | — | الاسترجاع الكامل: من Database → Backups (Pro) أو من ملفات أ2 إلى مشروع جديد. القرار لك وبعد مراجعتي. |
+
+## Whish
+
+**القرار:** لا شحن إلكتروني حالياً.
+- المرحلة 0 **لا تلمس** دوال Whish: لا تغيّر جسمها، ولا تعطي `service_role` أي صلاحية جديدة (الحارس النهائي يمنع ذلك)، وتبقى مغلقة على المفتاح العام.
+- **لا اختبار Whish** ضمن هذه الخطوات.
+- مسار الشحن اليدوي له ملاحظة أمنية مهمة، وهي منفصلة عن المرحلة 0 (راجع تقرير الجاهزية).
