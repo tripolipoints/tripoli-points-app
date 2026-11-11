@@ -1,0 +1,29 @@
+part,item,row_count,checksum
+1,admin_users,1,d732b84ccca388741e63fa0ac539751f
+1,app_settings,0,d41d8cd98f00b204e9800998ecf8427e
+1,app_text_settings,0,d41d8cd98f00b204e9800998ecf8427e
+1,categories,3,0078fa02a0ef1b42a14ab0714f415a7c
+1,customer_notes,23,05eb2a6725b2ca04229e26fc3bf63fd6
+1,customer_requests,13,a69dee4ca2775de838b6c999a42a4d7c
+1,customer_unlocks,0,d41d8cd98f00b204e9800998ecf8427e
+1,customers,2,ee8681e6d2e40ea485c1db9ec0546891
+1,merchant_gallery,2,2db2f98ef39dd7bef3ba0114bbe76e57
+1,merchant_notes,14,fbfe8f1fe36ee73152b5feb351dad8b9
+1,merchant_vips,1,3bb67130241036ced465eea970aec847
+1,merchants,3,ec4e5946682c8de20ac54e235a01f716
+1,offers,6,4e0b873546d9a253baed33e11173aa41
+1,pos_transactions,12,d2e9d6869f35fa158330534077f2cbe3
+1,topup_orders,0,d41d8cd98f00b204e9800998ecf8427e
+1,topup_requests,0,d41d8cd98f00b204e9800998ecf8427e
+1,topups,2,bae9ab6588678b7c507226fc279d845c
+1,transactions,0,d41d8cd98f00b204e9800998ecf8427e
+1,treasure_pics,0,d41d8cd98f00b204e9800998ecf8427e
+1,user,0,d41d8cd98f00b204e9800998ecf8427e
+1,wallet_orders,0,d41d8cd98f00b204e9800998ecf8427e
+2,customers: total points,0,null
+2,customers: total welcome points remaining,0,null
+2,pos_transactions: count,12,null
+2,topup_orders by status: count / amount / points,none,null
+2,topups: count / total amount,2 / 40,null
+3,"auth_rate_limits (changes with logins, by design): records / lo",0 / 0,null
+3,"public tables with a column named ""r"" (should be none)",none,null
