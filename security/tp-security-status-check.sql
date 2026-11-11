@@ -1,7 +1,8 @@
 -- =====================================================================================================
--- Tripoli Points — SECURITY STATUS CHECK · v1.3 (read-only: SELECT only, changes nothing)
+-- Tripoli Points — SECURITY STATUS CHECK · v1.3.1 (read-only: one SELECT, changes nothing)
 -- Run in the SQL editor of Staging and of Production. One row per fix: applied = true / false.
--- Empty (null) = that function does not exist on this database.
+-- Empty (null) = that function does not exist on this database (or, for 'info' rows, a fact without pass/fail).
+-- 'pre' rows (v1.3.1): applied = true means the condition phase 0 needs is met; the VERDICT row combines them all.
 -- Answers "is it really on this database?" — a passing local test is not proof that a fix is applied.
 -- After phase 0 the behavioural proof is a separate call (it adds throw-away rows inside a step that is undone, so it is
 -- not part of this read-only file):   select * from public._phase0_selfcheck() where not ok;   → no rows = all pass.
@@ -9,7 +10,48 @@
 with f as (select p.oid, p.proname, p.pronargs, p.prosrc from pg_proc p where p.pronamespace = 'public'::regnamespace),
 anon_exec as (select f.proname, f.pronargs, has_function_privilege('anon', f.oid, 'EXECUTE') as anon,
                      has_function_privilege('authenticated', f.oid, 'EXECUTE') as authd,
-                     has_function_privilege('service_role', f.oid, 'EXECUTE') as svc from f)
+                     has_function_privilege('service_role', f.oid, 'EXECUTE') as svc from f),
+pre(fix, applied) as (
+  select x.fn || ' exists with this exact signature and is the reviewed code' ||
+         case when p.oid is null then ' — MISSING'
+              when p.prosrc like '%tp-phase0%' then ' (phase 0 version already)'
+              when md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) = x.h then ''
+              else ' — DIFFERENT, fingerprint ' || md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) end,
+         p.oid is not null and (p.prosrc like '%tp-phase0%' or md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) = x.h)
+    from (values ('customer_verify_pin(text,text)', 'c804486649aadaa57bc5a87fc8b6bcdf'),
+                 ('admin_verify_pin(text,text)',    'a0e676d3290388fde1feae6f3d17564d'),
+                 ('admin_wipe_all_data(uuid,text)', 'bd7d4982c8e56ca244c87eda058356f3')) x(fn, h)
+    left join pg_proc p on p.oid = to_regprocedure('public.' || x.fn)
+  union all
+  select 'October helpers present (auth_rate_limits, _rl_locked, _rl_record_fail, _rl_reset)',
+         to_regclass('public.auth_rate_limits') is not null and to_regprocedure('public._rl_locked(text)') is not null
+         and to_regprocedure('public._rl_record_fail(text)') is not null and to_regprocedure('public._rl_reset(text)') is not null
+  union all
+  select 'October merchant PIN limit in merchant_verify_pin(text,text)',
+         coalesce(position('_rl_locked' in (select prosrc from pg_proc where oid = to_regprocedure('public.merchant_verify_pin(text,text)'))) > 0, false)
+  union all
+  select 'one version only of customer_verify_pin, admin_verify_pin, merchant_verify_pin, admin_wipe_all_data (no extra overloads)'
+         || coalesce(' — extra: ' || (select string_agg(p.oid::regprocedure::text, ', ') from pg_proc p where p.pronamespace = 'public'::regnamespace
+              and p.proname in ('customer_verify_pin','admin_verify_pin','merchant_verify_pin','admin_wipe_all_data')
+              and p.oid not in (select to_regprocedure(x) from unnest(array['public.customer_verify_pin(text,text)','public.admin_verify_pin(text,text)',
+                                'public.merchant_verify_pin(text,text)','public.admin_wipe_all_data(uuid,text)']) x where to_regprocedure(x) is not null)), ''),
+         (select count(*) from pg_proc p where p.pronamespace = 'public'::regnamespace
+           and p.proname in ('customer_verify_pin','admin_verify_pin','merchant_verify_pin','admin_wipe_all_data')) = 4
+  union all
+  select 'the app can call its 3 PIN checks today (anon: customer, merchant, admin)',
+         coalesce(has_function_privilege('anon', to_regprocedure('public.customer_verify_pin(text,text)'), 'EXECUTE')
+              and has_function_privilege('anon', to_regprocedure('public.merchant_verify_pin(text,text)'), 'EXECUTE')
+              and has_function_privilege('anon', to_regprocedure('public.admin_verify_pin(text,text)'), 'EXECUTE'), false)
+  union all
+  select 'the SQL editor user (' || current_user || ') can act as anon and authenticated (needed by the self-check)',
+         pg_has_role(current_user, 'anon', 'MEMBER') and pg_has_role(current_user, 'authenticated', 'MEMBER')
+  union all
+  select 'the SQL editor user can create the private schema tp_backup',
+         has_database_privilege(current_user, current_database(), 'CREATE')
+  union all
+  select 'pgcrypto crypt() reachable from search_path public, extensions',
+         exists (select 1 from pg_proc where proname = 'crypt' and pronamespace in ('public'::regnamespace, coalesce(to_regnamespace('extensions'), 'public'::regnamespace)))
+)
 select * from (values
  -- October 2026 (merchant PIN review, logo migration, emergency hardening)
  ('oct', 'merchant_reset_pin closed to the public key',      (select not bool_or(anon) from anon_exec where proname = 'merchant_reset_pin')),
@@ -57,18 +99,17 @@ select * from (values
  ('p3',  'merchant_transactions closed',                       (select not bool_or(anon) from anon_exec where proname = 'merchant_transactions'))
 ) as t(phase, fix, applied)
 union all
--- pre-flight for phase 0: the functions it replaces must be the reviewed code (phase 0 stops otherwise)
-select 'pre', x.fn || ' = reviewed version: ' || coalesce(case when p.prosrc like '%tp-phase0%' then 'yes (phase 0 already)'
-         when md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) = x.h then 'yes' else 'NO — fingerprint ' || md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) end, 'MISSING'), null
-  from (values ('customer_verify_pin(text,text)', 'c804486649aadaa57bc5a87fc8b6bcdf'), ('admin_verify_pin(text,text)', 'a0e676d3290388fde1feae6f3d17564d'),
-               ('admin_wipe_all_data(uuid,text)', 'bd7d4982c8e56ca244c87eda058356f3')) x(fn, h)
-  left join pg_proc p on p.oid = to_regprocedure('public.' || x.fn)
+-- ---------------------------------------------------------------- pre-flight for phase 0 (same tests as the migration)
+-- applied = true → this condition is met; the last 'pre' row is the verdict (all conditions together).
+select 'pre', fix, applied from pre
 union all
-select 'pre', 'October helpers present (_rl_locked, _rl_record_fail, _rl_reset, auth_rate_limits): ' ||
-       (to_regclass('public.auth_rate_limits') is not null and to_regprocedure('public._rl_locked(text)') is not null
-        and to_regprocedure('public._rl_record_fail(text)') is not null and to_regprocedure('public._rl_reset(text)') is not null)::text, null
+select 'pre', 'VERDICT: tp-security-phase0-urgent.sql v1.3.1 can be applied on this database', bool_and(applied) from pre
 union all
-select 'info', 'service_role (Whish callback) can execute whish_confirm_payment: ' || coalesce(bool_or(svc)::text, 'function missing'), null
-  from anon_exec where proname = 'whish_confirm_payment'
+-- ---------------------------------------------------------------- facts (no pass/fail)
+select 'info', 'service_role can execute whish_confirm_payment: ' || coalesce(bool_or(svc)::text, 'function missing')
+       || ' — phase 0 keeps this exactly as it is', null from anon_exec where proname = 'whish_confirm_payment'
+union all
+select 'info', 'service_role can execute whish_set_collect_url: ' || coalesce(bool_or(svc)::text, 'function missing')
+       || ' — phase 0 keeps this exactly as it is', null from anon_exec where proname = 'whish_set_collect_url'
 union all
 select 'info', 'functions callable with the public key: ' || count(*) filter (where anon) || ' of ' || count(*), null from anon_exec;

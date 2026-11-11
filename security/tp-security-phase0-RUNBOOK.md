@@ -1,4 +1,4 @@
-# Tripoli Points — المرحلة 0 v1.3: خطوات التنفيذ على Supabase Staging
+# Tripoli Points — المرحلة 0 v1.3.1: خطوات التنفيذ على Supabase Staging
 
 - **المشروع:** Staging `axzlshimvtskkxknlwoz` فقط. لا Production قبل موافقة منفصلة بعد نجاح Staging.
 - **المدة:** حوالي 15 دقيقة. التطبيق يبقى شغالاً خلال التنفيذ.
@@ -9,11 +9,16 @@
 
 1. **تحقق أنك على Staging.** في Supabase Dashboard، تأكد أن الرابط يحتوي `axzlshimvtskkxknlwoz`.
 2. **خذ نسخة احتياطية.** من Database → Backups تأكد من وجود نسخة من اليوم، أو خذ نسخة يدوية إذا كانت خطتك تسمح بذلك.
-3. **شغّل فحص الحالة (قراءة فقط).** في SQL Editor → New query، الصق `tp-security-status-check.sql` كاملاً واضغط Run. احفظ النتيجة (Download CSV). يجب أن تظهر:
-   - صفوف `pre`: الثلاثة `= reviewed version: yes`، و`October helpers present … true`.
-   - صفوف `oct`: كلها `t`.
-   - إذا ظهر `NO — fingerprint …` أو `MISSING`: **توقف** وأرسل لي النتيجة. ملف المرحلة 0 سيرفض التنفيذ في هذه الحالة على أي حال.
-4. **سجّل الحالة الحالية.** دوّن قيمة الصف `info | service_role (Whish callback) can execute whish_confirm_payment`. المرحلة 0 ستُبقيها كما هي بالضبط.
+3. **شغّل فحص الحالة v1.3.1 (قراءة فقط).** في SQL Editor → New query، الصق `tp-security-status-check.sql` كاملاً واضغط Run. احفظ النتيجة (Download CSV). يجب أن تظهر:
+   - صفوف `pre`: كل قيم عمود `applied` = `true`، وآخرها `VERDICT: … can be applied on this database` = `true`.
+   - صفوف `oct`: كلها `true`.
+   - إذا كان أي صف `pre` = `false`: **توقف** وأرسل لي الـ CSV. نص الصف يذكر السبب، مثل `DIFFERENT, fingerprint …` أو `extra: …`. ملف المرحلة 0 سيرفض التنفيذ في هذه الحالة على أي حال.
+4. **شغّل ملف الفحص (قراءة فقط)** `tp-security-staging-inspect.sql`. فيه 3 استعلامات، شغّل كل واحد وحده واحفظ CSV لكل نتيجة:
+   - تواقيع الدوال التي تلمسها المرحلة 0 وصلاحياتها الحالية.
+   - ما يستطيع المفتاح العام استدعاءه اليوم، وماذا ستفعل المرحلة 0 بكل دالة.
+   - أعداد طلبات شحن Whish خلال آخر 90 يوماً (أعداد فقط، بلا بيانات شخصية).
+   دوّن قيمة صفَّي `info | service_role can execute whish_…` من فحص الحالة. المرحلة 0 ستُبقيهما كما هما بالضبط.
+4b. **اختبر Whish على Staging قبل المرحلة 0.** نفّذ عملية شحن تجريبية وسجّل النتيجة كخط أساس للمقارنة. على Staging اليوم ليس عند `service_role` صلاحية على `whish_confirm_payment`، لذلك قد لا يتأكد الشحن حتى قبل المرحلة 0.
 
 ## التنفيذ
 
@@ -29,7 +34,7 @@
 6. **أعد فحص الحالة.** شغّل `tp-security-status-check.sql` مرة ثانية. يجب أن تكون:
    - كل صفوف `p0` = `t`. الصف `old register / offer / location overloads closed` قد يكون فارغاً إذا لم تكن تلك النسخ موجودة.
    - كل صفوف `oct` = `t`.
-   - قيمة `service_role … whish_confirm_payment` = نفس قيمة الخطوة 4.
+   - صفّا `service_role can execute whish_…` = نفس قيم الخطوة 4.
 7. **شغّل الفحص السلوكي.** في New query:
    ```sql
    select * from public._phase0_selfcheck() where not ok;
@@ -64,7 +69,7 @@
 | بعد التنفيذ: زبون أو تاجر حقيقي مقفول | انتظر 15 دقيقة، أو في ملف الرجوع اكتب في `v_keys` المفتاح بالضبط (مثل `array['customer:70123456']`) واكتب السبب في `v_reason`، ثم شغّله. |
 | بعد التنفيذ: حسابات كثيرة مقفولة بسبب خطأ في التطبيق | أوقف السبب أولاً، ثم راسلني قبل استعمال `tp-security-DANGEROUS-unlock-all-pin-locks.sql`. |
 | بعد التنفيذ: الدخول لا يعمل لأحد | لا تشغّل أي ملف DANGEROUS. أرسل لي رسالة الخطأ من التطبيق (Console) ونتيجة الخطوة 7. الحل يكون بإعادة تشغيل ملف المرحلة 0 أو بتصحيح، وليس بإعادة فتح الدوال. |
-| بعد التنفيذ: شحن Whish لا يتأكد | قارن قيمة `service_role … whish_confirm_payment` قبل وبعد (الخطوتان 4 و6). إذا كانت `false` قبل التنفيذ، فالمشكلة سابقة للمرحلة 0. أرسل لي سجلّ Edge Function الخاص بـ Whish. |
+| بعد التنفيذ: شحن Whish لا يتأكد | قارن مع خط الأساس في الخطوة 4b. إذا كان لا يتأكد قبل المرحلة 0 أيضاً، فالسبب سابق لها (`service_role` = `false` على Staging). أرسل لي كود Edge Function الخاص بالتأكيد وسجلّه. إعطاء الصلاحية لـ `service_role` فقط قرار منفصل بموافقتك، ولا يُعطى لـ `anon` أبداً. |
 | مسح بالخطأ (فقط إذا شغّل المالك المسح من SQL Editor) | استخرج رقم النسخة: `select stamp, made_at from tp_backup.wipe_runs order by made_at desc;` ثم شغّل: `select public._tp_wipe_restore('<stamp>');` |
 
 ## ما لا يُفعل أبداً

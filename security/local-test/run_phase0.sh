@@ -27,14 +27,25 @@ $B oc >/dev/null 2>&1; $P -d oc -f $T/oct_fixtures.sql >/dev/null 2>&1; apply oc
 ok "October security tests: identical output without and with phase 0 ($o1)" $([ "$o1" = "$o2" ]; echo $?)
 
 echo "== 2. starting states (Production today; Staging variants)"
-for S in prod stg_svc stg_closed; do
+for S in prod stg_svc stg_closed stg_csv; do
   $B s_$S >/dev/null 2>&1
   case $S in
     stg_svc)    q s_$S "revoke execute on function whish_confirm_payment(uuid,text,numeric,bigint), whish_set_collect_url(uuid,text,bigint), admin_grant_customer_gift(text,numeric,integer) from public, anon, authenticated;
                          grant execute on function whish_confirm_payment(uuid,text,numeric,bigint), whish_set_collect_url(uuid,text,bigint), admin_grant_customer_gift(text,numeric,integer) to service_role" >/dev/null;;
     stg_closed) q s_$S "revoke execute on function whish_confirm_payment(uuid,text,numeric,bigint), whish_set_collect_url(uuid,text,bigint), admin_grant_customer_gift(text,numeric,integer) from public, anon, authenticated, service_role" >/dev/null;;
+    # the Staging CSV of 2026-11-11: Whish + gift closed to every key incl. service_role, old overloads present and
+    # closed, extra Staging-only functions (some open, some closed) that phase 0 must leave exactly as they are
+    stg_csv)    q s_$S "revoke execute on function whish_confirm_payment(uuid,text,numeric,bigint), whish_set_collect_url(uuid,text,bigint), admin_grant_customer_gift(text,numeric,integer) from public, anon, authenticated, service_role;
+                         create function public.customer_register(text,text,text) returns jsonb language sql as 'select null::jsonb';
+                         create function public.merchant_register(text,text,text,text,text,text,text,text,text,text,text) returns jsonb language sql as 'select null::jsonb';
+                         revoke execute on function public.customer_register(text,text,text), public.merchant_register(text,text,text,text,text,text,text,text,text,text,text) from public, anon, authenticated, service_role;
+                         create function public.stg_extra_open(int) returns int language sql as 'select 1';
+                         create function public.stg_extra_svc(int) returns int language sql as 'select 1';
+                         revoke execute on function public.stg_extra_svc(int) from public, anon, authenticated; grant execute on function public.stg_extra_svc(int) to service_role" >/dev/null;;
   esac
   before=$(q s_$S "select string_agg(r||':'||has_function_privilege(r,f::regprocedure,'EXECUTE'), ' ' order by f, r) from unnest(array['whish_confirm_payment(uuid,text,numeric,bigint)','whish_set_collect_url(uuid,text,bigint)','admin_grant_customer_gift(text,numeric,integer)']) f, unnest(array['anon','authenticated','service_role']) r")
+  v=$($P -d s_$S -A -F'|' -f $SEC/tp-security-status-check.sql | grep "VERDICT" | cut -d'|' -f3)
+  ok "$S: status check (read-only) VERDICT before phase 0 = $v" $([ "$v" = t ]; echo $?)
   out=$(apply s_$S $SEC/tp-security-phase0-urgent.sql); rc=$?
   ok "$S: phase 0 applies; self-check + no-gain guard pass" $([ $rc = 0 ] && echo "$out" | grep -q "no API key gained"; echo $?) "$(echo "$out" | grep -E 'ERROR|STOP' | head -2)"
   after=$(q s_$S "select string_agg(r||':'||has_function_privilege(r,f::regprocedure,'EXECUTE'), ' ' order by f, r) from unnest(array['whish_confirm_payment(uuid,text,numeric,bigint)','whish_set_collect_url(uuid,text,bigint)','admin_grant_customer_gift(text,numeric,integer)']) f, unnest(array['anon','authenticated','service_role']) r")
@@ -44,6 +55,10 @@ for S in prod stg_svc stg_closed; do
   r=$(p0t s_$S); ok "$S: behavioural tests: $r" $(echo "$r" | grep -q "| 0 |"; echo $?)
   s1=$(state s_$S); apply s_$S $SEC/tp-security-phase0-urgent.sql >/dev/null; s2=$(state s_$S)
   ok "$S: re-running phase 0 changes nothing (idempotent)" $([ "$s1" = "$s2" ]; echo $?)
+  if [ $S = stg_csv ]; then
+    ok "stg_csv: Staging-only functions untouched (open one still open, service_role-only one unchanged)" $([ "$(q s_$S "select has_function_privilege('anon','stg_extra_open(int)','EXECUTE')::text || has_function_privilege('anon','stg_extra_svc(int)','EXECUTE')::text || has_function_privilege('service_role','stg_extra_svc(int)','EXECUTE')::text")" = truefalsetrue ]; echo $?)
+    ok "stg_csv: old register overloads stay closed to every key" $([ "$(q s_$S "select bool_or(has_function_privilege(r,f::regprocedure,'EXECUTE')) from unnest(array['customer_register(text,text,text)','merchant_register(text,text,text,text,text,text,text,text,text,text,text)']) f, unnest(array['anon','authenticated','service_role']) r")" = f ]; echo $?)
+  fi
 done
 
 echo "== 3. pre-flight stops before changing anything"

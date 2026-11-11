@@ -1,7 +1,8 @@
 -- =====================================================================================================
 -- Tripoli Points — PHASE 0: URGENT CLOSURES THAT NEED NO APP CHANGE          Prepared 2026-11-11 · NOT EXECUTED
 -- =====================================================================================================
--- v1.3 · 2026-11-11 · run on STAGING first (instructions: tp-security-phase0-RUNBOOK.md), then Production.
+-- v1.3.1 · 2026-11-11 (v1.3 + self-check calls a function by its exact overload: typed nulls; overloads that share a
+-- name, like the old customer_register versions on Staging, are checked in the catalog) · run on STAGING first (instructions: tp-security-phase0-RUNBOOK.md), then Production.
 -- Built on October 2026 (merchant PIN limit, _rl_* helpers, auth_rate_limits, merchant_reset_pin closed): it requires
 -- them and changes none of them.
 -- Part 0  pre-flight, nothing changed yet: October fixes present; customer_verify_pin, admin_verify_pin and
@@ -341,11 +342,16 @@ begin
         end if;
         begin
           execute format('select %s(%s)', (select p.oid::regproc::text from pg_proc p where p.oid = f::oid),
-                         (select coalesce(string_agg('null', ', '), '') from pg_proc p, unnest(p.proargtypes) where p.oid = f::oid));
+                         (select coalesce(string_agg('null::' || format_type(a.t, null), ', ' order by a.i), '')
+                            from pg_proc p, unnest(p.proargtypes::oid[]) with ordinality a(t, i) where p.oid = f::oid));
+          -- typed nulls: picks this exact overload even when several share the name (old register versions on Staging)
           e := 'RAN';
-        exception when insufficient_privilege then e := 'denied'; when others then e := 'RAN: ' || sqlerrm;
+        exception when insufficient_privilege then e := 'denied';
+          when ambiguous_function then e := 'denied (name shared by overloads: privilege checked in the catalog)';
+          -- reached only when this role has no EXECUTE (checked above); the call cannot pick one overload by name
+          when others then e := 'not denied: ' || sqlerrm;
         end;
-        res := res || jsonb_build_object('c', rl || ' cannot call ' || f::text, 'ok', e = 'denied', 'd', e);
+        res := res || jsonb_build_object('c', rl || ' cannot call ' || f::text, 'ok', e like 'denied%', 'd', e);
       end loop;
       -- the app's wipe call, with a real primary admin and the RIGHT PIN, is refused and deletes nothing
       if has_function_privilege(rl, 'public.admin_wipe_all_data(uuid,text)', 'EXECUTE') then e := 'OPEN, not called';
