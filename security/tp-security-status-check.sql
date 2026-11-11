@@ -1,5 +1,5 @@
 -- =====================================================================================================
--- Tripoli Points — SECURITY STATUS CHECK (read-only: SELECT only, changes nothing)
+-- Tripoli Points — SECURITY STATUS CHECK · v1.3 (read-only: SELECT only, changes nothing)
 -- Run in the SQL editor of Staging and of Production. One row per fix: applied = true / false.
 -- Empty (null) = that function does not exist on this database.
 -- Answers "is it really on this database?" — a passing local test is not proof that a fix is applied.
@@ -41,6 +41,11 @@ select * from (values
                                                                   or has_schema_privilege('service_role', 'tp_backup', 'USAGE')
                                                                   or coalesce((select bool_or(anon or authd or svc) from anon_exec where proname like '\_tp\_wipe\_%'), false)) end),
  ('p0',  'behavioural self-check installed (_phase0_selfcheck)', to_regprocedure('public._phase0_selfcheck()') is not null),
+ ('p0',  'v1.3: copy records cannot be deleted or rewritten',  exists (select 1 from pg_trigger where tgrelid = to_regclass('tp_backup.wipe_runs') and tgname = 'wipe_runs_guard')),
+ ('p0',  'v1.3: deleting a copy needs a typed confirmation',   to_regprocedure('public._tp_wipe_drop(text,text)') is not null and to_regprocedure('public._tp_wipe_drop(text)') is null),
+ ('p0',  'v1.3: manual lock releases are logged',              to_regclass('tp_backup.lock_releases') is not null),
+ ('p0',  'v1.3: reviewed PIN / wipe code in place (marker)',    coalesce((select bool_and(position('tp-phase0' in prosrc) > 0) from f
+                                                                  where proname in ('customer_verify_pin','admin_verify_pin','admin_wipe_all_data')), false)),
  -- November phase 1
  ('p1',  'sessions table exists',                              to_regclass('public.app_sessions') is not null),
  ('p1',  'purchase QR functions exist',                        exists (select 1 from f where proname = 'merchant_scan_code')),
@@ -51,5 +56,19 @@ select * from (values
  ('p3',  'admin_list_customers closed',                        (select not bool_or(anon) from anon_exec where proname = 'admin_list_customers')),
  ('p3',  'merchant_transactions closed',                       (select not bool_or(anon) from anon_exec where proname = 'merchant_transactions'))
 ) as t(phase, fix, applied)
+union all
+-- pre-flight for phase 0: the functions it replaces must be the reviewed code (phase 0 stops otherwise)
+select 'pre', x.fn || ' = reviewed version: ' || coalesce(case when p.prosrc like '%tp-phase0%' then 'yes (phase 0 already)'
+         when md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) = x.h then 'yes' else 'NO — fingerprint ' || md5(regexp_replace(lower(p.prosrc), '\s+', '', 'g')) end, 'MISSING'), null
+  from (values ('customer_verify_pin(text,text)', 'c804486649aadaa57bc5a87fc8b6bcdf'), ('admin_verify_pin(text,text)', 'a0e676d3290388fde1feae6f3d17564d'),
+               ('admin_wipe_all_data(uuid,text)', 'bd7d4982c8e56ca244c87eda058356f3')) x(fn, h)
+  left join pg_proc p on p.oid = to_regprocedure('public.' || x.fn)
+union all
+select 'pre', 'October helpers present (_rl_locked, _rl_record_fail, _rl_reset, auth_rate_limits): ' ||
+       (to_regclass('public.auth_rate_limits') is not null and to_regprocedure('public._rl_locked(text)') is not null
+        and to_regprocedure('public._rl_record_fail(text)') is not null and to_regprocedure('public._rl_reset(text)') is not null)::text, null
+union all
+select 'info', 'service_role (Whish callback) can execute whish_confirm_payment: ' || coalesce(bool_or(svc)::text, 'function missing'), null
+  from anon_exec where proname = 'whish_confirm_payment'
 union all
 select 'info', 'functions callable with the public key: ' || count(*) filter (where anon) || ' of ' || count(*), null from anon_exec;

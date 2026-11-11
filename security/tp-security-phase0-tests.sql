@@ -1,5 +1,5 @@
 -- =====================================================================================================
--- Tripoli Points — PHASE 0 BEHAVIOURAL TESTS · v1.2 · 2026-11-11 · STAGING ONLY (after tp-security-phase0-urgent.sql)
+-- Tripoli Points — PHASE 0 BEHAVIOURAL TESTS · v1.3 · 2026-11-11 · STAGING ONLY (after tp-security-phase0-urgent.sql)
 -- Every check CALLS something as a given key and looks at what happens (SQLSTATE 42501 = permission denied, the
 -- answer, the rows left) — no search for words in function code.
 --   1) matrix: anon and authenticated against every function phase 0 closed, the wipe/backup functions, the rate-limit
@@ -92,10 +92,16 @@ end $$;
 
 set local role service_role;
 do $$ declare s text; begin
+  -- service_role keeps exactly what it had before phase 0 (granted on Production today; may be closed on Staging):
+  -- the call must behave as its privilege says
   s := pg_temp.st($q$select public.whish_confirm_payment(gen_random_uuid(), 'success', null, null)$q$);
-  perform pg_temp.ok('service_role (Whish callback) can still call whish_confirm_payment', s <> '42501', s);
-  s := pg_temp.st($q$select public._expire_topup_orders()$q$);
-  perform pg_temp.ok('service_role (server job) can still call _expire_topup_orders', s <> '42501', s);
+  perform pg_temp.ok('service_role → whish_confirm_payment behaves as granted (granted: '
+    || has_function_privilege('service_role', 'public.whish_confirm_payment(uuid,text,numeric,bigint)', 'EXECUTE') || ')',
+    (s <> '42501') = has_function_privilege('service_role', 'public.whish_confirm_payment(uuid,text,numeric,bigint)', 'EXECUTE'), s);
+  if to_regprocedure('public._expire_topup_orders()') is not null then
+    s := pg_temp.st($q$select public._expire_topup_orders()$q$);
+    perform pg_temp.ok('service_role → _expire_topup_orders behaves as granted', (s <> '42501') = has_function_privilege('service_role', 'public._expire_topup_orders()', 'EXECUTE'), s);
+  end if;
   s := pg_temp.st($q$select public.admin_wipe_all_data('00000000-0000-4000-8000-0000000008b1', '9999')$q$);
   perform pg_temp.ok('service_role: wipe with the right PIN is denied too', s = '42501', s);
   s := pg_temp.st($q$select public._tp_wipe_restore('x')$q$);
@@ -231,10 +237,91 @@ do $$ declare r jsonb; vstamp text; s text; begin
     and (select count(*) from public.customers) = 1, s);
   delete from public.customers where phone = '70999805';
   perform pg_temp.ok('restore: works once the new rows are removed', (public._tp_wipe_restore(vstamp)->>'ok')::boolean);
-  perform pg_temp.ok('drop copy: removes one table per copied table', public._tp_wipe_drop(vstamp) = (select count(*) from _snap));
-  perform pg_temp.ok('drop copy: the run stays listed as dropped and cannot be restored', exists (
-    select 1 from tp_backup.wipe_runs where wipe_runs.stamp = vstamp and dropped_at is not null)
-    and not exists (select 1 from pg_tables where schemaname = 'tp_backup' and tablename like vstamp || '\_\_%'));
+  create temp table _stamp2 on commit drop as select vstamp as stamp;
+end $$;
+
+-- ================================================================ 5) copies: integrity, access, never replaced or deleted silently
+do $$ declare t regclass; sq record; bad text; mx bigint; nv bigint; begin
+  -- after a restore, new rows get fresh ids (sequences moved past the restored ones)
+  foreach t in array public._tp_wipe_scope() loop
+    for sq in select a.attname, pg_get_serial_sequence(t::text, a.attname) s from pg_attribute a
+               where a.attrelid = t and a.attnum > 0 and not a.attisdropped and pg_get_serial_sequence(t::text, a.attname) is not null loop
+      execute format('select max(%I)::bigint from %s', sq.attname, t) into mx;
+      execute format('select case when is_called then last_value else last_value - 1 end from %s', sq.s) into nv;
+      if mx is not null and nv < mx then bad := concat_ws(', ', bad, t::text || '.' || sq.attname); end if;
+    end loop;
+  end loop;
+  perform pg_temp.ok('restore: id counters continue after the restored rows (no duplicate ids later)', bad is null, bad);
+end $$;
+do $$ declare r jsonb; s1 text; s2 text; b text; s text; vn bigint; vh text; begin
+  s1 := (select stamp from _stamp);
+  -- a second wipe makes a second copy and leaves the first one exactly as it was
+  r := public.admin_wipe_all_data('00000000-0000-4000-8000-0000000008b1', '9999');
+  s2 := r->>'snapshot';
+  perform pg_temp.ok('copies: a second wipe makes a new copy (different stamp)', (r->>'ok')::boolean and s2 <> s1 and s2 <> (select stamp from _stamp2), s2);
+  perform pg_temp.ok('copies: the earlier copies are all still there and unchanged', (select bool_and(
+      to_regclass(format('tp_backup.%I', x->>'b')) is not null) from tp_backup.wipe_runs w, jsonb_array_elements(w.tables) x
+      where w.stamp in (s1, (select stamp from _stamp2)))
+    and (select count(*) from tp_backup.wipe_runs where stamp in (s1, s2, (select stamp from _stamp2))) = 3);
+  b := (select x->>'b' from tp_backup.wipe_runs w, jsonb_array_elements(w.tables) x where w.stamp = s1 and x->>'t' = 'customers');
+  execute format('select count(*), md5(coalesce(string_agg(r::text, chr(10) order by r::text), '''')) from tp_backup.%I r', b) into vn, vh;
+  perform pg_temp.ok('copies: the first copy still matches its saved checksum', vh = (select x->>'md5' from tp_backup.wipe_runs w,
+    jsonb_array_elements(w.tables) x where w.stamp = s1 and x->>'t' = 'customers'), vh);
+  -- a copy changed after it was made is detected and nothing is restored
+  b := (select x->>'b' from tp_backup.wipe_runs w, jsonb_array_elements(w.tables) x where w.stamp = s2 and x->>'t' = 'customers');
+  execute format('update tp_backup.%I set name = name || ''x'' where phone = ''70999804''', b);
+  s := pg_temp.st(format('select public._tp_wipe_restore(%L)', s2));
+  perform pg_temp.ok('integrity: a copy edited after the wipe is refused (content checksum, same row count)', s = 'P0001'
+    and not exists (select 1 from public.customers), s);
+  execute format('update tp_backup.%I set name = left(name, -1) where phone = ''70999804''', b);
+  perform pg_temp.ok('integrity: once the copy is exactly as saved, it restores', (public._tp_wipe_restore(s2)->>'ok')::boolean);
+  -- a copy record cannot be deleted, rewritten or emptied
+  s := pg_temp.st(format('delete from tp_backup.wipe_runs where stamp = %L', s1));
+  perform pg_temp.ok('records: a copy record cannot be deleted', s = 'P0001', s);
+  s := pg_temp.st(format('update tp_backup.wipe_runs set tables = ''[]'' where stamp = %L', s1));
+  perform pg_temp.ok('records: a copy record cannot be rewritten', s = 'P0001', s);
+  s := pg_temp.st(format('update tp_backup.wipe_runs set restored_at = null where stamp = %L', s1));
+  perform pg_temp.ok('records: "restored" cannot be undone to restore twice', s = 'P0001', s);
+  s := pg_temp.st('truncate tp_backup.wipe_runs');
+  perform pg_temp.ok('records: the list of copies cannot be emptied', s = 'P0001', s);
+  -- deleting a copy needs the typed confirmation
+  s := pg_temp.st(format('select public._tp_wipe_drop(%L, %L)', s1, 'yes'));
+  perform pg_temp.ok('delete copy: refused without the exact phrase, the copy stays', s = 'P0001'
+    and (select bool_and(to_regclass(format('tp_backup.%I', x->>'b')) is not null) from tp_backup.wipe_runs w, jsonb_array_elements(w.tables) x where w.stamp = s1), s);
+  perform pg_temp.ok('delete copy: with "DELETE COPY <stamp>" one table per copied table is dropped', public._tp_wipe_drop(s1, 'DELETE COPY ' || s1) = (select count(*) from _snap));
+  perform pg_temp.ok('delete copy: none of its tables remain', not exists (select 1 from pg_tables where schemaname = 'tp_backup' and tablename like s1 || '\_\_%'));
+  perform pg_temp.ok('delete copy: the record stays, marked deleted', exists (select 1 from tp_backup.wipe_runs where stamp = s1 and dropped_at is not null));
+  s := pg_temp.st(format('select public._tp_wipe_restore(%L)', s1));
+  perform pg_temp.ok('delete copy: a deleted copy cannot be restored', s = 'P0001', s);
+  perform pg_temp.ok('the v1.2 delete without confirmation no longer exists', to_regprocedure('public._tp_wipe_drop(text)') is null);
+end $$;
+
+-- the copies stay closed even if someone widened the default privileges (worst case, undone with the test)
+alter default privileges grant select on tables to anon, authenticated, service_role;
+alter default privileges in schema tp_backup grant select on tables to anon, authenticated, service_role;
+do $$ declare r jsonb; begin
+  r := public.admin_wipe_all_data('00000000-0000-4000-8000-0000000008b1', '9999');
+  create temp table _stamp3 on commit drop as select r->>'snapshot' as stamp;
+  perform public._tp_wipe_restore(r->>'snapshot');
+end $$;
+grant select on _stamp3 to anon, authenticated, service_role;
+do $$ declare rl text; b text; s text; bad text; begin
+  foreach rl in array array['anon', 'authenticated', 'service_role'] loop
+    for b in select x->>'b' from tp_backup.wipe_runs w, jsonb_array_elements(w.tables) x where w.stamp = (select stamp from _stamp3) loop
+      execute format('set local role %I', rl);
+      s := pg_temp.st(format('select count(*) from tp_backup.%I', b));
+      execute 'reset role';
+      if s <> '42501' then bad := concat_ws(', ', bad, rl || ':' || b || '=' || s); end if;
+      if has_table_privilege(rl, format('tp_backup.%I', b), 'SELECT') then bad := concat_ws(', ', bad, rl || ' has SELECT on ' || b); end if;
+    end loop;
+    execute format('set local role %I', rl);
+    s := pg_temp.st('select count(*) from tp_backup.lock_releases');
+    execute 'reset role';
+    if s <> '42501' then bad := concat_ws(', ', bad, rl || ':lock_releases=' || s); end if;
+  end loop;
+  perform pg_temp.ok('copies: anon, authenticated and service_role cannot read any copy or the release log, even with widened default privileges', bad is null, bad);
+  perform pg_temp.ok('copies: every copy table has row-level security on', not exists (select 1 from pg_class c
+    where c.relnamespace = 'tp_backup'::regnamespace and c.relkind = 'r' and not c.relrowsecurity));
 end $$;
 
 -- self-check of the phase 0 file still passes after all of this

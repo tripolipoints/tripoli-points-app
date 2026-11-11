@@ -1,28 +1,66 @@
 -- =====================================================================================================
 -- Tripoli Points — PHASE 0: URGENT CLOSURES THAT NEED NO APP CHANGE          Prepared 2026-11-11 · NOT EXECUTED
 -- =====================================================================================================
--- Every function below is reachable today by anyone holding the public (anon) key, which ships inside the app.
--- None of them is called by the app (checked against index.html of main a54a85c and Staging):
---   · the Whish payment callback calls whish_* with the service_role key, which keeps its access;
---   · the old register / offer / location overloads are not the ones the app calls.
--- Part B adds a wrong-PIN limit to customer_verify_pin and admin_verify_pin (the merchant check, merchant_set_logo and
--- admin_reset_merchant_pin have had one since October), same arguments and answers, October helpers and keys.
--- Part C closes admin_wipe_all_data to every API key (public, anon, authenticated, service_role). A PIN limit alone is not
--- enough for an action that empties the database; the app's «wipe» button stops working until phase 1 brings
--- admin_wipe_all_data_v2 (primary-admin session + PIN + typed confirmation + switch off by default + snapshot first).
--- Every wipe now first copies all affected tables into the private schema tp_backup (not reachable with any API key);
--- the owner can put the data back from the SQL editor with _tp_wipe_restore('<stamp>') — the authorised path.
--- Part D closes the rate-limit table to the API keys. Part E installs _phase0_selfcheck(): it CALLS the functions as
--- anon / authenticated (not a text search), inside a step that is rolled back, and the file stops if any check fails.
--- Run on STAGING first, test login (customer, merchant, admin) and a Whish payment, then the same file on Production.
--- Undo: tp-security-phase0-urgent-rollback.sql. It never removes a protection: it clears the PIN locks (all, or one
--- account), re-checks every protection behaviourally, and says what to do for each kind of problem.
--- Anything that reopens a function to the app key is only in tp-security-DANGEROUS-reopen-phase0.sql (commented out).
+-- v1.3 · 2026-11-11 · run on STAGING first (instructions: tp-security-phase0-RUNBOOK.md), then Production.
+-- Built on October 2026 (merchant PIN limit, _rl_* helpers, auth_rate_limits, merchant_reset_pin closed): it requires
+-- them and changes none of them.
+-- Part 0  pre-flight, nothing changed yet: October fixes present; customer_verify_pin, admin_verify_pin and
+--         admin_wipe_all_data are exactly the reviewed versions (else STOP: the file would replace code it has not
+--         seen); a picture of who may execute every function and use every table is kept for the final guard.
+-- Part A  closes functions the app never calls to the public key. Whatever is already closed stays closed;
+--         service_role keeps exactly the access it had (the Whish callback) and gains nothing it did not have.
+-- Part B  wrong-PIN limit on customer_verify_pin and admin_verify_pin (same arguments and answers; October helpers, keys).
+-- Part C  admin_wipe_all_data closed to every API key; every wipe first copies all affected tables into the private
+--         schema tp_backup; owner-only restore with full content check; copies are never replaced or deleted
+--         without an explicit, typed owner action. The app's «wipe» button stops working until phase 1.
+-- Part D  rate-limit table closed to the API keys; lock releases are logged.
+-- Part E  _phase0_selfcheck(): CALLS the functions as anon / authenticated inside a step that is undone.
+-- Final   guard: no API key (anon, authenticated, service_role) may execute or use anything it could not before;
+--         service_role loses nothing but the wipe; every closure still holds at the very end.
+--         Any failed check or guard stops the file and undoes ALL of it (one transaction).
+-- It changes no data: no customer, merchant, transaction, wallet, point or setting row is written.
+-- Undo: tp-security-phase0-urgent-rollback.sql — by default it changes nothing; it only releases the PIN locks you
+-- name, and re-checks every protection. Releasing every lock is a separate file with a typed confirmation
+-- (tp-security-DANGEROUS-unlock-all-pin-locks.sql). Reopening functions: tp-security-DANGEROUS-reopen-phase0.sql.
 -- =====================================================================================================
 begin;
 
+-- ---------------------------------------------------------------- 0) pre-flight (reads only)
+do $$ declare v text; h text; okv text[]; begin
+  -- October 2026 must be in place
+  if to_regclass('public.auth_rate_limits') is null or to_regprocedure('public._rl_locked(text)') is null
+     or to_regprocedure('public._rl_record_fail(text)') is null or to_regprocedure('public._rl_reset(text)') is null then
+    raise exception 'STOP: the October 2026 fixes are missing on this database (auth_rate_limits / _rl_*). Nothing changed.';
+  end if;
+  if position('_rl_locked' in coalesce((select prosrc from pg_proc where oid = to_regprocedure('public.merchant_verify_pin(text,text)')), '')) = 0 then
+    raise exception 'STOP: October merchant PIN limit not found in merchant_verify_pin. Nothing changed.';
+  end if;
+  -- the three functions this file replaces must be the reviewed code: the Production version of 2026-11-11, or this
+  -- file's own version (re-run). Whitespace and letter case are ignored.
+  foreach v in array array['customer_verify_pin(text,text)|c804486649aadaa57bc5a87fc8b6bcdf',
+                           'admin_verify_pin(text,text)|a0e676d3290388fde1feae6f3d17564d',
+                           'admin_wipe_all_data(uuid,text)|bd7d4982c8e56ca244c87eda058356f3'] loop
+    okv := string_to_array(v, '|');
+    select md5(regexp_replace(lower(prosrc), '\s+', '', 'g')) || case when prosrc like '%tp-phase0%' then ':p0' else '' end
+      into h from pg_proc where oid = to_regprocedure('public.' || okv[1]);
+    if h is null then raise exception 'STOP: public.% not found. Nothing changed.', okv[1]; end if;
+    if h <> okv[2] and h not like '%:p0' then
+      raise exception 'STOP: public.% differs from the reviewed version (fingerprint %). Nothing changed — send its definition for review.', okv[1], h;
+    end if;
+  end loop;
+end $$;
+
+-- who may do what before this file (compared at the end: nothing may be gained)
+create temp table _p0_before on commit drop as
+  select r.rol, 'f' as kind, p.oid as obj from pg_proc p, unnest(array['anon','authenticated','service_role']) r(rol)
+   where p.pronamespace = 'public'::regnamespace and has_function_privilege(r.rol, p.oid, 'EXECUTE')
+  union all
+  select r.rol, 't', c.oid from pg_class c, unnest(array['anon','authenticated','service_role']) r(rol)
+   where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','v','m','p','f')
+     and has_table_privilege(r.rol, c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER');
+
 -- ---------------------------------------------------------------- A) close functions the app never calls
-do $$ declare f regprocedure; n int := 0; begin
+do $$ declare f regprocedure; n int := 0; svc boolean; begin
   for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and (
         p.proname in ('customer_reset_pin',            -- anyone sets a new PIN for any phone number → account takeover
                       'customer_set_pin',              -- creates accounts with no checks
@@ -37,8 +75,9 @@ do $$ declare f regprocedure; n int := 0; begin
      or (p.proname = 'merchant_add_offer' and p.pronargs = 14)               -- old overload (the app uses the 15-argument one)
      or (p.proname = 'admin_update_merchant_location' and p.pronargs = 6))   -- old overload (the app uses the 7-argument one)
   loop
+    svc := has_function_privilege('service_role', f, 'EXECUTE');   -- today, often only through PUBLIC
     execute format('revoke execute on function %s from public, anon, authenticated', f);
-    execute format('grant execute on function %s to service_role', f);
+    if svc then execute format('grant execute on function %s to service_role', f); end if;   -- kept, never added
     n := n + 1;
   end loop;
   raise notice 'phase 0: % function(s) closed to the public key', n;
@@ -49,7 +88,7 @@ end $$;
 create or replace function public.customer_verify_pin(p_phone text, p_pin text) returns jsonb
 language plpgsql security definer set search_path to 'public', 'extensions' as $function$
 declare r public.customers; rl_key text := 'customer:' || coalesce(p_phone, '');
-begin
+begin -- tp-phase0
   if public._rl_locked(rl_key) then return jsonb_build_object('ok', false, 'reason', 'locked'); end if;
   select * into r from public.customers where phone = p_phone;
   if r is null then perform public._rl_record_fail(rl_key); return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
@@ -70,7 +109,7 @@ $function$;
 create or replace function public.admin_verify_pin(p_username text, p_pin text) returns jsonb
 language plpgsql security definer set search_path to 'public', 'extensions' as $function$
 declare r public.admin_users; rl_key text := 'adminlogin:' || lower(coalesce(p_username, ''));
-begin
+begin -- tp-phase0
   if public._rl_locked(rl_key) then return jsonb_build_object('ok', false, 'reason', 'locked'); end if;
   select * into r from public.admin_users where username = p_username;
   if r is null then perform public._rl_record_fail(rl_key); return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
@@ -90,6 +129,34 @@ create table if not exists tp_backup.wipe_runs(
   stamp text primary key, made_at timestamptz not null default now(), made_by text not null, admin_id uuid,
   tables jsonb not null, restored_at timestamptz, restored_by text, dropped_at timestamptz);
 revoke all on table tp_backup.wipe_runs from public, anon, authenticated, service_role;
+-- a copy's record cannot be deleted or rewritten; restored / deleted are set once, by the functions below
+create or replace function tp_backup._wipe_runs_guard() returns trigger language plpgsql as $g$
+begin
+  if tg_op = 'DELETE' then raise exception 'TP_BACKUP: copy records cannot be deleted (%).', old.stamp; end if;
+  if new.stamp is distinct from old.stamp or new.made_at is distinct from old.made_at or new.made_by is distinct from old.made_by
+     or new.admin_id is distinct from old.admin_id or new.tables is distinct from old.tables
+     or (old.restored_at is not null and new.restored_at is distinct from old.restored_at)
+     or (old.dropped_at is not null and new.dropped_at is distinct from old.dropped_at) then
+    raise exception 'TP_BACKUP: copy record % cannot be rewritten.', old.stamp;
+  end if;
+  return new;
+end $g$;
+revoke all on function tp_backup._wipe_runs_guard() from public, anon, authenticated, service_role;
+drop trigger if exists wipe_runs_guard on tp_backup.wipe_runs;
+create trigger wipe_runs_guard before update or delete on tp_backup.wipe_runs for each row execute function tp_backup._wipe_runs_guard();
+create or replace function tp_backup._no_truncate() returns trigger language plpgsql as $g$
+begin raise exception 'TP_BACKUP: % cannot be emptied.', tg_table_name; end $g$;
+revoke all on function tp_backup._no_truncate() from public, anon, authenticated, service_role;
+drop trigger if exists wipe_runs_no_truncate on tp_backup.wipe_runs;
+create trigger wipe_runs_no_truncate before truncate on tp_backup.wipe_runs for each statement execute function tp_backup._no_truncate();
+
+-- every PIN lock released by hand is written here (who, when, why, the record as it was)
+create table if not exists tp_backup.lock_releases(
+  id bigint generated always as identity primary key, released_at timestamptz not null default now(),
+  released_by text not null default current_user, reason text not null, key text not null, record jsonb not null);
+revoke all on table tp_backup.lock_releases from public, anon, authenticated, service_role;
+alter table tp_backup.wipe_runs enable row level security;
+alter table tp_backup.lock_releases enable row level security;
 
 -- C2) the tables a wipe empties: merchants, customers and every table that points to them (what TRUNCATE … CASCADE
 -- reaches), in parent-first order so a restore never breaks a foreign key. Computed each time, so tables added later
@@ -113,25 +180,28 @@ begin
   return done::regclass[];
 end $f$;
 
--- C3) snapshot: a full copy of every table in the scope into tp_backup."<stamp>__<table>", recorded in wipe_runs.
+-- C3) snapshot: a full copy of every table in the scope into tp_backup."<stamp>__<table>", recorded in wipe_runs with
+-- the row count and a checksum of the whole content of each copy. A new copy never replaces an older one.
 create or replace function public._tp_wipe_snapshot(p_by text, p_admin uuid default null) returns text
 language plpgsql set search_path = public, pg_temp as $f$
 declare stamp text := 'w' || to_char(clock_timestamp() at time zone 'UTC', 'YYYYMMDD_HH24MISS_US');
-        t regclass; b text; n bigint; info jsonb := '[]';
+        t regclass; b text; n bigint; h text; info jsonb := '[]';
 begin
   foreach t in array public._tp_wipe_scope() loop
     b := stamp || '__' || (select relname from pg_class where oid = t);
     if length(b) > 63 then raise exception 'TP_WIPE_NAME: % too long', b; end if;
+    if to_regclass(format('tp_backup.%I', b)) is not null then raise exception 'TP_BACKUP: % already exists, never replaced', b; end if;
     execute format('create table tp_backup.%I as table %s', b, t);
     execute format('revoke all on table tp_backup.%I from public, anon, authenticated, service_role', b);
-    execute format('select count(*) from tp_backup.%I', b) into n;
-    info := info || jsonb_build_object('t', t::text, 'b', b, 'rows', n);
+    execute format('alter table tp_backup.%I enable row level security', b);
+    execute format('select count(*), md5(coalesce(string_agg(r::text, chr(10) order by r::text), '''')) from tp_backup.%I r', b) into n, h;
+    info := info || jsonb_build_object('t', t::text, 'b', b, 'rows', n, 'md5', h);
   end loop;
   insert into tp_backup.wipe_runs(stamp, made_by, admin_id, tables) values (stamp, coalesce(p_by, current_user), p_admin, info);
   return stamp;
 end $f$;
 
--- C4) restore (owner only, SQL editor): puts every row back, parent tables first, keeps ids (identity columns too),
+-- C4) restore (owner only, SQL editor): first proves each copy is unchanged since it was made; puts every row back, parent tables first, keeps ids (identity columns too),
 -- with user triggers paused so restored rows do not fire app logic again; resets id sequences; then compares every
 -- table with its copy (row count + checksum over the copied columns) and undoes everything if one differs.
 -- Refuses if a table already has rows again (the app was used after the wipe): nothing is merged silently. Only
@@ -151,6 +221,14 @@ begin
     if n > 0 then busy := concat_ws(', ', busy, (e->>'t') || ' (' || n || ')'); end if;
   end loop;
   if busy is not null then raise exception 'TP_RESTORE: these tables have rows again, restore refused: %', busy; end if;
+  -- the copy must be exactly what was saved (count + checksum of every column) before anything is put back
+  for e in select x from jsonb_array_elements(run.tables) x loop
+    if to_regclass(format('tp_backup.%I', e->>'b')) is null then raise exception 'TP_RESTORE: copy table % is missing — nothing restored', e->>'b'; end if;
+    execute format('select count(*), md5(coalesce(string_agg(r::text, chr(10) order by r::text), '''')) from tp_backup.%I r', e->>'b') into n, h2;
+    if n <> (e->>'rows')::bigint or (e ? 'md5' and h2 <> e->>'md5') then
+      raise exception 'TP_RESTORE: copy % was changed after it was made — nothing restored', e->>'b';
+    end if;
+  end loop;
   -- logins, e-mail codes and purchase QRs made after the wipe (e.g. the admin logging in again) are replaced by the copy
   for e in select x from jsonb_array_elements(run.tables) with ordinality q(x, i) order by i desc loop
     if (e->>'t') in ('app_sessions', 'email_tokens', 'purchase_codes') then execute format('delete from %s', (e->>'t')::regclass); end if;
@@ -175,20 +253,27 @@ begin
   end loop;
   for e in select x from jsonb_array_elements(run.tables) x loop execute format('alter table %s enable trigger user', (e->>'t')::regclass); end loop;
   update tp_backup.wipe_runs set restored_at = now(), restored_by = current_user where stamp = p_stamp;
-  return jsonb_build_object('ok', true, 'stamp', p_stamp, 'tables', out);
+  return jsonb_build_object('ok', true, 'stamp', p_stamp, 'tables', out, 'copy_kept', true);
 end $f$;
 
--- C5) delete a copy once it is no longer needed (owner only); the run stays listed as dropped.
-create or replace function public._tp_wipe_drop(p_stamp text) returns int
+-- C5) delete a copy: owner only, with the typed confirmation 'DELETE COPY <stamp>'. The record stays (dropped_at).
+-- Nothing else ever deletes or replaces a copy (wipes, restores and re-runs of this file keep every copy).
+create or replace function public._tp_wipe_drop(p_stamp text, p_confirm text) returns int
 language plpgsql set search_path = public, pg_temp as $f$
-declare e jsonb; n int := 0;
+declare e jsonb; n int := 0; run tp_backup.wipe_runs;
 begin
-  for e in select x from jsonb_array_elements((select tables from tp_backup.wipe_runs where stamp = p_stamp and dropped_at is null)) x loop
+  if p_confirm is distinct from 'DELETE COPY ' || p_stamp then
+    raise exception 'TP_BACKUP: to delete copy % type exactly: DELETE COPY %', p_stamp, p_stamp;
+  end if;
+  select * into run from tp_backup.wipe_runs where stamp = p_stamp for update;
+  if run.stamp is null or run.dropped_at is not null then raise exception 'TP_BACKUP: no live copy %', p_stamp; end if;
+  for e in select x from jsonb_array_elements(run.tables) x loop
     execute format('drop table if exists tp_backup.%I', e->>'b'); n := n + 1;
   end loop;
   update tp_backup.wipe_runs set dropped_at = now() where stamp = p_stamp;
   return n;
 end $f$;
+drop function if exists public._tp_wipe_drop(text);   -- v1.2 form without confirmation
 
 -- C6) the wipe itself: same arguments and answers as today, the October PIN limit (key 'admin:<id>', shared with
 -- admin_reset_merchant_pin), a full copy before emptying anything, and the copy's stamp in the answer.
@@ -197,7 +282,7 @@ end $f$;
 create or replace function public.admin_wipe_all_data(p_admin_id uuid, p_pin text) returns jsonb
 language plpgsql security definer set search_path to 'public', 'extensions' as $function$
 declare a public.admin_users; ok boolean; err text; stamp text; rl_key text := 'admin:' || coalesce(p_admin_id::text, '');
-begin
+begin -- tp-phase0
   if public._rl_locked(rl_key) then
     return jsonb_build_object('ok', false, 'reason', 'locked', 'error', 'عدد محاولات خاطئة كبير، حاول مجدداً بعد 15 دقيقة');
   end if;
@@ -215,7 +300,7 @@ end; $function$;
 
 do $$ declare f text; begin
   foreach f in array array['public.admin_wipe_all_data(uuid,text)', 'public._tp_wipe_scope()', 'public._tp_wipe_snapshot(text,uuid)',
-                           'public._tp_wipe_restore(text)', 'public._tp_wipe_drop(text)'] loop
+                           'public._tp_wipe_restore(text)', 'public._tp_wipe_drop(text,text)'] loop
     execute format('revoke all on function %s from public, anon, authenticated, service_role', f);
   end loop;
 end $$;
@@ -292,13 +377,12 @@ begin
     r := public.admin_verify_pin('tp-selfcheck-admin', '9999');
     res := res || jsonb_build_object('c', 'admin: locked after 5 wrong PINs, even with the right one', 'ok', r->>'reason' = 'locked', 'd', r::text);
     reset role;
-    res := res || jsonb_build_object('c', 'service_role (Whish callback) can still confirm payments', 'ok',
-             coalesce(has_function_privilege('service_role', 'public.whish_confirm_payment(uuid,text,numeric,bigint)', 'EXECUTE'), true), 'd', null);
+    -- service_role's access to whish_* is kept exactly as it was (checked by the final guard of the migration)
     res := res || jsonb_build_object('c', 'service_role cannot wipe, copy or restore', 'ok', not (
              has_function_privilege('service_role', 'public.admin_wipe_all_data(uuid,text)', 'EXECUTE')
              or has_function_privilege('service_role', 'public._tp_wipe_snapshot(text,uuid)', 'EXECUTE')
              or has_function_privilege('service_role', 'public._tp_wipe_restore(text)', 'EXECUTE')
-             or has_function_privilege('service_role', 'public._tp_wipe_drop(text)', 'EXECUTE')), 'd', null);
+             or has_function_privilege('service_role', 'public._tp_wipe_drop(text,text)', 'EXECUTE')), 'd', null);
     res := res || jsonb_build_object('c', 'no API key can open the backup schema', 'ok', not (
              has_schema_privilege('anon', 'tp_backup', 'USAGE') or has_schema_privilege('authenticated', 'tp_backup', 'USAGE')
              or has_schema_privilege('service_role', 'tp_backup', 'USAGE')), 'd', null);
@@ -318,6 +402,34 @@ do $$ declare bad text; n int; begin
   select string_agg(check_name || ' [' || coalesce(detail, '') || ']', '; '), count(*) into bad, n from public._phase0_selfcheck() where not ok;
   if bad is not null then raise exception 'phase 0 self-check failed (% of the checks): %', n, bad; end if;
   raise notice 'phase 0 self-check: % behavioural checks passed', (select count(*) from public._phase0_selfcheck());
+end $$;
+
+-- ---------------------------------------------------------------- final guard: nothing gained by any API key
+do $$ declare gained text; bk text; begin
+  with now_ as (
+    select r.rol, 'f' as kind, p.oid as obj, p.oid::regprocedure::text as name from pg_proc p, unnest(array['anon','authenticated','service_role']) r(rol)
+     where p.pronamespace = 'public'::regnamespace and has_function_privilege(r.rol, p.oid, 'EXECUTE')
+    union all
+    select r.rol, 't', c.oid, c.oid::regclass::text from pg_class c, unnest(array['anon','authenticated','service_role']) r(rol)
+     where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','v','m','p','f')
+       and has_table_privilege(r.rol, c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'))
+  select string_agg(n.rol || ' → ' || n.name, ', ') into gained
+    from now_ n where not exists (select 1 from _p0_before b where b.rol = n.rol and b.kind = n.kind and b.obj = n.obj);
+  if gained is not null then raise exception 'STOP: phase 0 would give access that did not exist before: %. Nothing changed.', gained; end if;
+  -- server jobs keep what they had: service_role loses nothing except the wipe (Whish callback, timers)
+  select string_agg(b.obj::regprocedure::text, ', ') into gained from _p0_before b
+   where b.rol = 'service_role' and b.kind = 'f' and b.obj <> 'public.admin_wipe_all_data(uuid,text)'::regprocedure
+     and not has_function_privilege('service_role', b.obj, 'EXECUTE');
+  if gained is not null then raise exception 'STOP: service_role (server jobs, Whish) would lose access to: %. Nothing changed.', gained; end if;
+  -- and every closure still holds at the very end (nothing re-opened after the self-check)
+  select string_agg(check_name, '; ') into gained from public._phase0_selfcheck() where not ok;
+  if gained is not null then raise exception 'STOP: protection missing at the end: %. Nothing changed.', gained; end if;
+  select string_agg(r.rol, ', ') into bk from unnest(array['anon','authenticated','service_role']) r(rol)
+   where has_schema_privilege(r.rol, 'tp_backup', 'USAGE');
+  if bk is not null then raise exception 'STOP: the backup schema would be reachable by %. Nothing changed.', bk; end if;
+  raise notice 'phase 0 guard: no API key gained any access; % access(es) removed',
+    (select count(*) from _p0_before b where not (case b.kind when 'f' then has_function_privilege(b.rol, b.obj, 'EXECUTE')
+                                                    else has_table_privilege(b.rol, b.obj, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') end));
 end $$;
 
 commit;

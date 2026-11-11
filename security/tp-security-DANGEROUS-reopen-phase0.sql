@@ -2,8 +2,8 @@
 -- Tripoli Points — DANGEROUS: reopen the functions closed by phase 0 (2026-11)
 -- NOT EXECUTED. Every statement is commented out. Running any of them puts a closed vulnerability back:
 -- account takeover (customer_reset_pin), free wallet credit (whish_confirm_payment), free points (admin_grant_customer_gift).
--- A locked account or a misbehaving PIN check is handled with tp-security-phase0-urgent-rollback.sql (unlock + re-check)
--- or by re-running tp-security-phase0-urgent.sql — never with this file.
+-- A locked account is released with tp-security-phase0-urgent-rollback.sql (named accounts only) and a misbehaving PIN check
+-- by re-running tp-security-phase0-urgent.sql — never with this file. Releasing every lock: tp-security-DANGEROUS-unlock-all-pin-locks.sql.
 -- The only reason to use a line here: an exact pre-phase-0 state is needed for an incident investigation, and the
 -- closure is re-applied right after. Same rule as tripoli-points-DANGEROUS-reopen-legacy-functions.sql (October).
 -- =====================================================================================================
