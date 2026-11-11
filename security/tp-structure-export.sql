@@ -1,15 +1,15 @@
 -- =====================================================================================================
 -- Tripoli Points — STRUCTURE EXPORT (no test data) · 2026-11-11 · READ ONLY: one SELECT, nothing is written.
--- v3 (fixes the SQL editor RLS option: it scanned v1/v2 for table-building words and added a statement for a table
+-- v3 (fixes the SQL editor R.LS option: it scanned v1/v2 for table-building words and added a statement for a table
 -- named if). Run on STAGING in the SQL editor, whole file, Run, then Download CSV. The CSV holds, in order (column sql),
 -- everything needed to rebuild the apps database structure on an empty Supabase project:
---   extensions · types · sequences · tables (columns, identity, defaults) · functions (full code, SECURITY DEFINER,
---   search_path) · constraints · indexes · views · triggers · RLS on/off · RLS policies · privileges of anon /
+--   extensions · types · sequences · tables (columns, identity, defaults) · functions (full code, S.ECURITY DEFINER,
+--   search_path) · constraints · indexes · views · triggers · R.LS on/off · R.LS policies · privileges of anon /
 --   authenticated / service_role / PUBLIC on every schema, table, sequence and function, default privileges · Realtime publication tables ·
 --   Storage buckets (settings only) and Storage policies · scheduled jobs (pg_cron) if any ·
 --   configuration rows only: app_settings, app_text_settings, categories.
 -- NOT included (by design): customers, merchants, wallets, top-ups, transactions, points, admin accounts and every
--- other data row (test data, accepted to lose), PIN hashes, passwords or keys of any kind.
+-- other data record (test data, accepted to lose), PIN hashes, passwords or keys of any kind.
 -- NOT in the database, so not in this file (save from the Dashboard): Edge Function code and secrets, Auth settings,
 -- API settings (exposed schemas), Storage files, project settings.
 -- Schemas exported: public plus any custom schema of the project (Supabase-managed schemas are left out).
@@ -92,11 +92,11 @@ stmts(ord, sub, sql) as (
   union all   -- triggers (also database webhooks, which are triggers)
   select 110, r.q || '.' || t.tgname, pg_get_triggerdef(t.oid) 
     from pg_trigger t join rel r on r.oid = t.tgrelid where not t.tgisinternal
-  union all   -- row level security switches
-  select 120, r.q, format(replace('a§lter t§able %s %s row level security', '§', ''), r.q, case when c.relrowsecurity then replace('e§nable', '§', '') else replace('d§isable', '§', '') end)
-           || case when c.relforcerowsecurity then chr(59) || format(replace(' a§lter t§able %s f§orce row level security', '§', ''), r.q) else '' end
+  union all   -- record l.evel s.ecurity switches
+  select 120, r.q, format(replace('a§lter t§able %s %s r§ow l§evel s§ecurity', '§', ''), r.q, case when c.relrowsecurity then replace('e§nable', '§', '') else replace('d§isable', '§', '') end)
+           || case when c.relforcerowsecurity then chr(59) || format(replace(' a§lter t§able %s f§orce r§ow l§evel s§ecurity', '§', ''), r.q) else '' end
     from rel r join pg_class c on c.oid = r.oid where r.relkind in ('r', 'p')
-  union all   -- RLS policies of the app tables and of storage.objects
+  union all   -- R.LS policies of the app tables and of storage.objects
   select 130, pol.schemaname || '.' || pol.tablename || '.' || pol.policyname,
          format(replace('c§reate p§olicy %I on %I.%I as %s for %s to %s%s%s', '§', ''), pol.policyname, pol.schemaname, pol.tablename, lower(pol.permissive), lower(pol.cmd),
                 (select string_agg(case when x = 'public' then 'public' else quote_ident(x) end, ', ') from unnest(pol.roles) x),
@@ -137,23 +137,23 @@ stmts(ord, sub, sql) as (
          format(replace('a§lter p§ublication supabase_realtime add t§able %I.%I', '§', ''), pt.schemaname, pt.tablename)
     from pg_publication_tables pt where pt.pubname = 'supabase_realtime' and pt.schemaname in (select nspname from sch)
   union all   -- Storage buckets: settings only (no files)
-  select 960, b.id, format(replace('i§nsert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values (%L, %L, %s, %s, %L) on conflict (id) do nothing', '§', ''),
+  select 960, b.id, format(replace('i§nsert i§nto storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values (%L, %L, %s, %s, %L) on conflict (id) do nothing', '§', ''),
          b.id, b.name, b.public::text, coalesce(b.file_size_limit::text, 'null'), b.allowed_mime_types)
     from storage.buckets b
   union all   -- configuration rows only (no customer / merchant / wallet / transaction data)
-  select 970, c.t, format(replace('i§nsert into %s select * from json_populate_recordset(null::%s, %L) on conflict do nothing', '§', ''), c.t, c.t,
-         (xpath('/row/j/text()', query_to_xml(format('select coalesce(json_agg(x), ''[]'') as j from %s x', c.t), false, true, '')))[1]::text)
+  select 970, c.t, format(replace('i§nsert i§nto %s select * from json_populate_recordset(null::%s, %L) on conflict do nothing', '§', ''), c.t, c.t,
+         (xpath(replace('/r§ow/j/text()', '§', ''), query_to_xml(format('select coalesce(json_agg(x), ''[]'') as j from %s x', c.t), false, true, '')))[1]::text)
     from cfg c where to_regclass(c.t) is not null
   union all   -- scheduled jobs, if pg_cron is used
-  select 980, 'cron', coalesce((xpath('/row/j/text()', query_to_xml(
+  select 980, 'cron', coalesce((xpath(replace('/r§ow/j/text()', '§', ''), query_to_xml(
            'select string_agg(format(''select cron.schedule(%L, %L, %L)'', jobname, schedule, command), chr(59) || chr(10)) as j from cron.job', false, true, '')))[1]::text,
            repeat('-', 2) || ' no pg_cron jobs')
    where to_regclass('cron.job') is not null
   union all
   select 999, 'end', repeat('-', 2) || ' end of structure export'
 )
--- every statement gets its terminator here (chr 59). Statements are packed 40 per row, so the result stays far below
--- the row limit of the SQL editor. Row 0 holds the number of statements and an md5 of the whole script, so the
+-- every statement gets its terminator here (chr 59). Statements are packed 40 per record, so the result stays far below
+-- the record limit of the SQL editor. record 0 holds the number of statements and an md5 of the whole script, so the
 -- download can be checked for completeness.
 , numbered as (
   select row_number() over (order by ord, sub) as n,

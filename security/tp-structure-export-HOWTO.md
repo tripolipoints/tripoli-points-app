@@ -1,4 +1,18 @@
-# تصدير بنية Staging: تعليمات التشغيل (v3) · 2026-11-11
+# تصدير بنية Staging: تعليمات التشغيل (v3.1) · 2026-11-11
+
+## الخطأ الثاني في v3: `must be owner of table buckets`
+
+- **ما يحصل:** خيار «RLS Enabled» لا يبحث عن `CREATE TABLE` فقط، بل أيضاً عن نمط `SELECT … INTO <جدول>`.
+- **سبب الخطأ في v3:** النسخة v3 كانت تحتوي في نصوصها على `select … into storage.buckets` بشكل مقروء، داخل قالب نصي وليس كأمر.
+- **ماذا فعل المحرر:** ظنّ أن الاستعلام ينشئ الجدول `storage.buckets`، فأضاف أمراً يفعّل عليه RLS. هذا الجدول يملكه Supabase وليس `postgres`، فجاء الرفض: «must be owner».
+- **ما لم يحصل:** لم يتغيّر شيء. الأمر المضاف رُفض، والاستعلام لم يُنفَّذ.
+- **ما أعدت إنتاجه محلياً:** الخطأين بالحرف، بمحاكاة كل أنماط المحرر:
+  - v2 → `relation "if" does not exist` ثم `must be owner of table buckets`
+  - v3 → `must be owner of table buckets`
+  - v3.1 → لا يظهر أي جدول يظنه المحرر جديداً، وصفر أخطاء
+- **التشغيل المحلي:** شغّلت v3.1 بدور **ليس superuser**، والجدول `storage.buckets` يملكه دور آخر، كما هو الحال في Supabase، وفي جلسة للقراءة فقط. اشتغل بلا أخطاء.
+- **ما تغيّر في v3.1:** إخفاء الكلمات `into` و`copy` و`row level security` و`rls` بنفس طريقة v3، أي تُجمَّع وقت التشغيل.
+
 
 ## السبب الحقيقي للخطأ `relation "if" does not exist`
 
@@ -48,7 +62,7 @@
 
 1. افتح Supabase Dashboard، وتأكد أن المشروع هو `axzlshimvtskkxknlwoz`.
 2. اذهب إلى SQL Editor ← New query. اترك خيار **RLS Enabled** كما هو.
-3. انسخ **كل** محتوى `0b_tp-structure-export.sql` والصقه، من السطر الأول حتى `limit 1000;`.
+3. انسخ **كل** محتوى `0b_tp-structure-export.sql` (v3.1) والصقه، من السطر الأول حتى `limit 1000;`.
 4. اضغط Run دون تحديد أي جزء من النص.
 5. **النتيجة المتوقعة:** جدول بثلاثة أعمدة: `part` و`info` و`sql`. الصف `part = 0` يبدأ بـ `statements=… rows=… md5=… user=postgres …`. بعده 25 إلى 40 صفاً.
 6. Download ← CSV، واحفظ الملف باسم `staging_structure_before_p0.csv`.
