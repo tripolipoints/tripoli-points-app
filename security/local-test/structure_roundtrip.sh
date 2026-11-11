@@ -7,4 +7,4 @@ $P -d postgres -c "drop database if exists ${SRC}_r" -c "create database ${SRC}_
 $P -d ${SRC}_r -c "create schema extensions; create schema storage; create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]); create table storage.objects(id uuid); alter table storage.objects enable row level security; create publication supabase_realtime;" >/dev/null 2>&1
 $P -d ${SRC}_r -v ON_ERROR_STOP=1 -f /tmp/${SRC}_structure.sql 2>&1 | grep -v "WARNING\|HINT" | head -5
 for d in $SRC ${SRC}_r; do pg_dump -h /var/tmp -p 55432 -U postgres -s -N storage -N extensions $d | grep -v '^\\restrict\|^\\unrestrict\|^GRANT\|^REVOKE' > /tmp/dump_$d.sql; done
-echo "structure diff (grant order ignored): $(diff /tmp/dump_$SRC.sql /tmp/dump_${SRC}_r.sql | grep -c '^[<>]') lines"
+echo "structure diff (grant order ignored, test publication excluded): $(diff /tmp/dump_$SRC.sql /tmp/dump_${SRC}_r.sql | grep -c '^[<>]') lines"
