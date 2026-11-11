@@ -1,0 +1,22 @@
+-- =====================================================================================================
+-- Tripoli Points — DANGEROUS: reopen the functions closed by phase 0 (2026-11)
+-- NOT EXECUTED. Every statement is commented out. Running any of them puts a closed vulnerability back:
+-- account takeover (customer_reset_pin), free wallet credit (whish_confirm_payment), free points (admin_grant_customer_gift).
+-- A functional problem with the PIN limit is undone with tp-security-phase0-urgent-rollback.sql instead — never with this file.
+-- The only reason to use a line here: an exact pre-phase-0 state is needed for an incident investigation, and the
+-- closure is re-applied right after. Same rule as tripoli-points-DANGEROUS-reopen-legacy-functions.sql (October).
+-- =====================================================================================================
+-- grant execute on function public.customer_reset_pin(text, text) to anon, authenticated;
+-- grant execute on function public.customer_set_pin(text, text, text) to anon, authenticated;
+-- grant execute on function public.admin_grant_customer_gift(text, numeric, integer) to anon, authenticated;
+-- grant execute on function public.admin_delete_topup_order_only(uuid) to anon, authenticated;
+-- grant execute on function public.whish_confirm_payment(uuid, text, numeric, bigint) to anon, authenticated;
+-- grant execute on function public.whish_set_collect_url(uuid, text, bigint) to anon, authenticated;
+-- grant execute on function public._expire_topup_orders() to anon, authenticated;
+-- grant execute on function public.customer_check_welcome_expiry(text) to anon, authenticated;
+-- grant execute on function public.customer_notes_mark_read(text) to anon, authenticated;
+-- grant execute on function public.merchant_notes_mark_read(uuid) to anon, authenticated;
+-- grant execute on function public._test_noop() to anon, authenticated;
+-- grant select, insert, update, delete on table public.auth_rate_limits to anon, authenticated;
+-- old overloads (customer_register 3/5 args, merchant_register 11-14 args, merchant_add_offer 14 args,
+-- admin_update_merchant_location 6 args): grant execute … to anon, authenticated — one statement per signature.

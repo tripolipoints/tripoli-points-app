@@ -1,0 +1,17 @@
+-- =====================================================================================================
+-- Tripoli Points — DANGEROUS: reopen the old functions closed by phase 3
+-- NOT EXECUTED. Only if the phase-2 app has a blocking problem and the old app must run again for a short time;
+-- every old phone/merchant-id function becomes reachable again with the public key. Re-run phase 3 right after.
+-- =====================================================================================================
+-- begin;
+-- do $$ declare f regprocedure; begin
+--   for f in select p.oid::regprocedure from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname in (
+--       'create_transaction','decide_transaction','customer_create_request','merchant_requests','merchant_close_request','customer_verify_pin',
+--       'merchant_verify_pin','admin_verify_pin','customer_register','merchant_register','customer_profile','customer_transactions','customer_notes_list',
+--       'merchant_add_offer','merchant_create_topup_order','merchant_delete_offer','merchant_gallery_add','merchant_gallery_delete','merchant_notes_list',
+--       'merchant_offers','merchant_request_info_change','merchant_request_manual_topup','merchant_set_logo','merchant_set_offer_active',
+--       'merchant_set_redeem_pct','merchant_submit_photo','merchant_topup_orders','merchant_transactions','merchant_update_page','merchant_wallet')
+--      or (p.proname like 'admin\_%' and p.proname not like '%\_v2')
+--   loop execute format('grant execute on function %s to anon, authenticated', f); end loop;
+-- end $$;
+-- commit;
