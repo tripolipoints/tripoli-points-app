@@ -27,6 +27,9 @@ do $$ begin
     raise exception 'Tripoli Points schema not found — wrong project?';
   end if;
   if to_regclass('public.app_sessions') is not null then raise exception 'phase 1 already applied (app_sessions exists)'; end if;
+  if to_regprocedure('public._tp_wipe_snapshot(text,uuid)') is null or to_regprocedure('public._phase0_selfcheck()') is null then
+    raise exception 'apply tp-security-phase0-urgent.sql first (phase 0 is required: PIN limits, closed wipe with backup copy)';
+  end if;
 end $$;
 
 create extension if not exists pgcrypto with schema extensions;
@@ -55,7 +58,8 @@ insert into public.app_settings(key, value) values
   ('report_per_day', 5),
   ('alert_same_shop_per_day', 6),      -- monitoring only: confirmed purchases by one customer in one shop per day
   ('alert_merchant_per_hour', 40),     -- monitoring only: confirmed purchases per shop per hour
-  ('alert_customer_shops_per_hour', 4) -- monitoring only: different shops per customer per hour
+  ('alert_customer_shops_per_hour', 4),-- monitoring only: different shops per customer per hour
+  ('admin_wipe_enabled', 0)            -- full wipe from the app: off; owner-only switch (SQL editor), turns off after one use
 on conflict (key) do nothing;
 
 -- ----------------------------------------------------------------------------------------------------
@@ -1299,14 +1303,6 @@ begin
   perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_warn_merchant', 'admin', a.id, 'result', r));
   return r;
 end $$;
-create function public.admin_wipe_all_data_v2(p_session text, p_pin text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare a public.admin_users; r jsonb;
-begin
-  a := public._sess_admin(p_session, true);
-  r := public.admin_wipe_all_data(a.id, p_pin);
-  perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_wipe_all_data', 'admin', a.id, 'result', r));
-  return r;
-end $$;
 
 create function public.admin_security_feed_v2(p_session text, p_limit integer default 200) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 declare a public.admin_users; ev jsonb; rp jsonb;
@@ -1333,6 +1329,34 @@ begin
   if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
   perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_resolve_report_v2', 'admin', a.id, 'report', p_report_id, 'status', p_status));
   return jsonb_build_object('ok', true);
+end $$;
+
+-- Full wipe from the app. All of these, in this order, or nothing is deleted:
+--   · a session of a PRIMARY admin (not an admin id sent by the browser);
+--   · the switch admin_wipe_enabled = 1, which only the project owner can set (SQL editor; it is not in
+--     admin_set_setting_v2, so a stolen admin session cannot turn it on). It turns itself off after one wipe;
+--   · the exact confirmation phrase «امسح كل البيانات» typed by the admin;
+--   · the admin's PIN, with the October limit (key 'admin:<id>', 5 wrong → 15 min, shared with admin_reset_merchant_pin).
+-- The work is done by phase 0's admin_wipe_all_data (closed to every API key): it copies every affected table into
+-- tp_backup first and returns the copy's stamp; the owner can restore with _tp_wipe_restore('<stamp>').
+create function public.admin_wipe_all_data_v2(p_session text, p_pin text, p_confirm text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare a public.admin_users; r jsonb;
+begin
+  a := public._sess_admin(p_session, true);
+  if public._setting('admin_wipe_enabled', 0) <> 1 then
+    perform public._ev('admin_action', 'admin', null, null, null, null, jsonb_build_object('fn', 'admin_wipe_all_data_v2', 'admin', a.id, 'result', 'disabled'));
+    return jsonb_build_object('ok', false, 'error', 'wipe_disabled', 'message', 'المسح الشامل معطّل. يفعّله صاحب المشروع لمرة واحدة عند الحاجة');
+  end if;
+  if coalesce(btrim(p_confirm), '') <> 'امسح كل البيانات' then
+    return jsonb_build_object('ok', false, 'error', 'confirm', 'message', 'اكتب «امسح كل البيانات» للتأكيد');
+  end if;
+  r := public.admin_wipe_all_data(a.id, p_pin);
+  if coalesce((r->>'ok')::boolean, false) then
+    update public.app_settings set value = 0 where key = 'admin_wipe_enabled';
+  end if;
+  perform public._ev('admin_action', 'admin', null, null, null, null,
+    jsonb_build_object('fn', 'admin_wipe_all_data_v2', 'admin', a.id, 'result', coalesce(r->>'reason', case when (r->>'ok')::boolean then 'wiped' else 'refused' end), 'snapshot', r->>'snapshot'));
+  return r;
 end $$;
 
 -- limits are editable without a migration; only the keys of this phase, inside sane ranges

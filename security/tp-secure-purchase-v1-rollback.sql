@@ -52,9 +52,10 @@ drop table if exists public.rate_counters;
 drop table if exists public.app_sessions;
 
 -- 6) settings added by phase 1 (rate_pts_per_usd and redeem_cap_pct are not touched)
+--    phase 0 objects (PIN limits, closed wipe, tp_backup copies, _tp_wipe_*) are not touched: they are protections
 delete from public.app_settings where key in ('qr_ttl_sec','qr_claim_ttl_sec','qr_issue_per_hour','scan_fail_limit','manual_code_fail_limit',
   'scan_fail_window_min','scan_lock_min','login_fail_limit','login_ip_fail_limit','login_window_min','login_lock_min','session_days',
   'session_max_days','admin_session_hours','tx_pending_sec','tx_max_invoice','treasure_min_invoice','profile_photo_max_kb','report_per_day',
-  'alert_same_shop_per_day','alert_merchant_per_hour','alert_customer_shops_per_hour');
+  'alert_same_shop_per_day','alert_merchant_per_hour','alert_customer_shops_per_hour','admin_wipe_enabled');
 
 commit;

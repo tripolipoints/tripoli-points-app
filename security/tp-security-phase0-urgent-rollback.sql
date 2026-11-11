@@ -1,57 +1,51 @@
 -- =====================================================================================================
--- Tripoli Points — PHASE 0 ROLLBACK (functional only)
--- Puts back the original customer_verify_pin, admin_verify_pin and admin_wipe_all_data (copied from Production,
--- 2026-11-11) in case the PIN limit causes a problem. It does NOT reopen any function phase 0 closed and does not give
--- the public key back the auth_rate_limits table: October rule — a routine rollback never reopens a closed vulnerability.
--- Reopening is only possible with tp-security-DANGEROUS-reopen-phase0.sql (all statements commented out).
+-- Tripoli Points — PHASE 0 SAFE ROLLBACK · v1.2 · 2026-11-11 · run on Staging first, then Production
+-- What it does NOT do (October rule: a routine rollback never reopens a closed vulnerability):
+--   · it does not put back PIN checks without a wrong-PIN limit (customer, admin, wipe) — none exists in this file;
+--   · it does not reopen any function phase 0 closed, nor the rate-limit table, nor the wipe, nor the backup schema.
+-- What it does:
+--   1) clears PIN locks: everyone (default) or only the accounts you list in v_keys — legitimate users get in again;
+--   2) runs the behavioural self-check of phase 0 and STOPS (nothing changed) if any protection is missing;
+--   3) lists the wipe copies kept in tp_backup (nothing deleted).
+-- If a protection is missing or a PIN check misbehaves: run tp-security-phase0-urgent.sql again — it is idempotent and
+-- recreates the limited versions. Reopening anything to the app key is only in tp-security-DANGEROUS-reopen-phase0.sql.
+--
+-- Problem after phase 0                                   → what to do
+--   a customer / merchant / admin is locked (5 wrong PINs) → this file, with their key in v_keys (or all), or wait 15 min
+--   the app's «wipe» button answers an error               → expected: closed until phase 1 (session + PIN + confirmation)
+--   data was wiped by mistake (owner, SQL editor)          → select public._tp_wipe_restore('<stamp>');  (stamps: part 3)
+--   the Whish callback stops confirming payments           → check it calls with the service_role key (it keeps access)
+--   a closed function is really needed by a server job     → grant execute on function … to service_role;  never anon
+--   a PIN check returns an error                           → re-run tp-security-phase0-urgent.sql, then this file
 -- =====================================================================================================
 begin;
-create or replace function public.customer_verify_pin(p_phone text, p_pin text) returns jsonb
-language plpgsql security definer set search_path to 'public', 'extensions' as $function$
-declare r public.customers;
-begin
-  select * into r from public.customers where phone = p_phone;
-  if r is null then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
-  if r.status <> 'active' then return jsonb_build_object('ok', false, 'reason', 'frozen'); end if;
-  if r.pin_hash is null or crypt(p_pin, r.pin_hash) <> r.pin_hash then
-    return jsonb_build_object('ok', false, 'reason', 'wrong_pin');
-  end if;
-  perform public.customer_check_welcome_expiry(p_phone);
-  select * into r from public.customers where phone = p_phone;
-  return jsonb_build_object('ok', true, 'customer', jsonb_build_object(
-    'phone', r.phone, 'name', r.name, 'last_name', r.last_name, 'photo_url', r.photo_url, 'points', r.points, 'status', r.status,
-    'welcome_remain', r.welcome_remain, 'welcome_exp', r.welcome_exp));
-end;
-$function$;
 
-create or replace function public.admin_verify_pin(p_username text, p_pin text) returns jsonb
-language plpgsql security definer set search_path to 'public', 'extensions' as $function$
-declare r public.admin_users;
+-- 1) clear PIN locks. Keys: 'customer:<phone>', 'merchant:<phone>', 'adminlogin:<username, lower case>', 'admin:<admin id>'
+do $$ declare
+  v_keys text[] := '{}';            -- e.g. array['customer:70123456', 'adminlogin:rami'];  empty = clear every lock
+  n int;
 begin
-  select * into r from public.admin_users where username = p_username;
-  if r is null then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if;
-  if r.pin_hash is null or crypt(p_pin, r.pin_hash) <> r.pin_hash then
-    return jsonb_build_object('ok', false, 'reason', 'wrong_pin');
-  end if;
-  return jsonb_build_object('ok', true, 'admin', jsonb_build_object('id', r.id, 'username', r.username, 'is_primary', r.is_primary));
-end; $function$;
-
-create or replace function public.admin_wipe_all_data(p_admin_id uuid, p_pin text) returns jsonb
-language plpgsql security definer set search_path to 'public', 'extensions' as $function$
-declare a public.admin_users; ok boolean; err text;
-begin
-  select * into a from public.admin_users where id = p_admin_id;
-  ok := a.id is not null and coalesce(a.is_primary,false) and a.pin_hash is not null and crypt(p_pin, a.pin_hash) = a.pin_hash;
-  if ok then truncate table public.merchants, public.customers cascade; end if;
-  err := case when a.id is null then 'جلسة غير صالحة، أعد تسجيل الدخول' when not coalesce(a.is_primary,false) then 'هذا الإجراء مسموح للأدمن الأساسي فقط' when not ok then 'رمز الإدارة غير صحيح' else null end;
-  return jsonb_build_object('ok', ok, 'error', err);
-end; $function$;
-
--- safety check: the functions phase 0 closed are still closed after this rollback
-do $$ declare bad text; begin
-  select string_agg(p.oid::regprocedure::text, ', ') into bad from pg_proc p
-   where p.pronamespace = 'public'::regnamespace and has_function_privilege('anon', p.oid, 'EXECUTE')
-     and p.proname in ('customer_reset_pin','admin_grant_customer_gift','whish_confirm_payment','whish_set_collect_url','merchant_reset_pin');
-  if bad is not null then raise exception 'STOP: a closed function is open again (%). Investigate before continuing.', bad; end if;
+  if cardinality(v_keys) = 0 then delete from public.auth_rate_limits;
+  else delete from public.auth_rate_limits where key = any(v_keys); end if;
+  get diagnostics n = row_count;
+  raise notice 'phase 0 rollback: % lock record(s) cleared', n;
 end $$;
+
+-- 2) every protection still in place, checked by calling the functions as anon / authenticated
+do $$ declare bad text; n int; begin
+  if to_regprocedure('public._phase0_selfcheck()') is null then
+    raise exception 'phase 0 is not applied on this database (no _phase0_selfcheck): nothing to roll back — nothing changed';
+  end if;
+  select string_agg(check_name || ' [' || coalesce(detail, '') || ']', '; '), count(*) into bad, n from public._phase0_selfcheck() where not ok;
+  if bad is not null then
+    raise exception 'STOP — % protection(s) missing: %. Nothing changed. Run tp-security-phase0-urgent.sql again.', n, bad;
+  end if;
+  raise notice 'phase 0 rollback: all % behavioural checks pass, every protection stays', (select count(*) from public._phase0_selfcheck());
+end $$;
+
 commit;
+
+-- 3) wipe copies kept (read only)
+select stamp, made_at, made_by, restored_at, dropped_at,
+       (select sum((x->>'rows')::bigint) from jsonb_array_elements(tables) x) as rows_copied
+  from tp_backup.wipe_runs order by made_at desc;

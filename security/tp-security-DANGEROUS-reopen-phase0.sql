@@ -2,7 +2,8 @@
 -- Tripoli Points — DANGEROUS: reopen the functions closed by phase 0 (2026-11)
 -- NOT EXECUTED. Every statement is commented out. Running any of them puts a closed vulnerability back:
 -- account takeover (customer_reset_pin), free wallet credit (whish_confirm_payment), free points (admin_grant_customer_gift).
--- A functional problem with the PIN limit is undone with tp-security-phase0-urgent-rollback.sql instead — never with this file.
+-- A locked account or a misbehaving PIN check is handled with tp-security-phase0-urgent-rollback.sql (unlock + re-check)
+-- or by re-running tp-security-phase0-urgent.sql — never with this file.
 -- The only reason to use a line here: an exact pre-phase-0 state is needed for an incident investigation, and the
 -- closure is re-applied right after. Same rule as tripoli-points-DANGEROUS-reopen-legacy-functions.sql (October).
 -- =====================================================================================================
@@ -20,3 +21,9 @@
 -- grant select, insert, update, delete on table public.auth_rate_limits to anon, authenticated;
 -- old overloads (customer_register 3/5 args, merchant_register 11-14 args, merchant_add_offer 14 args,
 -- admin_update_merchant_location 6 args): grant execute … to anon, authenticated — one statement per signature.
+--
+-- Deliberately NOT in this file, not even commented out (v1.2):
+--   · admin_wipe_all_data to any API key — the wipe from the app comes back only as phase 1's admin_wipe_all_data_v2
+--     (primary-admin session + PIN + typed confirmation + owner switch, copy first);
+--   · the tp_backup schema and the _tp_wipe_* functions to any API key — copies and restore stay owner-only;
+--   · PIN checks without a wrong-PIN limit.

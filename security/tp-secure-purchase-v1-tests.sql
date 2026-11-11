@@ -415,6 +415,52 @@ begin
 end $$;
 reset role;
 
+-- ---------------------------------------------------------------- wipe from the app (admin_wipe_all_data_v2) and restore
+create temp table _wsnap on commit drop as select 1 as k, null::text as tname, 0::bigint as n, null::text as h where false;
+do $$ declare t regclass; vn bigint; vh text; begin
+  foreach t in array public._tp_wipe_scope() loop
+    execute format('select count(*), md5(coalesce(string_agg(r::text, chr(10) order by r::text), '''')) from %s r', t) into vn, vh;
+    insert into _wsnap values (1, t::text, vn, vh);
+  end loop;
+end $$;
+do $$ declare r jsonb; e text; nc bigint := (select count(*) from public.customers); begin
+  e := pg_temp.err(format('select public.admin_wipe_all_data_v2(%L, %L, %L)', pg_temp.get('a2'), '9999', 'امسح كل البيانات'));
+  perform pg_temp.ok('wipe v2: a non-primary admin session is refused', e = 'TP_FORBIDDEN', e);
+  e := pg_temp.err(format('select public.admin_wipe_all_data_v2(%L, %L, %L)', 'tps1_not_a_session', '9999', 'امسح كل البيانات'));
+  perform pg_temp.ok('wipe v2: no session, no wipe', e = 'TP_SESSION_EXPIRED', e);
+  r := public.admin_wipe_all_data_v2(pg_temp.get('a1'), '9999', 'امسح كل البيانات');
+  perform pg_temp.ok('wipe v2: off by default (switch admin_wipe_enabled = 0)', r->>'error' = 'wipe_disabled', r::text);
+  r := public.admin_set_setting_v2(pg_temp.get('a1'), 'admin_wipe_enabled', 1);
+  perform pg_temp.ok('wipe v2: an admin session cannot turn the switch on', r->>'error' = 'unknown_key', r::text);
+  update public.app_settings set value = 1 where key = 'admin_wipe_enabled';     -- the owner, SQL editor
+  r := public.admin_wipe_all_data_v2(pg_temp.get('a1'), '9999', 'نعم');
+  perform pg_temp.ok('wipe v2: the exact confirmation phrase is required', r->>'error' = 'confirm', r::text);
+  r := public.admin_wipe_all_data_v2(pg_temp.get('a1'), '0000', 'امسح كل البيانات');
+  perform pg_temp.ok('wipe v2: a wrong PIN is refused', not (r->>'ok')::boolean and r->>'error' = 'رمز الإدارة غير صحيح', r::text);
+  perform pg_temp.ok('wipe v2: nothing deleted by the refused attempts', (select count(*) from public.customers) = nc);
+  r := public.admin_wipe_all_data_v2(pg_temp.get('a1'), '9999', ' امسح كل البيانات ');
+  perform pg_temp.ok('wipe v2: primary session + switch + phrase + PIN → wiped, with a copy stamp', (r->>'ok')::boolean and r->>'snapshot' like 'w2%', r::text);
+  perform pg_temp.ok('wipe v2: merchants and customers are empty', not exists (select 1 from public.customers) and not exists (select 1 from public.merchants));
+  perform pg_temp.ok('wipe v2: the switch turned itself off', public._setting('admin_wipe_enabled', 0) = 0);
+  perform pg_temp.ok('wipe v2: logged with the copy stamp (the log is kept)', exists (select 1 from public.tx_events
+    where event = 'admin_action' and detail->>'fn' = 'admin_wipe_all_data_v2' and detail->>'snapshot' = r->>'snapshot'));
+  perform pg_temp.set('wstamp', r->>'snapshot');
+end $$;
+do $$ declare r jsonb; e text; t text; vn bigint; vh text; bad text; begin
+  perform pg_temp.set('a1', public.admin_login('tp_test_admin1', '9999')->>'session');     -- the admin logs in again
+  r := public.admin_wipe_all_data_v2(pg_temp.get('a1'), '9999', 'امسح كل البيانات');
+  perform pg_temp.ok('wipe v2: a second wipe needs the owner to turn the switch on again', r->>'error' = 'wipe_disabled', r::text);
+  r := public._tp_wipe_restore(pg_temp.get('wstamp'));
+  for t in select w.tname from _wsnap w where w.tname <> 'app_sessions' loop   -- sessions: last_seen_at moves on use; checked below
+    execute format('select count(*), md5(coalesce(string_agg(r::text, chr(10) order by r::text), '''')) from public.%I r', t) into vn, vh;
+    if not exists (select 1 from _wsnap w where w.tname = t and w.n = vn and w.h = vh) then bad := concat_ws(', ', bad, t); end if;
+  end loop;
+  perform pg_temp.ok('restore: every table back with the same rows and checksum (sessions included)', (r->>'ok')::boolean and bad is null, coalesce(bad, r::text));
+  perform pg_temp.ok('restore: customers log in again', (public.customer_login('70999902', '1234')->>'ok')::boolean);
+  e := pg_temp.err(format('select public.customer_qr_issue(%L)', pg_temp.get('c2')));
+  perform pg_temp.ok('restore: sessions from before the wipe work again', e = 'NO_ERROR' or e not like 'TP_SESSION%', e);
+end $$;
+
 -- ---------------------------------------------------------------- result
 select n, case when ok then 'PASS' else 'FAIL' end as result, name, detail from _t order by n;
 select count(*) filter (where ok) as passed, count(*) filter (where not ok) as failed, count(*) as total from _t;

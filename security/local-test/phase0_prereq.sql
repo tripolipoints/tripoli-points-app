@@ -50,3 +50,8 @@ create or replace function public.customer_notes_mark_read(p_phone text) returns
 create or replace function public.merchant_notes_mark_read(p_merchant_id uuid) returns jsonb language sql security definer as $$ select '{}'::jsonb $$;
 create or replace function public._test_noop() returns integer language sql as $$ select 1 $$;
 grant all on table public.auth_rate_limits to anon, authenticated;
+
+-- login-screen phone check (exists on Production; body simplified for the local replica)
+create or replace function public.customer_check_phone(p_phone text) returns jsonb
+language sql security definer set search_path to 'public' as $$
+  select jsonb_build_object('exists', exists (select 1 from public.customers where phone = p_phone)) $$;

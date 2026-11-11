@@ -3,9 +3,13 @@
 -- Run in the SQL editor of Staging and of Production. One row per fix: applied = true / false.
 -- Empty (null) = that function does not exist on this database.
 -- Answers "is it really on this database?" — a passing local test is not proof that a fix is applied.
+-- After phase 0 the behavioural proof is a separate call (it adds throw-away rows inside a step that is undone, so it is
+-- not part of this read-only file):   select * from public._phase0_selfcheck() where not ok;   → no rows = all pass.
 -- =====================================================================================================
 with f as (select p.oid, p.proname, p.pronargs, p.prosrc from pg_proc p where p.pronamespace = 'public'::regnamespace),
-anon_exec as (select f.proname, f.pronargs, has_function_privilege('anon', f.oid, 'EXECUTE') as anon from f)
+anon_exec as (select f.proname, f.pronargs, has_function_privilege('anon', f.oid, 'EXECUTE') as anon,
+                     has_function_privilege('authenticated', f.oid, 'EXECUTE') as authd,
+                     has_function_privilege('service_role', f.oid, 'EXECUTE') as svc from f)
 select * from (values
  -- October 2026 (merchant PIN review, logo migration, emergency hardening)
  ('oct', 'merchant_reset_pin closed to the public key',      (select not bool_or(anon) from anon_exec where proname = 'merchant_reset_pin')),
@@ -24,6 +28,19 @@ select * from (values
  ('p0',  'wrong-PIN limit on admin_verify_pin',                coalesce((select bool_or(position('_rl_locked' in prosrc) > 0) from f where proname = 'admin_verify_pin'), false)),
  ('p0',  'wrong-PIN limit on admin_wipe_all_data',             coalesce((select bool_or(position('_rl' in prosrc) > 0) from f where proname = 'admin_wipe_all_data'), false)),
  ('p0',  'auth_rate_limits table closed to the public key',    not has_table_privilege('anon', 'public.auth_rate_limits', 'SELECT')),
+ ('p0',  'old register / offer / location overloads closed',   (select not bool_or(anon) from anon_exec where (proname = 'customer_register' and pronargs in (3, 5))
+                                                                  or (proname = 'merchant_register' and pronargs between 11 and 14)
+                                                                  or (proname = 'merchant_add_offer' and pronargs = 14) or (proname = 'admin_update_merchant_location' and pronargs = 6))),
+ ('p0',  'admin_wipe_all_data closed to anon + authenticated', (select not bool_or(anon or authd) from anon_exec where proname = 'admin_wipe_all_data')),
+ ('p0',  'admin_wipe_all_data closed to service_role too',     (select not bool_or(svc) from anon_exec where proname = 'admin_wipe_all_data')),
+ ('p0',  'every wipe copies the data first (tp_backup)',       case when to_regclass('tp_backup.wipe_runs') is null then false
+                                                                    else coalesce((select bool_or(position('_tp_wipe_snapshot' in prosrc) > 0) from f where proname = 'admin_wipe_all_data'), false)
+                                                                     and exists (select 1 from f where proname = '_tp_wipe_restore') end),
+ ('p0',  'backup schema and restore closed to every API key',  case when to_regnamespace('tp_backup') is null then null else not (
+                                                                  has_schema_privilege('anon', 'tp_backup', 'USAGE') or has_schema_privilege('authenticated', 'tp_backup', 'USAGE')
+                                                                  or has_schema_privilege('service_role', 'tp_backup', 'USAGE')
+                                                                  or coalesce((select bool_or(anon or authd or svc) from anon_exec where proname like '\_tp\_wipe\_%'), false)) end),
+ ('p0',  'behavioural self-check installed (_phase0_selfcheck)', to_regprocedure('public._phase0_selfcheck()') is not null),
  -- November phase 1
  ('p1',  'sessions table exists',                              to_regclass('public.app_sessions') is not null),
  ('p1',  'purchase QR functions exist',                        exists (select 1 from f where proname = 'merchant_scan_code')),
