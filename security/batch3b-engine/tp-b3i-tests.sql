@@ -53,11 +53,12 @@ end $$;
 -- §14 hours and temporary closure
 do $$ declare r jsonb; dow int := extract(dow from now() at time zone 'Asia/Beirut')::int; lt time := (now() at time zone 'Asia/Beirut')::time; cid bigint; begin
   perform pg_temp.ok('§14 no hours entered = open', public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'open');
-  r := public.merchant_hours_set_v2(pg_temp.get('m1'), jsonb_build_array(jsonb_build_object('dow', dow, 'opens', to_char(lt + interval '2 hours', 'HH24:MI'), 'closes', to_char(lt + interval '3 hours', 'HH24:MI'))));
+  -- time-of-day independent: «outside» = hours only on another weekday; «inside» = today 00:00–23:59 (the last minute of the day is skipped)
+  r := public.merchant_hours_set_v2(pg_temp.get('m1'), jsonb_build_array(jsonb_build_object('dow', (dow + 3) % 7, 'opens', '09:00', 'closes', '10:00')));
   perform pg_temp.ok('§14 outside today''s hours: closed, no new points purchase', public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'closed_hours'
     and public._tx_quote2('00000000-0000-4000-8000-0000000b3501', '79998501', 10, false, null, null)->>'error' = 'shop_closed', r::text);
-  r := public.merchant_hours_set_v2(pg_temp.get('m1'), jsonb_build_array(jsonb_build_object('dow', dow, 'opens', to_char(lt - interval '1 hour', 'HH24:MI'), 'closes', to_char(lt + interval '1 hour', 'HH24:MI'))));
-  perform pg_temp.ok('§14 inside today''s hours: open', public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'open', r::text);
+  r := public.merchant_hours_set_v2(pg_temp.get('m1'), jsonb_build_array(jsonb_build_object('dow', dow, 'opens', '00:00', 'closes', '23:59')));
+  perform pg_temp.ok('§14 inside today''s hours: open', lt >= '23:59' or public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'open', r::text);
   perform pg_temp.ok('§14 bad hours refused', public.merchant_hours_set_v2(pg_temp.get('m1'), '[{"dow":9,"opens":"25:00","closes":"10:00"}]')->>'error' = 'bad_hours');
   r := public.merchant_closure_start_v2(pg_temp.get('m1'), null, null, 'صيانة'); cid := (r->>'id')::bigint;
   perform pg_temp.ok('§14 temporary closure: «مغلق مؤقتاً», still listed (pin + page), no new points purchase',
@@ -66,7 +67,7 @@ do $$ declare r jsonb; dow int := extract(dow from now() at time zone 'Asia/Beir
     and public._tx_quote2('00000000-0000-4000-8000-0000000b3501', '79998501', 10, false, null, null)->>'error' = 'shop_closed', r::text);
   perform pg_temp.ok('§14 public page shows the state and hours', public.shop_hours_public('00000000-0000-4000-8000-0000000b3501')->>'state' = 'closed_temp');
   perform public.merchant_closure_end_v2(pg_temp.get('m1'), cid);
-  perform pg_temp.ok('§14 reopened', public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'open');
+  perform pg_temp.ok('§14 reopened', lt >= '23:59' or public._shop_state('00000000-0000-4000-8000-0000000b3501') = 'open');
   perform pg_temp.ok('§14 staff cannot change hours (owner only)', pg_temp.err(format('select public.merchant_closure_start_v2(%L, null, null, null)', pg_temp.get('c1'))) like 'TP_SESSION%');
   r := public.report_shop_info_v2(pg_temp.get('c1'), '00000000-0000-4000-8000-0000000b3501', 'الدوام غير صحيح');
   perform pg_temp.ok('§14 a customer reports wrong hours → Admin feed', (r->>'ok')::boolean and exists (select 1 from jsonb_array_elements(public.admin_security_feed_v2(pg_temp.get('a1'), 50)->'events') e where e->>'event' = 'alert_shop_info'));
