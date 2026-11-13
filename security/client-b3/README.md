@@ -4,9 +4,13 @@ Netlify is disabled by the owner's decision (13 Nov 22:33). Client work after `s
 `staging-netlify` or `staging/b3-client`. It lives here instead:
 
 - `b3-client.js` — the full client module (inlined before `</body>` of `index.html` between `<!-- B3-CLIENT -->` markers).
-- `0001-*.patch` — the commit on top of `staging-netlify` @ `4ff9ace` (local branch `wip/b3-client-3e`, commit `9c33c5d`).
+- `000N-*.patch` — the commits on top of `staging-netlify` @ `4ff9ace` (local branch `wip/b3-client-3e`, commits up to `1128704`).
   Apply with `git am` on a branch made from `4ff9ace` when the owner authorises it.
 
 Added in 3e: report a purchase (customer, from the pay-code sheet and the pending-purchase card), report a scanned code
 (shop: "the person is not the account owner"), Admin «البلاغات والتنبيهات» (reports + monitoring alerts, resolve with a note
 that is sent to the reporter).
+
+Added in 3g: customer chooses the points to use on the purchase code (§03), owner «زبائن VIP» (§16), lower % request handled
+as pending, customer «نقاطي» shows VIP caps, Admin «طلبات نسبة الاستبدال», «النسخ الاحتياطية», and the new rule settings.
+E2E (real app, local copy with all migrations up to 3g): 59/59.

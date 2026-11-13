@@ -256,6 +256,39 @@ function serve(root, port) {
   check('screen sweep: the calls went to session functions (no old account function used)', !calls.slice(c0).some(c => /^(admin_(?!.*_v2$)|merchant_(wallet|offers|transactions|notes_list|topup_orders|requests)$|customer_(profile|transactions|notes_list)$)/.test(c.fn)),
     [...new Set(calls.slice(c0).map(c => c.fn))].join(' '));
 
+  // ---- 8c. register 12-Nov (3g): customer-chosen points, VIP, lower % with Admin approval, backups ----
+  await pa.evaluate(() => aEngOpen()); await W(1200);
+  await pa.fill('#en-vip_max_medium', '2'); await pa.evaluate(() => aEngSave('vip_max_medium')); await W(1000);
+  check('3g admin sets the VIP count for medium shops', sql1(`select value from public.app_settings where key='vip_max_medium'`) === '2');
+  await pm.evaluate(() => mVipOpen()); await W(1500);
+  check('3g VIP candidates hide phone numbers', await pm.evaluate(c => !document.body.innerText.includes(c), C1));
+  pm.once('dialog', d => d.accept('500'));
+  await pm.click('button:has-text("اجعله VIP")'); await W(1500);
+  check('3g owner makes a customer VIP (500/day), customer notified', sql1(`select count(*) from public.merchant_vips where merchant_id='${MID}' and status='active' and cap_points=500`) === '1'
+    && sql1(`select count(*) from public.customer_notes where title like '👑%'`) === '1');
+  await shot(pm, '11-vip');
+  await pc2.evaluate(() => { payClose(); return payOpen() }); await W(1200);
+  await pc2.fill('#payWantIn', '20'); await pc2.evaluate(() => payWant()); await W(1000);
+  const s4 = await pc2.evaluate(() => { const el = [...document.querySelectorAll('#paySheet .ltr')].find(e => /^\d{4}-\d{4}$/.test(e.textContent.trim())); return el ? el.textContent.trim() : null });
+  await pm.evaluate(() => { S.sub = 'new'; mfReset(); render() }); await W(300);
+  await pm.fill('#mfcode', s4); await pm.click('button:has-text("تحقق")'); await W(1000);
+  await pm.evaluate(() => { S.mf.items = [{ n: 'صنف', p: '30', q: 1 }]; S.mf.redeem = false; return mfNext() }); await W(1200);
+  const q5 = await pm.evaluate(() => S.mf.quote);
+  check('3g the customer chose 20 points: applied although the shop left points off (acceptance mandatory)', q5 && q5.redeem_pts === 20 && q5.customer_chose === true, JSON.stringify(q5));
+  await shot(pc2, '12-customer-amount');
+  await pm.evaluate(() => mfSend()); await W(3500); await pc2.click('#paySheet button.ok'); await W(1500);
+  check('3g purchase with the chosen amount confirmed', sql1(`select count(*) from public.pos_transactions where customer_phone='${C2}' and status='CONFIRMED' and redeem_pts=20`) === '1');
+  const pr = await pm.evaluate(() => sbRpc('merchant_set_redeem_pct', { p_merchant_id: S.merchantId, p_redeem_pct: 3, p_redeem_pct_vip: 3 }));
+  check('3g a lower % is only a request until the Admin approves', pr && pr.ok === false && sql1(`select pending_redeem_pct||'/'||redeem_pct from public.merchants where id='${MID}'`) === '3/5', JSON.stringify(pr));
+  await pa.evaluate(() => aPctOpen()); await W(1200); await pa.click('button:has-text("موافقة")'); await W(1200);
+  check('3g Admin approves: 3 % applies', sql1(`select redeem_pct from public.merchants where id='${MID}'`) === '3');
+  await pa.evaluate(() => aBakOpen()); await W(1200);
+  check('3g Admin backups screen: wipe shown disabled', await pa.evaluate(() => S.b3a.bak && S.b3a.bak.wipe_enabled === false));
+  await pa.evaluate(() => aBakNow()); await W(2000);
+  check('3g backup without wipe from the Admin screen (audited, data untouched)', sql1(`select count(*) from tp_backup.wipe_runs where made_by='backup:b3admin'`) === '1'
+    && sql1(`select count(*) from public.audit_log where action='wipe_snapshot'`) === '1' && sql1(`select value from public.app_settings where key='admin_wipe_enabled'`) === '0');
+  await shot(pa, '13-admin-backups');
+
   // ---- 9. consistency + no script errors ----
   check('ledger = cached points for every customer', sql1(`select count(*) from public.customers where coalesce(points,0) <> public._pts_spendable(phone)`) === '0');
   check('audit log has the payment, plan and staff actions', sql1(`select count(distinct action) from public.audit_log where action in ('payment_request','payment_approve','plan_save','pay_settings','staff_create','payment_amount_mismatch')`) === '6');

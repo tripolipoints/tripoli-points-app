@@ -1,7 +1,7 @@
 {
- "db": "e2e_b3e",
- "pass": 50,
- "total": 50,
+ "db": "e2e_b3g",
+ "pass": 59,
+ "total": 59,
  "results": [
   {
    "name": "register: customer created and in the app with a server session",
@@ -91,7 +91,7 @@
   {
    "name": "customer: pay code shown (QR + 8-digit fallback, 5 minutes)",
    "ok": true,
-   "detail": "3557-3804"
+   "detail": "0236-7630"
   },
   {
    "name": "shop: purchase form asks for the customer code (no phone field)",
@@ -106,7 +106,7 @@
   {
    "name": "shop: server quote — redeem = min(customer 3000, 5% of invoice = 100, tier 2500, branch 70% of 2000 = 1400) = 100; earn 95",
    "ok": true,
-   "detail": "{\"ok\":true,\"net\":19,\"disc\":0,\"earn\":95,\"bonus\":0,\"invoice\":20,\"eligible\":19,\"offer_id\":null,\"redeem_max\":100,\"redeem_pts\":100,\"redeem_val\":1,\"today_count\":0,\"allowance_cap\":1400,\"customer_points\":3000}"
+   "detail": "{\"ok\":true,\"net\":19,\"pct\":5,\"vip\":false,\"disc\":0,\"earn\":95,\"bonus\":0,\"invoice\":20,\"eligible\":19,\"offer_id\":null,\"rounding\":\"floor (provisional)\",\"vip_left\":null,\"redeem_max\":100,\"redeem_pts\":100,\"redeem_val\":1,\"today_count\":0,\"eligible_cap\":250,\"allowance_cap\":1400,\"customer_chose\":false,\"customer_p"
   },
   {
    "name": "shop: purchase created (pending), 100 reserved on the branch",
@@ -136,7 +136,7 @@
   {
    "name": "second purchase of the day confirmed",
    "ok": true,
-   "detail": "{\"ok\":true,\"net\":10,\"disc\":0,\"earn\":50,\"bonus\":0,\"invoice\":10,\"eligible\":10,\"offer_id\":null,\"redeem_max\":50,\"redeem_pts\":0,\"redeem_val\":0,\"today_count\":1,\"allowance_cap\":1330,\"customer_points\":2995}"
+   "detail": "{\"ok\":true,\"net\":10,\"pct\":5,\"vip\":false,\"disc\":0,\"earn\":50,\"bonus\":0,\"invoice\":10,\"eligible\":10,\"offer_id\":null,\"rounding\":\"floor (provisional)\",\"vip_left\":null,\"redeem_max\":50,\"redeem_pts\":0,\"redeem_val\":0,\"today_count\":1,\"eligible_cap\":250,\"allowance_cap\":1330,\"customer_chose\":false,\"customer_poin"
   },
   {
    "name": "third purchase in the same branch the same day → refused by the server",
@@ -216,7 +216,7 @@
   {
    "name": "blocked: confirm someone else's purchase with another customer session",
    "ok": true,
-   "detail": "refused: invalid input syntax for type uuid: \"fee37ff1-90c8-4ed8-a20b"
+   "detail": "refused: invalid input syntax for type uuid: \"d1b37e01-5546-4393-acd9"
   },
   {
    "name": "balances unchanged by the attacks",
@@ -236,7 +236,52 @@
   {
    "name": "screen sweep: the calls went to session functions (no old account function used)",
    "ok": true,
-   "detail": "customer_transactions_v2 customer_notes_list_v2 admin_list_merchants_v2 admin_topup_orders_v2 admin_list_customers_v2 merchant_transactions_v2 merchant_notes_list_v2 merchant_wallet_v2 merchant_offers_v2 merchant_gallery_list list_active_offers_all customer_profile_v2"
+   "detail": "admin_list_merchants_v2 admin_topup_orders_v2 admin_list_customers_v2 customer_transactions_v2 customer_notes_list_v2 merchant_transactions_v2 merchant_notes_list_v2 merchant_wallet_v2 merchant_offers_v2 merchant_gallery_list list_active_offers_all customer_profile_v2"
+  },
+  {
+   "name": "3g admin sets the VIP count for medium shops",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g VIP candidates hide phone numbers",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g owner makes a customer VIP (500/day), customer notified",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g the customer chose 20 points: applied although the shop left points off (acceptance mandatory)",
+   "ok": true,
+   "detail": "{\"ok\":true,\"net\":29.8,\"pct\":5,\"vip\":true,\"disc\":0,\"earn\":149,\"bonus\":0,\"invoice\":30,\"eligible\":29.8,\"offer_id\":null,\"rounding\":\"floor (provisional)\",\"vip_left\":440,\"redeem_max\":97,\"redeem_pts\":20,\"redeem_val\":0.2,\"today_count\":1,\"eligible_cap\":250,\"allowance_cap\":1288,\"customer_chose\":true,\"customer"
+  },
+  {
+   "name": "3g purchase with the chosen amount confirmed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g a lower % is only a request until the Admin approves",
+   "ok": true,
+   "detail": "{\"ok\":false,\"error\":\"أُرسل طلب النسبة الأقل إلى الإدارة للموافقة\"}"
+  },
+  {
+   "name": "3g Admin approves: 3 % applies",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g Admin backups screen: wipe shown disabled",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "3g backup without wipe from the Admin screen (audited, data untouched)",
+   "ok": true,
+   "detail": ""
   },
   {
    "name": "ledger = cached points for every customer",
@@ -754,6 +799,12 @@
    "err": null
   },
   {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "customer",
    "fn": "customer_transactions_v2",
    "status": 200,
@@ -762,12 +813,6 @@
   {
    "who": "customer",
    "fn": "customer_notes_list_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "merchant",
-   "fn": "merchant_scan_code",
    "status": 200,
    "err": null
   },
@@ -887,6 +932,12 @@
   },
   {
    "who": "customer",
+   "fn": "customer_vips_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
    "fn": "session_logout",
    "status": 200,
    "err": null
@@ -952,18 +1003,6 @@
    "err": null
   },
   {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
-   "status": 200,
-   "err": null
-  },
-  {
    "who": "staff",
    "fn": "get_app_text_settings",
    "status": 200,
@@ -978,6 +1017,18 @@
   {
    "who": "staff",
    "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1114,18 +1165,6 @@
    "err": null
   },
   {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
-   "status": 200,
-   "err": null
-  },
-  {
    "who": "staff",
    "fn": "merchant_staff_list_v2",
    "status": 400,
@@ -1134,6 +1173,18 @@
   {
    "who": "customer2",
    "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1291,7 +1342,7 @@
    "who": "customer",
    "fn": "customer_decide_tx_v2",
    "status": 400,
-   "err": "invalid input syntax for type uuid: \"fee37ff1-90c8-4ed8-a20b-cd5fb2448db2"
+   "err": "invalid input syntax for type uuid: \"d1b37e01-5546-4393-acd9-2728f67fded3"
   },
   {
    "who": "customer",
@@ -1304,18 +1355,6 @@
    "fn": "create_transaction",
    "status": 401,
    "err": "permission denied for function create_transaction"
-  },
-  {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
-   "status": 200,
-   "err": null
   },
   {
    "who": "admin",
@@ -1332,6 +1371,18 @@
   {
    "who": "admin",
    "fn": "admin_list_customers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1398,6 +1449,222 @@
   {
    "who": "customer",
    "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_engine_setting_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_vip_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_vip_candidates_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_vip_set_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_vip_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_vip_candidates_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_set_redeem",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_decide_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_set_redeem_pct_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_redeem_pct_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_review_redeem_pct_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_redeem_pct_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_backup_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_backup_now_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_backup_list_v2",
    "status": 200,
    "err": null
   }

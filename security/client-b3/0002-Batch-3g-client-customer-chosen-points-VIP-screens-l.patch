@@ -1,0 +1,248 @@
+From 1128704b9d8ebd17efb6de466018aad5c5c42f87 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 13 Nov 2026 23:15:33 +0200
+Subject: [PATCH 2/2] Batch 3g client: customer-chosen points, VIP screens,
+ lower-% approval, Admin rules/backups screens
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MQiHtCqTFkPf6M8uyKCabu
+---
+ index.html           | 50 +++++++++++++++++++++++++++++++++++++-------
+ staging/b3-client.js | 50 +++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 84 insertions(+), 16 deletions(-)
+
+diff --git a/index.html b/index.html
+index c310d93..c4f5366 100644
+--- a/index.html
++++ b/index.html
+@@ -6367,6 +6367,7 @@ sbRpc=async function(fn,args){args=args||{};
+     const r=await call(m[0],a);
+     if(m[0]==='customer_transactions_v2'&&Array.isArray(r)){S._dh=S._dh||{};r.forEach(t=>{if(t.detailHash)S._dh[t.id]=t.detailHash})}
+     if(m[0]==='merchant_transactions_v2'&&Array.isArray(r))r.forEach(t=>{t.phone=t.cref||'••'});
++    if(m[0]==='merchant_set_redeem_pct_v2'&&r&&r.pending)return{ok:false,error:r.message};
+     return r}
+   if(S.sess&&S.sess.staff&&/^merchant_/.test(fn))return null;            // staff: no owner-only legacy calls
+   if(S.sess&&CLOSED[fn])return CLOSED[fn]();                              // replaced by the purchase code: closed on the server
+@@ -6392,7 +6393,9 @@ function payDraw(state,st){const box=document.getElementById('paySheet');if(!box
+   if(state==='live')box.innerHTML=`<h3>رمز الشراء</h3><p class="muted">اعرض هذا الرمز على المحل عند الدفع. صالح لعملية واحدة.</p>
+    <div style="background:#fff;border-radius:14px;padding:10px;display:inline-block">${qrSvg(payCode.qr,220)}</div>
+    <p style="margin:8px 0 2px">أو أعطِ المحل هذا الرقم</p><div class="ltr" style="font-size:26px;font-weight:800;letter-spacing:3px;color:var(--navy)">${payCode.short.slice(0,4)}-${payCode.short.slice(4)}</div>
+-   <p class="muted">ينتهي خلال <b id="payLeft" class="ltr">5:00</b></p><button class="btn ghost" onclick="payClose()">إغلاق</button>
++   <p class="muted">ينتهي خلال <b id="payLeft" class="ltr">5:00</b></p>
++   <div class="card" style="text-align:right;margin:8px 0"><label class="muted">النقاط التي تريد استخدامها في هذه العملية (اختياري)</label><div class="qrsRow" style="margin:6px 0 0"><input id="payWantIn" inputmode="numeric" dir="ltr" placeholder="الحد المسموح" value="${payCode.want!=null?payCode.want:''}"><button class="btn ghost" onclick="payWant()">حفظ</button></div><p class="small muted" style="margin:4px 0 0">${payCode.want!=null?'سيُستخدم حتى '+fmt(payCode.want)+' نقطة':'إن تركته فارغاً يقترح المحل الحد المسموح، وتراجع أنت التفاصيل قبل الموافقة'}</p></div>
++   <button class="btn ghost" onclick="payClose()">إغلاق</button>
+    <p class="small qrsNote">لا تُخصم أي نقطة قبل أن توافق أنت على تفاصيل العملية.</p>`;
+   else if(state==='expired')box.innerHTML=`<h3>انتهت صلاحية الرمز</h3><p class="muted">الرمز يصلح 5 دقائق فقط.</p><button class="btn blue" onclick="payIssueAgain()">رمز جديد</button><button class="btn ghost" style="margin-top:8px" onclick="payClose()">إغلاق</button>`;
+   else if(state==='claimed')box.innerHTML=`<h3>${E(st.shop||'المحل')}</h3><p class="muted">مسح المحل رمزك ويحضّر العملية… انتظر قليلاً.</p><div class="chkc" style="background:var(--yellow);margin:10px auto">…</div><button class="btn ghost" onclick="payClose()">إغلاق</button>`;
+@@ -6423,8 +6426,8 @@ window.custPointsOpen=async function(){const r=await tpS('customer_points_v2');i
+   const K={welcome:'هدية الترحيب',earn:'مشتريات',legacy:'رصيد سابق',adjust:'تعديل من الإدارة',mirror:'رصيد',refund:'استرجاع'};
+   md.innerHTML=`<div class="sheet"><h3>نقاطي: ${fmt(r.points)}</h3>${r.next_expiry&&r.next_expiry.at?`<div class="ask">تنتهي ${fmt(r.next_expiry.points)} نقطة في ${dt(r.next_expiry.at)}</div>`:''}
+    <div class="card">${r.batches.length?r.batches.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><b>${fmt(b.remaining)}</b> <span class="muted">${K[b.kind]||''}${b.shop?' · '+E(b.shop):''}</span></div><span class="muted">${b.expires_at?'حتى '+dt(b.expires_at):'بلا انتهاء'}</span></div>`).join(''):'<p class="muted">لا نقاط صالحة حالياً</p>'}</div>
+-   <p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+-  document.body.appendChild(md)};
++   <div id="ptsVip"></div><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++  document.body.appendChild(md);custVips().then(v=>{const el=document.getElementById('ptsVip');if(el&&v.length)el.innerHTML='<h3>👑 VIP</h3><div class="card">'+v.map(x=>`<div class="row" style="padding:4px 0"><span>${E(x.shop)}</span><span>حتى ${fmt(x.cap)} يومياً${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</span></div>`).join('')+'</div>'})};
+ 
+ // ---------- 3. shop: sell by scanning the customer's code ----------
+ const origMfReset=mfReset;
+@@ -6529,11 +6532,11 @@ window.mStaffSave=async function(id,name,perms,active){const r=await tpS('mercha
+ window.mStaffPin=async function(id,name,perms){const p=prompt('الرمز الجديد للموظف (4 إلى 6 أرقام):');if(!p)return;const r=await tpS('merchant_staff_save_v2',{p_id:id,p_name:name,p_phone:null,p_pin:p.trim(),p_perms:perms,p_active:true});if(r&&r.ok)toast('تم تغيير الرمز');else if(r)toast('الرمز من 4 إلى 6 أرقام')};
+ const origMerchantView=merchantView;
+ merchantView=function(){const m=M(S.merchantId);
+-  if(S.sub==='b3plan'||S.sub==='b3staff'){const body=S.sub==='b3plan'?mPlanV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
++  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
+   let h=origMerchantView();
+   if(secureShop()&&!S.sub&&(S.tab==='macc'||S.tab==='mhome')){const st=S.sess.staff,can=p=>!st||st.perms.indexOf(p)>=0;
+     const cards=(can('wallet')||can('payments')?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mPlanOpen()"><span style="font-size:24px">💳</span><div style="flex:1"><b>الاشتراك ورصيد القبول</b><div class="muted" style="font-size:13px">رصيد قبول النقاط، الاشتراكات والباقات، طلبات الدفع</div></div></button>`:'')
+-      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button>`:'')
++      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
+       +(st?`<div class="ask">دخول موظف: <b>${E(st.name)}</b></div>`:'');
+     const i=h.indexOf('<div class="scr">')+'<div class="scr">'.length;
+     if(S.tab==='macc'||st)h=h.slice(0,i)+cards+h.slice(i)}
+@@ -6585,10 +6588,17 @@ window.aPlanForm=function(p){p=p||{};formModal('اشتراك',[{k:'code',l:'ال
+   async v=>{const r=await tpS('admin_plan_save_v2',{p_code:v.code.trim(),p_title:v.title,p_tier:v.tier||null,p_price:+v.price,p_allowance_pts:+v.pts,p_period_months:parseInt(v.months),p_active:v.active,p_provisional:v.prov,p_currency:'USD'});if(r&&r.ok){toast('تم الحفظ');aCatOpen();return true}if(r)toast('تحقق من القيم');return false})};
+ window.aPkgForm=function(p){p=p||{};formModal('باقة',[{k:'code',l:'الرمز',v:p.code,ro:!!p.code},{k:'title',l:'الاسم',v:p.title},{k:'price',l:'السعر ($)',v:p.price},{k:'pts',l:'نقاط القبول',v:p.points},{k:'days',l:'الصلاحية (أيام)',v:p.validity_days||30},{k:'active',l:'متاحة للتجار',type:'check',v:!!p.active},{k:'prov',l:'قيمة مؤقتة',type:'check',v:p.provisional!==false}],
+   async v=>{const r=await tpS('admin_package_save_v2',{p_code:v.code.trim(),p_title:v.title,p_price:+v.price,p_points:+v.pts,p_validity_days:parseInt(v.days),p_active:v.active,p_provisional:v.prov,p_currency:'USD'});if(r&&r.ok){toast('تم الحفظ');aCatOpen();return true}if(r)toast('تحقق من القيم');return false})};
+-const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبون في الفرع يومياً'],['points_valid_months','صلاحية النقاط المكتسبة (أشهر)'],['allowance_cap_pct','نسبة الحد من رصيد قبول الفرع (%)'],['allowance_small_threshold','رصيد صغير يُستخدم كله (نقاط)'],['sub_carryover_months','ترحيل رصيد الاشتراك (أشهر)'],['tier_redeem_max_small','سقف النقاط للعملية: محل صغير'],['tier_redeem_max_medium','سقف النقاط للعملية: محل متوسط'],['tier_redeem_max_large','سقف النقاط للعملية: محل كبير'],['daily_eligible_usd_small','الحد اليومي للمشتريات المؤهلة ($): صغير — مؤقت، 0 = بلا حد'],['daily_eligible_usd_medium','… متوسط — مؤقت'],['daily_eligible_usd_large','… كبير — مؤقت'],['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
++const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبون في الفرع يومياً'],['points_valid_months','صلاحية النقاط المكتسبة (أشهر)'],['allowance_cap_pct','نسبة الحد من رصيد قبول الفرع (%)'],['allowance_small_threshold','رصيد صغير يُستخدم كله (نقاط)'],['sub_carryover_months','ترحيل رصيد الاشتراك (أشهر)'],
++ ['tier_redeem_max_small','حد الاستبدال للعملية: صغير'],['tier_redeem_max_medium','حد الاستبدال للعملية: متوسط'],['tier_redeem_max_large','حد الاستبدال للعملية: كبير'],
++ ['tier_redeem_pct_small','أقصى نسبة من الفاتورة (%): صغير'],['tier_redeem_pct_medium','أقصى نسبة من الفاتورة (%): متوسط'],['tier_redeem_pct_large','أقصى نسبة من الفاتورة (%): كبير'],
++ ['daily_eligible_pts_small','سقف المشتريات المؤهلة يومياً (نقطة مرجعية): صغير'],['daily_eligible_pts_medium','… متوسط'],['daily_eligible_pts_large','… كبير'],
++ ['earn_pct_min','أدنى نسبة مكافأة (%)'],['earn_pct_max','أعلى نسبة مكافأة (%)'],
++ ['vip_max_small','عدد VIP الأقصى: صغير (تحدده الإدارة)'],['vip_max_medium','عدد VIP الأقصى: متوسط'],['vip_max_large','عدد VIP الأقصى: كبير'],
++ ['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
+ window.aEngOpen=async function(){S.sub='b3eng';render();S.b3a=S.b3a||{};S.b3a.cat=await tpS('admin_catalog_v2');render()};
+ function aEngV(){const c=(S.b3a||{}).cat;if(!c)return atop('إعدادات النقاط والحدود')+'<p class="muted">جارٍ التحميل…</p>';const s=c.settings||{};
+   return atop('إعدادات النقاط والحدود')+`<div class="card">${ENG.map(([k,l])=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:8px"><span style="flex:1;font-size:14px">${l}</span><div class="field" style="width:90px;margin:0"><input id="en-${k}" dir="ltr" inputmode="numeric" value="${E(s[k])}" ${admP()?'':'disabled'}></div>${admP()?`<button class="btn ghost sm" onclick="aEngSave('${k}')">حفظ</button>`:''}</div>`).join('')}</div>
++  <p class="small muted">تقريب كسور نقاط المكافأة: للأسفل حالياً، وهو قرار غير محسوم بعد (مؤقت).</p>
+   ${admP()?`<button class="btn ghost" onclick="aRunExpiry()">تشغيل انتهاء الصلاحيات الآن</button>`:''}`}
+ window.aEngSave=async function(k){const r=await tpS('admin_engine_setting_v2',{p_key:k,p_value:+$('#en-'+k).value});if(r&&r.ok){toast('تم الحفظ');aEngOpen()}else if(r)toast(r.error)};
+ window.aRunExpiry=async function(){const r=await tpS('admin_run_expiry_v2');if(r&&r.ok)toast(`انتهت صلاحية ${fmt(r.points_expired)} نقطة لدى ${r.customers} زبون، و${fmt(r.allowance_expired)} من رصيد القبول`)};
+@@ -6609,7 +6619,7 @@ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصي
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -6617,7 +6627,7 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+@@ -6652,6 +6662,30 @@ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات و
+ window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
+   const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
+ 
++// ---------- 6c. register 12-Nov: customer-chosen points, VIP (§16), lower % approval (§03), Admin rules + backups ----------
++window.payWant=async function(){if(!payCode)return;const v=(document.getElementById('payWantIn')||{}).value;const n=v===''?null:parseInt(v,10);
++  if(v!==''&&!(n>=0))return toast('اكتب عدد النقاط');const r=await tpS('customer_qr_set_redeem',{p_code_id:payCode.id,p_points:n});
++  if(r&&r.ok){payCode.want=r.redeem_want;toast(n===null?'سيستخدم المحل الحد المسموح':'سيُستخدم حتى '+fmt(n)+' نقطة في هذه العملية');payDraw('live')}else if(r)toast(r.message||'تعذّر الحفظ')};
++const VIPL=(n)=>n==null?'غير محدد':fmt(n);
++window.mVipOpen=async function(){S.sub='b3vip';S.b3=S.b3||{};S.b3.vip=null;render();const[l,c]=await Promise.all([tpS('merchant_vip_list_v2'),tpS('merchant_vip_candidates_v2')]);S.b3.vip={l,c};render()};
++function mVipV(){const v=(S.b3||{}).vip,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">زبائن VIP 👑</h3><div style="width:34px"></div></div>`;
++  if(!v||!v.l)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';const l=v.l,c=(v.c&&v.c.customers)||[];
++  return top+`<div class="card"><div class="row"><span>عدد VIP الحالي</span><b>${l.count} / ${VIPL(l.limit)}</b></div><p class="small muted" style="margin:6px 0 0">سقف VIP يحلّ محل سقف الاستبدال العادي، وهو إجمالي يومي في فرعك ضمن عمليتين، مع حدود النسبة ورصيد القبول ورصيد الزبون. الزيادة فورية، والتخفيض من اليوم التالي.</p></div>
++  <h3>الحاليون</h3>${l.vips.length?l.vips.map(x=>`<div class="card"><div class="row"><div><b>👑 ${E(x.name||'زبون')}</b> <span class="muted ltr">${E(x.cref)}</span><div class="muted">الحد اليومي ${fmt(x.cap)}${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</div></div><button class="btn ghost sm" style="color:var(--bad)" onclick="mVipCancel('${x.id}')">إلغاء</button></div></div>`).join(''):'<p class="muted">لا يوجد</p>'}
++  <h3>زبائن أتمّوا عملية في فرعك</h3>${c.length?c.map(x=>`<div class="card"><div class="row"><div><b>${x.vip_cap?'👑 ':''}${E(x.name||'زبون')}</b> <span class="muted ltr">${E(x.cref)}</span><div class="muted">${x.purchases} عملية${x.vip_cap?' · VIP '+fmt(x.vip_cap):''}</div></div><button class="btn ghost sm" onclick='mVipSet(${JSON.stringify(x.ref)},${x.vip_cap||0})'>${x.vip_cap?'تعديل الحد':'اجعله VIP'}</button></div></div>`).join(''):'<p class="muted">لا يوجد زبائن بعد</p>'}`}
++window.mVipSet=async function(ref,cur){const p=prompt('الحد اليومي للنقاط (VIP):',cur||'');if(!p)return;const r=await tpS('merchant_vip_set_v2',{p_ref:ref,p_cap:parseInt(p,10)});
++  if(r&&r.ok){toast(r.effective==='now'?'تم':'يسري التخفيض من '+r.effective);mVipOpen()}else if(r)toast(r.message||({bad_cap:'اكتب عدداً صحيحاً'}[r.error])||r.error)};
++window.mVipCancel=async function(id){if(!confirm('إلغاء عضوية VIP لهذا الزبون؟'))return;const r=await tpS('merchant_vip_cancel_v2',{p_vip_id:id});if(r&&r.ok){toast('أُلغيت العضوية');mVipOpen()}};
++window.aPctOpen=async function(){S.sub='b3pct';S.b3a=S.b3a||{};S.b3a.pct=null;render();const r=await tpS('admin_redeem_pct_requests_v2');S.b3a.pct=r&&r.requests;render()};
++function aPctV(){const l=(S.b3a||{}).pct;return atop('طلبات نسبة استبدال أقل')+(!l?'<p class="muted">جارٍ التحميل…</p>':l.length?l.map(x=>`<div class="card"><b>${E(x.name)}</b><div class="muted">الفئة ${TIERS[x.tier]?TIERS[x.tier].n:E(x.tier)} (حتى ${x.tier_pct}%) · الحالية ${x.current??'—'}% · المطلوبة ${x.requested}% · VIP ${x.requested_vip}%</div>
++  ${admP()?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aPctDecide('${x.merchant_id}',true)">موافقة</button><button class="btn ghost sm" onclick="aPctDecide('${x.merchant_id}',false)">رفض</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد طلبات</p>')}
++window.aPctDecide=async function(mid,ok){const r=await tpS('admin_review_redeem_pct_v2',{p_merchant_id:mid,p_approve:ok});if(r&&r.ok){toast('تم');aPctOpen()}};
++window.aBakOpen=async function(){S.sub='b3bak';S.b3a=S.b3a||{};S.b3a.bak=null;render();S.b3a.bak=await tpS('admin_backup_list_v2');render()};
++function aBakV(){const b=(S.b3a||{}).bak;return atop('النسخ الاحتياطية')+(!b?'<p class="muted">جارٍ التحميل…</p>':`<div class="card"><div class="row"><span>المسح الشامل</span><b style="color:var(--ok)">${b.wipe_enabled?'مفعّل ⚠️':'معطّل'}</b></div><p class="small muted" style="margin:6px 0 0">النسخة تشمل كل الجداول المرتبطة بالتجار والزبائن (دفتر النقاط، رصيد القبول، الاشتراكات، الدفعات، الموظفين، العمليات). الاسترجاع يتحقق من تطابق الأرصدة مع الدفتر قبل قبوله، ويقوم به صاحب المشروع فقط.</p>
++  <button class="btn blue" style="margin-top:8px" onclick="aBakNow()">نسخة احتياطية الآن</button></div>
++  <div class="card">${(b.copies||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b class="ltr">${E(x.stamp)}</b> <span class="muted">${E(x.by)}</span><div class="muted small">${new Date(x.at).toLocaleString('ar-LB')} · ${x.tables} جدول · ${fmt(x.rows||0)} صف${x.has_ledger?' · مع دفتر النقاط':' · قبل دفتر النقاط'}${x.restored_at?' · استُرجعت':''}</div></div>`).join('')||'<p class="muted">لا توجد نسخ</p>'}</div>`)}
++window.aBakNow=async function(){const r=await tpS('admin_backup_now_v2');if(r&&r.ok){toast('تمت النسخة '+r.stamp);aBakOpen()}else if(r)toast(r.message||r.error)};
++window.custVips=async function(){const r=await tpS('customer_vips_v2',{},true);return (r&&r.vips)||[]};
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+diff --git a/staging/b3-client.js b/staging/b3-client.js
+index adbf8b9..bd61411 100644
+--- a/staging/b3-client.js
++++ b/staging/b3-client.js
+@@ -79,6 +79,7 @@ sbRpc=async function(fn,args){args=args||{};
+     const r=await call(m[0],a);
+     if(m[0]==='customer_transactions_v2'&&Array.isArray(r)){S._dh=S._dh||{};r.forEach(t=>{if(t.detailHash)S._dh[t.id]=t.detailHash})}
+     if(m[0]==='merchant_transactions_v2'&&Array.isArray(r))r.forEach(t=>{t.phone=t.cref||'••'});
++    if(m[0]==='merchant_set_redeem_pct_v2'&&r&&r.pending)return{ok:false,error:r.message};
+     return r}
+   if(S.sess&&S.sess.staff&&/^merchant_/.test(fn))return null;            // staff: no owner-only legacy calls
+   if(S.sess&&CLOSED[fn])return CLOSED[fn]();                              // replaced by the purchase code: closed on the server
+@@ -104,7 +105,9 @@ function payDraw(state,st){const box=document.getElementById('paySheet');if(!box
+   if(state==='live')box.innerHTML=`<h3>رمز الشراء</h3><p class="muted">اعرض هذا الرمز على المحل عند الدفع. صالح لعملية واحدة.</p>
+    <div style="background:#fff;border-radius:14px;padding:10px;display:inline-block">${qrSvg(payCode.qr,220)}</div>
+    <p style="margin:8px 0 2px">أو أعطِ المحل هذا الرقم</p><div class="ltr" style="font-size:26px;font-weight:800;letter-spacing:3px;color:var(--navy)">${payCode.short.slice(0,4)}-${payCode.short.slice(4)}</div>
+-   <p class="muted">ينتهي خلال <b id="payLeft" class="ltr">5:00</b></p><button class="btn ghost" onclick="payClose()">إغلاق</button>
++   <p class="muted">ينتهي خلال <b id="payLeft" class="ltr">5:00</b></p>
++   <div class="card" style="text-align:right;margin:8px 0"><label class="muted">النقاط التي تريد استخدامها في هذه العملية (اختياري)</label><div class="qrsRow" style="margin:6px 0 0"><input id="payWantIn" inputmode="numeric" dir="ltr" placeholder="الحد المسموح" value="${payCode.want!=null?payCode.want:''}"><button class="btn ghost" onclick="payWant()">حفظ</button></div><p class="small muted" style="margin:4px 0 0">${payCode.want!=null?'سيُستخدم حتى '+fmt(payCode.want)+' نقطة':'إن تركته فارغاً يقترح المحل الحد المسموح، وتراجع أنت التفاصيل قبل الموافقة'}</p></div>
++   <button class="btn ghost" onclick="payClose()">إغلاق</button>
+    <p class="small qrsNote">لا تُخصم أي نقطة قبل أن توافق أنت على تفاصيل العملية.</p>`;
+   else if(state==='expired')box.innerHTML=`<h3>انتهت صلاحية الرمز</h3><p class="muted">الرمز يصلح 5 دقائق فقط.</p><button class="btn blue" onclick="payIssueAgain()">رمز جديد</button><button class="btn ghost" style="margin-top:8px" onclick="payClose()">إغلاق</button>`;
+   else if(state==='claimed')box.innerHTML=`<h3>${E(st.shop||'المحل')}</h3><p class="muted">مسح المحل رمزك ويحضّر العملية… انتظر قليلاً.</p><div class="chkc" style="background:var(--yellow);margin:10px auto">…</div><button class="btn ghost" onclick="payClose()">إغلاق</button>`;
+@@ -135,8 +138,8 @@ window.custPointsOpen=async function(){const r=await tpS('customer_points_v2');i
+   const K={welcome:'هدية الترحيب',earn:'مشتريات',legacy:'رصيد سابق',adjust:'تعديل من الإدارة',mirror:'رصيد',refund:'استرجاع'};
+   md.innerHTML=`<div class="sheet"><h3>نقاطي: ${fmt(r.points)}</h3>${r.next_expiry&&r.next_expiry.at?`<div class="ask">تنتهي ${fmt(r.next_expiry.points)} نقطة في ${dt(r.next_expiry.at)}</div>`:''}
+    <div class="card">${r.batches.length?r.batches.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><b>${fmt(b.remaining)}</b> <span class="muted">${K[b.kind]||''}${b.shop?' · '+E(b.shop):''}</span></div><span class="muted">${b.expires_at?'حتى '+dt(b.expires_at):'بلا انتهاء'}</span></div>`).join(''):'<p class="muted">لا نقاط صالحة حالياً</p>'}</div>
+-   <p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+-  document.body.appendChild(md)};
++   <div id="ptsVip"></div><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++  document.body.appendChild(md);custVips().then(v=>{const el=document.getElementById('ptsVip');if(el&&v.length)el.innerHTML='<h3>👑 VIP</h3><div class="card">'+v.map(x=>`<div class="row" style="padding:4px 0"><span>${E(x.shop)}</span><span>حتى ${fmt(x.cap)} يومياً${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</span></div>`).join('')+'</div>'})};
+ 
+ // ---------- 3. shop: sell by scanning the customer's code ----------
+ const origMfReset=mfReset;
+@@ -241,11 +244,11 @@ window.mStaffSave=async function(id,name,perms,active){const r=await tpS('mercha
+ window.mStaffPin=async function(id,name,perms){const p=prompt('الرمز الجديد للموظف (4 إلى 6 أرقام):');if(!p)return;const r=await tpS('merchant_staff_save_v2',{p_id:id,p_name:name,p_phone:null,p_pin:p.trim(),p_perms:perms,p_active:true});if(r&&r.ok)toast('تم تغيير الرمز');else if(r)toast('الرمز من 4 إلى 6 أرقام')};
+ const origMerchantView=merchantView;
+ merchantView=function(){const m=M(S.merchantId);
+-  if(S.sub==='b3plan'||S.sub==='b3staff'){const body=S.sub==='b3plan'?mPlanV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
++  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
+   let h=origMerchantView();
+   if(secureShop()&&!S.sub&&(S.tab==='macc'||S.tab==='mhome')){const st=S.sess.staff,can=p=>!st||st.perms.indexOf(p)>=0;
+     const cards=(can('wallet')||can('payments')?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mPlanOpen()"><span style="font-size:24px">💳</span><div style="flex:1"><b>الاشتراك ورصيد القبول</b><div class="muted" style="font-size:13px">رصيد قبول النقاط، الاشتراكات والباقات، طلبات الدفع</div></div></button>`:'')
+-      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button>`:'')
++      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
+       +(st?`<div class="ask">دخول موظف: <b>${E(st.name)}</b></div>`:'');
+     const i=h.indexOf('<div class="scr">')+'<div class="scr">'.length;
+     if(S.tab==='macc'||st)h=h.slice(0,i)+cards+h.slice(i)}
+@@ -297,10 +300,17 @@ window.aPlanForm=function(p){p=p||{};formModal('اشتراك',[{k:'code',l:'ال
+   async v=>{const r=await tpS('admin_plan_save_v2',{p_code:v.code.trim(),p_title:v.title,p_tier:v.tier||null,p_price:+v.price,p_allowance_pts:+v.pts,p_period_months:parseInt(v.months),p_active:v.active,p_provisional:v.prov,p_currency:'USD'});if(r&&r.ok){toast('تم الحفظ');aCatOpen();return true}if(r)toast('تحقق من القيم');return false})};
+ window.aPkgForm=function(p){p=p||{};formModal('باقة',[{k:'code',l:'الرمز',v:p.code,ro:!!p.code},{k:'title',l:'الاسم',v:p.title},{k:'price',l:'السعر ($)',v:p.price},{k:'pts',l:'نقاط القبول',v:p.points},{k:'days',l:'الصلاحية (أيام)',v:p.validity_days||30},{k:'active',l:'متاحة للتجار',type:'check',v:!!p.active},{k:'prov',l:'قيمة مؤقتة',type:'check',v:p.provisional!==false}],
+   async v=>{const r=await tpS('admin_package_save_v2',{p_code:v.code.trim(),p_title:v.title,p_price:+v.price,p_points:+v.pts,p_validity_days:parseInt(v.days),p_active:v.active,p_provisional:v.prov,p_currency:'USD'});if(r&&r.ok){toast('تم الحفظ');aCatOpen();return true}if(r)toast('تحقق من القيم');return false})};
+-const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبون في الفرع يومياً'],['points_valid_months','صلاحية النقاط المكتسبة (أشهر)'],['allowance_cap_pct','نسبة الحد من رصيد قبول الفرع (%)'],['allowance_small_threshold','رصيد صغير يُستخدم كله (نقاط)'],['sub_carryover_months','ترحيل رصيد الاشتراك (أشهر)'],['tier_redeem_max_small','سقف النقاط للعملية: محل صغير'],['tier_redeem_max_medium','سقف النقاط للعملية: محل متوسط'],['tier_redeem_max_large','سقف النقاط للعملية: محل كبير'],['daily_eligible_usd_small','الحد اليومي للمشتريات المؤهلة ($): صغير — مؤقت، 0 = بلا حد'],['daily_eligible_usd_medium','… متوسط — مؤقت'],['daily_eligible_usd_large','… كبير — مؤقت'],['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
++const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبون في الفرع يومياً'],['points_valid_months','صلاحية النقاط المكتسبة (أشهر)'],['allowance_cap_pct','نسبة الحد من رصيد قبول الفرع (%)'],['allowance_small_threshold','رصيد صغير يُستخدم كله (نقاط)'],['sub_carryover_months','ترحيل رصيد الاشتراك (أشهر)'],
++ ['tier_redeem_max_small','حد الاستبدال للعملية: صغير'],['tier_redeem_max_medium','حد الاستبدال للعملية: متوسط'],['tier_redeem_max_large','حد الاستبدال للعملية: كبير'],
++ ['tier_redeem_pct_small','أقصى نسبة من الفاتورة (%): صغير'],['tier_redeem_pct_medium','أقصى نسبة من الفاتورة (%): متوسط'],['tier_redeem_pct_large','أقصى نسبة من الفاتورة (%): كبير'],
++ ['daily_eligible_pts_small','سقف المشتريات المؤهلة يومياً (نقطة مرجعية): صغير'],['daily_eligible_pts_medium','… متوسط'],['daily_eligible_pts_large','… كبير'],
++ ['earn_pct_min','أدنى نسبة مكافأة (%)'],['earn_pct_max','أعلى نسبة مكافأة (%)'],
++ ['vip_max_small','عدد VIP الأقصى: صغير (تحدده الإدارة)'],['vip_max_medium','عدد VIP الأقصى: متوسط'],['vip_max_large','عدد VIP الأقصى: كبير'],
++ ['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
+ window.aEngOpen=async function(){S.sub='b3eng';render();S.b3a=S.b3a||{};S.b3a.cat=await tpS('admin_catalog_v2');render()};
+ function aEngV(){const c=(S.b3a||{}).cat;if(!c)return atop('إعدادات النقاط والحدود')+'<p class="muted">جارٍ التحميل…</p>';const s=c.settings||{};
+   return atop('إعدادات النقاط والحدود')+`<div class="card">${ENG.map(([k,l])=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:8px"><span style="flex:1;font-size:14px">${l}</span><div class="field" style="width:90px;margin:0"><input id="en-${k}" dir="ltr" inputmode="numeric" value="${E(s[k])}" ${admP()?'':'disabled'}></div>${admP()?`<button class="btn ghost sm" onclick="aEngSave('${k}')">حفظ</button>`:''}</div>`).join('')}</div>
++  <p class="small muted">تقريب كسور نقاط المكافأة: للأسفل حالياً، وهو قرار غير محسوم بعد (مؤقت).</p>
+   ${admP()?`<button class="btn ghost" onclick="aRunExpiry()">تشغيل انتهاء الصلاحيات الآن</button>`:''}`}
+ window.aEngSave=async function(k){const r=await tpS('admin_engine_setting_v2',{p_key:k,p_value:+$('#en-'+k).value});if(r&&r.ok){toast('تم الحفظ');aEngOpen()}else if(r)toast(r.error)};
+ window.aRunExpiry=async function(){const r=await tpS('admin_run_expiry_v2');if(r&&r.ok)toast(`انتهت صلاحية ${fmt(r.points_expired)} نقطة لدى ${r.customers} زبون، و${fmt(r.allowance_expired)} من رصيد القبول`)};
+@@ -321,7 +331,7 @@ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصي
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -329,7 +339,7 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+@@ -364,6 +374,30 @@ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات و
+ window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
+   const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
+ 
++// ---------- 6c. register 12-Nov: customer-chosen points, VIP (§16), lower % approval (§03), Admin rules + backups ----------
++window.payWant=async function(){if(!payCode)return;const v=(document.getElementById('payWantIn')||{}).value;const n=v===''?null:parseInt(v,10);
++  if(v!==''&&!(n>=0))return toast('اكتب عدد النقاط');const r=await tpS('customer_qr_set_redeem',{p_code_id:payCode.id,p_points:n});
++  if(r&&r.ok){payCode.want=r.redeem_want;toast(n===null?'سيستخدم المحل الحد المسموح':'سيُستخدم حتى '+fmt(n)+' نقطة في هذه العملية');payDraw('live')}else if(r)toast(r.message||'تعذّر الحفظ')};
++const VIPL=(n)=>n==null?'غير محدد':fmt(n);
++window.mVipOpen=async function(){S.sub='b3vip';S.b3=S.b3||{};S.b3.vip=null;render();const[l,c]=await Promise.all([tpS('merchant_vip_list_v2'),tpS('merchant_vip_candidates_v2')]);S.b3.vip={l,c};render()};
++function mVipV(){const v=(S.b3||{}).vip,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">زبائن VIP 👑</h3><div style="width:34px"></div></div>`;
++  if(!v||!v.l)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';const l=v.l,c=(v.c&&v.c.customers)||[];
++  return top+`<div class="card"><div class="row"><span>عدد VIP الحالي</span><b>${l.count} / ${VIPL(l.limit)}</b></div><p class="small muted" style="margin:6px 0 0">سقف VIP يحلّ محل سقف الاستبدال العادي، وهو إجمالي يومي في فرعك ضمن عمليتين، مع حدود النسبة ورصيد القبول ورصيد الزبون. الزيادة فورية، والتخفيض من اليوم التالي.</p></div>
++  <h3>الحاليون</h3>${l.vips.length?l.vips.map(x=>`<div class="card"><div class="row"><div><b>👑 ${E(x.name||'زبون')}</b> <span class="muted ltr">${E(x.cref)}</span><div class="muted">الحد اليومي ${fmt(x.cap)}${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</div></div><button class="btn ghost sm" style="color:var(--bad)" onclick="mVipCancel('${x.id}')">إلغاء</button></div></div>`).join(''):'<p class="muted">لا يوجد</p>'}
++  <h3>زبائن أتمّوا عملية في فرعك</h3>${c.length?c.map(x=>`<div class="card"><div class="row"><div><b>${x.vip_cap?'👑 ':''}${E(x.name||'زبون')}</b> <span class="muted ltr">${E(x.cref)}</span><div class="muted">${x.purchases} عملية${x.vip_cap?' · VIP '+fmt(x.vip_cap):''}</div></div><button class="btn ghost sm" onclick='mVipSet(${JSON.stringify(x.ref)},${x.vip_cap||0})'>${x.vip_cap?'تعديل الحد':'اجعله VIP'}</button></div></div>`).join(''):'<p class="muted">لا يوجد زبائن بعد</p>'}`}
++window.mVipSet=async function(ref,cur){const p=prompt('الحد اليومي للنقاط (VIP):',cur||'');if(!p)return;const r=await tpS('merchant_vip_set_v2',{p_ref:ref,p_cap:parseInt(p,10)});
++  if(r&&r.ok){toast(r.effective==='now'?'تم':'يسري التخفيض من '+r.effective);mVipOpen()}else if(r)toast(r.message||({bad_cap:'اكتب عدداً صحيحاً'}[r.error])||r.error)};
++window.mVipCancel=async function(id){if(!confirm('إلغاء عضوية VIP لهذا الزبون؟'))return;const r=await tpS('merchant_vip_cancel_v2',{p_vip_id:id});if(r&&r.ok){toast('أُلغيت العضوية');mVipOpen()}};
++window.aPctOpen=async function(){S.sub='b3pct';S.b3a=S.b3a||{};S.b3a.pct=null;render();const r=await tpS('admin_redeem_pct_requests_v2');S.b3a.pct=r&&r.requests;render()};
++function aPctV(){const l=(S.b3a||{}).pct;return atop('طلبات نسبة استبدال أقل')+(!l?'<p class="muted">جارٍ التحميل…</p>':l.length?l.map(x=>`<div class="card"><b>${E(x.name)}</b><div class="muted">الفئة ${TIERS[x.tier]?TIERS[x.tier].n:E(x.tier)} (حتى ${x.tier_pct}%) · الحالية ${x.current??'—'}% · المطلوبة ${x.requested}% · VIP ${x.requested_vip}%</div>
++  ${admP()?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aPctDecide('${x.merchant_id}',true)">موافقة</button><button class="btn ghost sm" onclick="aPctDecide('${x.merchant_id}',false)">رفض</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد طلبات</p>')}
++window.aPctDecide=async function(mid,ok){const r=await tpS('admin_review_redeem_pct_v2',{p_merchant_id:mid,p_approve:ok});if(r&&r.ok){toast('تم');aPctOpen()}};
++window.aBakOpen=async function(){S.sub='b3bak';S.b3a=S.b3a||{};S.b3a.bak=null;render();S.b3a.bak=await tpS('admin_backup_list_v2');render()};
++function aBakV(){const b=(S.b3a||{}).bak;return atop('النسخ الاحتياطية')+(!b?'<p class="muted">جارٍ التحميل…</p>':`<div class="card"><div class="row"><span>المسح الشامل</span><b style="color:var(--ok)">${b.wipe_enabled?'مفعّل ⚠️':'معطّل'}</b></div><p class="small muted" style="margin:6px 0 0">النسخة تشمل كل الجداول المرتبطة بالتجار والزبائن (دفتر النقاط، رصيد القبول، الاشتراكات، الدفعات، الموظفين، العمليات). الاسترجاع يتحقق من تطابق الأرصدة مع الدفتر قبل قبوله، ويقوم به صاحب المشروع فقط.</p>
++  <button class="btn blue" style="margin-top:8px" onclick="aBakNow()">نسخة احتياطية الآن</button></div>
++  <div class="card">${(b.copies||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b class="ltr">${E(x.stamp)}</b> <span class="muted">${E(x.by)}</span><div class="muted small">${new Date(x.at).toLocaleString('ar-LB')} · ${x.tables} جدول · ${fmt(x.rows||0)} صف${x.has_ledger?' · مع دفتر النقاط':' · قبل دفتر النقاط'}${x.restored_at?' · استُرجعت':''}</div></div>`).join('')||'<p class="muted">لا توجد نسخ</p>'}</div>`)}
++window.aBakNow=async function(){const r=await tpS('admin_backup_now_v2');if(r&&r.ok){toast('تمت النسخة '+r.stamp);aBakOpen()}else if(r)toast(r.message||r.error)};
++window.custVips=async function(){const r=await tpS('customer_vips_v2',{},true);return (r&&r.vips)||[]};
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+-- 
+2.43.0
+
