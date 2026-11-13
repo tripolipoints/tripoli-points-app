@@ -264,7 +264,11 @@ do $$ declare r jsonb; tx uuid; e text; begin
   perform pg_temp.ok('allowance expiry job zeroes and logs', (select coalesce(sum(remaining),0) from public.allowance_grants where merchant_id = '00000000-0000-4000-8000-0000000b3b02') = 0
     and exists (select 1 from public.allowance_movements where merchant_id = '00000000-0000-4000-8000-0000000b3b02' and kind = 'expire'));
   -- daily eligible amount (provisional setting)
-  perform public.admin_engine_setting_v2(pg_temp.get('a1'), 'daily_eligible_usd_medium', 50);
+  if to_regprocedure('public._tx_quote2(uuid,text,numeric,boolean,uuid,numeric)') is not null then
+    perform public.admin_engine_setting_v2(pg_temp.get('a1'), 'daily_eligible_pts_medium', 5000);   -- 3g: the cap is set in reference points (= $50)
+  else
+    perform public.admin_engine_setting_v2(pg_temp.get('a1'), 'daily_eligible_usd_medium', 50);
+  end if;
   r := public._tx_quote('00000000-0000-4000-8000-0000000b3b02', '79998004', 100, false, null);
   perform pg_temp.ok('daily eligible amount: earn on 50 of 100 when the setting is 50', (r->>'eligible')::numeric = 50 and (r->>'earn')::numeric = 250, r::text);
   perform pg_temp.ok('engine setting: unknown key refused', public.admin_engine_setting_v2(pg_temp.get('a1'), 'hack', 1)->>'error' = 'unknown_key');

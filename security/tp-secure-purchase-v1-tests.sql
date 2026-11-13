@@ -46,6 +46,9 @@ insert into public.admin_users(id, username, pin_hash, is_primary) values
 -- batch3b-engine/tp-engine-v1-tests.sql). These phase-1 checks make more purchases in one shop, so the limit is
 -- raised for this rolled-back run only. No effect before batch 3b (the key does not exist then).
 update public.app_settings set value = 20 where key = 'tx_per_customer_branch_day';
+-- batch 3g adds the approved daily eligible-purchase caps (tested in batch3b-engine/tp-b3g-rules-tests.sql). Check 48 compares the
+-- quote with the old create_transaction price rules on large invoices, so the caps are switched off for this rolled-back run only.
+update public.app_settings set value = 0 where key in ('daily_eligible_pts_small','daily_eligible_pts_medium','daily_eligible_pts_large');
 
 -- ---------------------------------------------------------------- 1. sessions
 do $$
