@@ -277,6 +277,9 @@ do $$ declare r jsonb; tx uuid; e text; begin
 end $$;
 
 -- ---------------------------------------------------------------- 7. staff (employees)
+-- 3j makes the approved device login mandatory (staff_device_required = 1, tested in tp-b3j-tests.sql). This section
+-- checks the branch permissions through the earlier phone+PIN login, so the rule is relaxed for this rolled-back run only.
+update public.app_settings set value = 0 where key = 'staff_device_required';
 do $$ declare r jsonb; st uuid; tok text; tx uuid; e text; begin
   perform pg_temp.ok('staff: a staff phone cannot be created by a customer session',
     pg_temp.err(format('select public.merchant_staff_save_v2(%L, null, %L, %L, %L, array[%L])', pg_temp.get('c1'), 'x', '79998021', '5555', 'sell')) like 'TP_SESSION%');
