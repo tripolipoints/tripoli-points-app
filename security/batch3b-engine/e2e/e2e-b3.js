@@ -188,7 +188,22 @@ function serve(root, port) {
   check('owner adds an employee (sell only)', sql1(`select perms::text from public.merchant_staff where phone='${STAFF}'`) === '{sell}');
   const ps = await newPage('staff');
   await ps.evaluate(() => { S.screen = 'login'; render() }); await W(200);
-  await ps.click('button:has-text("دخول موظف")'); await W(300); await ps.fill('#stp', STAFF); await ps.fill('#stc', '8642'); await ps.evaluate(() => staffLogin()); await W(2000);
+  // §13: owner gives e-mail + temporary password; first login on a new device; owner approves; 6-digit PIN; daily PIN login
+  const sid = sql1(`select id from public.merchant_staff where phone='${STAFF}'`);
+  const qm = ['cashier@shop.example', 'Temp2026pass']; const hm = d => d.accept(qm.shift()); pm.on('dialog', hm);
+  await pm.evaluate(id => mStaffCred(id), sid); await W(1500); pm.off('dialog', hm);
+  check('§13 owner sets the employee e-mail + temporary password (hashed)', sql1(`select (email='cashier@shop.example' and password_hash like '$2%')::text from public.merchant_staff where id='${sid}'`) === 'true');
+  await ps.click('button:has-text("دخول موظف")'); await W(300);
+  await ps.evaluate(() => staffLoginOpen('first')); await W(200);
+  await ps.fill('#ste', 'cashier@shop.example'); await ps.fill('#stw', 'Temp2026pass'); await ps.evaluate(() => staffFirst()); await W(1200);
+  check('§13 first login from a new device waits for the owner', await ps.evaluate(() => !!document.getElementById('stMsg')) && sql1(`select status from public.staff_devices where staff_id='${sid}'`) === 'pending');
+  await pm.evaluate(() => mStaffOpen()); await W(1200);
+  await shot(pm, '14-owner-device-approval');
+  await pm.click('button:has-text("موافقة")'); await W(1200);
+  check('§13 owner approves the device', sql1(`select status from public.staff_devices where staff_id='${sid}'`) === 'approved');
+  await ps.evaluate(() => staffFirst(true)); await W(1000);
+  await ps.fill('#st6', '482915'); await ps.evaluate(() => staffSetPin()); await W(1200);
+  await ps.fill('#stp', STAFF); await ps.fill('#stc', '482915'); await ps.evaluate(() => staffLogin()); await W(2000);
   check('employee logs in to his branch', await ps.evaluate(id => S.mode === 'merchant' && S.merchantId === id && S.sess.staff && S.sess.staff.name === 'موظف الصندوق', MID));
   const pc2 = await newPage('customer2'); await pc2.login(C2, '2468');
   await pc2.evaluate(() => payOpen()); await W(1200);
@@ -288,6 +303,37 @@ function serve(root, port) {
   check('3g backup without wipe from the Admin screen (audited, data untouched)', sql1(`select count(*) from tp_backup.wipe_runs where made_by='backup:b3admin'`) === '1'
     && sql1(`select count(*) from public.audit_log where action='wipe_snapshot'`) === '1' && sql1(`select value from public.app_settings where key='admin_wipe_enabled'`) === '0');
   await shot(pa, '13-admin-backups');
+
+  // ---- 8d. 3h–3j: refund + compensation (Admin), hours / closure (owner), privacy (customer), complaint deadlines ----
+  const txR = sql1(`select id from public.pos_transactions where customer_phone='${C2}' and status='CONFIRMED' and redeem_pts=20`);
+  const before = sql1(`select points from public.customers where phone='${C2}'`);
+  await pa.evaluate(() => aRefundOpen()); await W(300); await pa.fill('#rfid', txR); await pa.evaluate(() => aRefundLookup()); await W(1200);
+  await pa.fill('#rfp', '100'); await pa.fill('#rfn', 'إرجاع البضاعة باتفاق الطرفين'); await pa.check('#rfc'); await pa.check('#rfm'); await pa.evaluate(() => aRefundGo()); await W(1500);
+  check('§10 Admin full refund from the UI: 20 used points back, earned points out, purchase kept', sql1(`select count(*) from public.tx_refunds where tx_id='${txR}'`) === '1'
+    && sql1(`select status from public.pos_transactions where id='${txR}'`) === 'CONFIRMED'
+    && sql1(`select points from public.customers where phone='${C2}'`) === String(+before + 20 - +sql1(`select earn_back from public.tx_refunds where tx_id='${txR}'`)), before + ' → ' + sql1(`select points from public.customers where phone='${C2}'`));
+  await shot(pa, '15-admin-refund');
+  const rep2 = sql1(`select id from public.tx_reports where reporter_role='customer' order by created_at limit 1`);
+  const qa = ['300', 'خطأ تقني مثبت في الخادم']; const ha = d => d.accept(qa.shift()); pa.on('dialog', ha);
+  await pa.evaluate(id => aCompensate(id), rep2); await W(1500); pa.off('dialog', ha);
+  check('§07 compensation from the UI: 300 points valid 7 days, once per complaint', sql1(`select count(*) from public.compensations where report_id='${rep2}' and points=300`) === '1');
+  await pa.evaluate(() => aRepOpen()); await W(1200);
+  check('§11 report card shows the deadlines', await pa.evaluate(() => document.body.innerText.includes('الحل قبل')));
+  await pm.evaluate(() => mHoursOpen()); await W(1200); await pm.evaluate(() => mClosureStart()); await W(1200);
+  check('§14 owner closes temporarily: «مغلق مؤقتاً» on the map list, no new points purchase', sql1(`select public._shop_state('${MID}')`) === 'closed_temp'
+    && sql1(`select public._tx_quote2('${MID}', '${C2}', 10, false, null, null)->>'error'`) === 'shop_closed');
+  await shot(pm, '16-hours');
+  await pm.evaluate(() => mClosureEnd(S.b3.hrs.closures[0].id)); await W(1200);
+  check('§14 reopened', sql1(`select public._shop_state('${MID}')`) === 'open');
+  await pc2.evaluate(() => { const m = document.getElementById('paySheet'); if (m) payClose(); return custPrivacyOpen() }); await W(1200);
+  await pc2.check('#mkc'); await W(1200);
+  check('privacy: optional marketing consent recorded with its time', sql1(`select (marketing_consent and marketing_consent_at is not null)::text from public.customers where phone='${C2}'`) === 'true');
+  pc2.once('dialog', d => d.accept('2468'));
+  await pc2.click('button:has-text("طلب حذف الحساب")'); await W(1500);
+  check('deletion: requested with the PIN, 7 days to cancel', sql1(`select (deletion_requested_at is not null)::text from public.customers where phone='${C2}'`) === 'true');
+  await shot(pc2, '17-privacy');
+  await pc2.click('button:has-text("التراجع عن الحذف")'); await W(1200);
+  check('deletion: cancelled', sql1(`select (deletion_requested_at is null)::text from public.customers where phone='${C2}'`) === 'true');
 
   // ---- 9. consistency + no script errors ----
   check('ledger = cached points for every customer', sql1(`select count(*) from public.customers where coalesce(points,0) <> public._pts_spendable(phone)`) === '0');

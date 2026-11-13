@@ -14,3 +14,8 @@ that is sent to the reporter).
 Added in 3g: customer chooses the points to use on the purchase code (§03), owner «زبائن VIP» (§16), lower % request handled
 as pending, customer «نقاطي» shows VIP caps, Admin «طلبات نسبة الاستبدال», «النسخ الاحتياطية», and the new rule settings.
 E2E (real app, local copy with all migrations up to 3g): 59/59.
+
+Added in 3h–3j (local branch commit `7fa4524`): Admin «إرجاع عملية», «تعويض (7 أيام)», «رد» on reports with deadlines, «تشغيل
+المهام الدورية», customer reactivation, permanent-closure decision; owner «الدوام والإغلاق», staff e-mail/password and device
+approvals; staff login = e-mail + password on a new device → owner approval → 6-digit PIN (device id kept in this browser's
+localStorage); customer «الخصوصية وحذف الحساب». E2E (real app, local copy with all migrations through 3j + e-mail prep): 70/70.

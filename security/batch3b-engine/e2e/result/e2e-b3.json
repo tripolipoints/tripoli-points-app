@@ -1,7 +1,7 @@
 {
- "db": "e2e_b3g",
- "pass": 59,
- "total": 59,
+ "db": "e2e_b3j",
+ "pass": 70,
+ "total": 70,
  "results": [
   {
    "name": "register: customer created and in the app with a server session",
@@ -91,7 +91,7 @@
   {
    "name": "customer: pay code shown (QR + 8-digit fallback, 5 minutes)",
    "ok": true,
-   "detail": "0236-7630"
+   "detail": "4847-8939"
   },
   {
    "name": "shop: purchase form asks for the customer code (no phone field)",
@@ -159,6 +159,21 @@
    "detail": ""
   },
   {
+   "name": "§13 owner sets the employee e-mail + temporary password (hashed)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§13 first login from a new device waits for the owner",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§13 owner approves the device",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "employee logs in to his branch",
    "ok": true,
    "detail": ""
@@ -216,7 +231,7 @@
   {
    "name": "blocked: confirm someone else's purchase with another customer session",
    "ok": true,
-   "detail": "refused: invalid input syntax for type uuid: \"d1b37e01-5546-4393-acd9"
+   "detail": "refused: invalid input syntax for type uuid: \"73c8b7ac-a34f-46fb-b351"
   },
   {
    "name": "balances unchanged by the attacks",
@@ -280,6 +295,46 @@
   },
   {
    "name": "3g backup without wipe from the Admin screen (audited, data untouched)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§10 Admin full refund from the UI: 20 used points back, earned points out, purchase kept",
+   "ok": true,
+   "detail": "226 → 97"
+  },
+  {
+   "name": "§07 compensation from the UI: 300 points valid 7 days, once per complaint",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§11 report card shows the deadlines",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§14 owner closes temporarily: «مغلق مؤقتاً» on the map list, no new points purchase",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "§14 reopened",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "privacy: optional marketing consent recorded with its time",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "deletion: requested with the PIN, 7 days to cancel",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "deletion: cancelled",
    "ok": true,
    "detail": ""
   },
@@ -691,12 +746,6 @@
    "err": null
   },
   {
-   "who": "customer",
-   "fn": "customer_qr_status",
-   "status": 200,
-   "err": null
-  },
-  {
    "who": "merchant",
    "fn": "merchant_transactions_v2",
    "status": 200,
@@ -717,6 +766,12 @@
   {
    "who": "merchant",
    "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
    "status": 200,
    "err": null
   },
@@ -992,6 +1047,12 @@
   },
   {
    "who": "merchant",
+   "fn": "merchant_staff_devices_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
    "fn": "merchant_staff_save_v2",
    "status": 200,
    "err": null
@@ -999,6 +1060,12 @@
   {
    "who": "merchant",
    "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_devices_v2",
    "status": 200,
    "err": null
   },
@@ -1033,8 +1100,74 @@
    "err": null
   },
   {
+   "who": "merchant",
+   "fn": "merchant_staff_credentials_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_devices_v2",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "staff",
-   "fn": "staff_login",
+   "fn": "staff_first_login_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_devices_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_device_decide_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_devices_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "staff_first_login_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "staff_set_pin6_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "staff_pin_login_v2",
    "status": 200,
    "err": null
   },
@@ -1111,6 +1244,18 @@
    "err": null
   },
   {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "customer2",
    "fn": "customer_qr_status",
    "status": 200,
@@ -1173,18 +1318,6 @@
   {
    "who": "customer2",
    "fn": "customer_qr_issue",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1340,9 +1473,21 @@
   },
   {
    "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
    "fn": "customer_decide_tx_v2",
    "status": 400,
-   "err": "invalid input syntax for type uuid: \"d1b37e01-5546-4393-acd9-2728f67fded3"
+   "err": "invalid input syntax for type uuid: \"73c8b7ac-a34f-46fb-b351-add7dd6dc463"
   },
   {
    "who": "customer",
@@ -1371,18 +1516,6 @@
   {
    "who": "admin",
    "fn": "admin_list_customers_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1471,6 +1604,18 @@
    "err": null
   },
   {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "merchant",
    "fn": "merchant_vip_list_v2",
    "status": 200,
@@ -1531,26 +1676,14 @@
    "err": null
   },
   {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
+   "who": "customer2",
+   "fn": "customer_qr_status",
    "status": 200,
    "err": null
   },
   {
    "who": "merchant",
    "fn": "merchant_create_tx_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer2",
-   "fn": "customer_qr_status",
    "status": 200,
    "err": null
   },
@@ -1581,6 +1714,12 @@
   {
    "who": "merchant",
    "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
    "status": 200,
    "err": null
   },
@@ -1665,6 +1804,132 @@
   {
    "who": "admin",
    "fn": "admin_backup_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_tx_lookup_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_tx_refund_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_tx_lookup_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_compensate_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_security_feed_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_security_feed_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_hours_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_closure_start_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_hours_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_closure_end_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_hours_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_privacy_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_set_marketing_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_delete_request_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_privacy_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_delete_cancel_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_privacy_v2",
    "status": 200,
    "err": null
   }

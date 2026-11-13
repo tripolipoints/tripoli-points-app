@@ -1,0 +1,427 @@
+From 7fa45245d31baa8d66818cb8d1b9c198dcc16b95 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 01:08:44 +0200
+Subject: [PATCH 3/3] =?UTF-8?q?Batch=203h=E2=80=933j=20client:=20refunds/c?=
+ =?UTF-8?q?ompensation/answers/jobs=20(Admin),=20hours=20&=20closures=20(o?=
+ =?UTF-8?q?wner),=20staff=20device=20+=206-digit=20PIN=20login,=20privacy?=
+ =?UTF-8?q?=20&=20deletion=20(customer)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MQiHtCqTFkPf6M8uyKCabu
+---
+ index.html           | 112 ++++++++++++++++++++++++++++++++++---------
+ staging/b3-client.js | 112 ++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 180 insertions(+), 44 deletions(-)
+
+diff --git a/index.html b/index.html
+index c4f5366..83a9823 100644
+--- a/index.html
++++ b/index.html
+@@ -6426,7 +6426,7 @@ window.custPointsOpen=async function(){const r=await tpS('customer_points_v2');i
+   const K={welcome:'هدية الترحيب',earn:'مشتريات',legacy:'رصيد سابق',adjust:'تعديل من الإدارة',mirror:'رصيد',refund:'استرجاع'};
+   md.innerHTML=`<div class="sheet"><h3>نقاطي: ${fmt(r.points)}</h3>${r.next_expiry&&r.next_expiry.at?`<div class="ask">تنتهي ${fmt(r.next_expiry.points)} نقطة في ${dt(r.next_expiry.at)}</div>`:''}
+    <div class="card">${r.batches.length?r.batches.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><b>${fmt(b.remaining)}</b> <span class="muted">${K[b.kind]||''}${b.shop?' · '+E(b.shop):''}</span></div><span class="muted">${b.expires_at?'حتى '+dt(b.expires_at):'بلا انتهاء'}</span></div>`).join(''):'<p class="muted">لا نقاط صالحة حالياً</p>'}</div>
+-   <div id="ptsVip"></div><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++   <div id="ptsVip"></div><button class="btn ghost sm" style="margin:6px 0" onclick="custPrivacyOpen()">الخصوصية وحذف الحساب</button><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+   document.body.appendChild(md);custVips().then(v=>{const el=document.getElementById('ptsVip');if(el&&v.length)el.innerHTML='<h3>👑 VIP</h3><div class="card">'+v.map(x=>`<div class="row" style="padding:4px 0"><span>${E(x.shop)}</span><span>حتى ${fmt(x.cap)} يومياً${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</span></div>`).join('')+'</div>'})};
+ 
+ // ---------- 3. shop: sell by scanning the customer's code ----------
+@@ -6517,12 +6517,13 @@ window.mPayReq=async function(){const b=S.b3,sel=b.sel;const ref=(document.getEl
+   if(!r)return render();if(!r.ok){render();return toast(r.message||r.error)}b.sel=null;b.idem=null;toast('تم إرسال الطلب، بانتظار مراجعة الإدارة');mPlanOpen()};
+ window.mPayCancel=async function(id){if(!confirm('إلغاء هذا الطلب؟'))return;const r=await tpS('merchant_payment_cancel_v2',{p_id:id});if(r&&r.ok)mPlanOpen()};
+ const PERMS=[['sell','البيع'],['cancel','إلغاء عملية'],['history','سجل العمليات'],['wallet','رصيد القبول'],['payments','الدفع والاشتراك']];
+-window.mStaffOpen=async function(){S.sub='b3staff';render();const r=await tpS('merchant_staff_list_v2');S.b3=S.b3||{};S.b3.staff=r&&r.staff;render()};
++window.mStaffOpen=async function(){S.sub='b3staff';render();const[r,d]=await Promise.all([tpS('merchant_staff_list_v2'),tpS('merchant_staff_devices_v2',{},true)]);S.b3=S.b3||{};S.b3.staff=r&&r.staff;S.b3.devs=(d&&d.devices)||[];render()};
+ function mStaffV(){const st=(S.b3||{}).staff,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">الموظفون</h3><div style="width:34px"></div></div>`;
+   if(!st)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';
+-  return top+`<p class="muted">كل موظف يدخل برقمه ورمزه الخاص، ويعمل في هذا الفرع فقط وبحسب الصلاحيات.</p>`+st.map(s=>`<div class="card"><div class="row"><div><b>${E(s.name)}</b><div class="muted ltr">${E(s.phone)}</div></div><span class="pill ${s.status==='active'?'active':'frozen'}">${s.status==='active'?'فعّال':'موقوف'}</span></div>
++  const dv=(S.b3||{}).devs||[];
++  return top+(dv.filter(d=>d.status==='pending').length?`<h3>أجهزة بانتظار موافقتك</h3>`+dv.filter(d=>d.status==='pending').map(d=>`<div class="card row"><div><b>${E(d.staff)}</b><div class="muted small">${E(d.label||'جهاز')} · ${dt(d.created_at)}</div></div><div><button class="btn ok sm" onclick="mDevDecide('${d.id}',true)">موافقة</button><button class="btn ghost sm" onclick="mDevDecide('${d.id}',false)">رفض</button></div></div>`).join(''):'')+`<p class="muted">كل موظف يدخل برقمه ورمزه الخاص، ويعمل في هذا الفرع فقط وبحسب الصلاحيات.</p>`+st.map(s=>`<div class="card"><div class="row"><div><b>${E(s.name)}</b><div class="muted ltr">${E(s.phone)}</div></div><span class="pill ${s.status==='active'?'active':'frozen'}">${s.status==='active'?'فعّال':'موقوف'}</span></div>
+    <div class="muted" style="margin-top:4px">${s.perms.map(p=>(PERMS.find(x=>x[0]===p)||[,p])[1]).join('، ')}</div>
+-   <div class="row" style="justify-content:flex-start;gap:6px;margin-top:8px"><button class="btn ghost sm" onclick='mStaffSave(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)},${s.status!=='active'})'>${s.status==='active'?'إيقاف':'تفعيل'}</button><button class="btn ghost sm" onclick='mStaffPin(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)})'>رمز جديد</button></div></div>`).join('')
++   <div class="row" style="justify-content:flex-start;gap:6px;margin-top:8px"><button class="btn ghost sm" onclick='mStaffSave(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)},${s.status!=='active'})'>${s.status==='active'?'إيقاف':'تفعيل'}</button><button class="btn ghost sm" onclick='mStaffCred(${JSON.stringify(s.id)})'>البريد وكلمة السر</button></div></div>`).join('')
+   +`<h3>إضافة موظف</h3><div class="card"><div class="field"><input id="sfn" placeholder="الاسم"></div><div class="field"><input id="sfp" dir="ltr" inputmode="numeric" placeholder="رقم الهاتف (8 أرقام)"></div><div class="field"><input id="sfc" dir="ltr" type="password" inputmode="numeric" placeholder="رمز الدخول (4 إلى 6 أرقام)"></div>
+    ${PERMS.map(([k,l])=>`<label class="chk"><input type="checkbox" class="sfperm" value="${k}" ${k==='sell'?'checked':''}> ${l}</label>`).join('')}<button class="btn blue" onclick="mStaffAdd()">إضافة</button></div>`}
+ window.mStaffAdd=async function(){const perms=[...document.querySelectorAll('.sfperm:checked')].map(x=>x.value);
+@@ -6532,11 +6533,11 @@ window.mStaffSave=async function(id,name,perms,active){const r=await tpS('mercha
+ window.mStaffPin=async function(id,name,perms){const p=prompt('الرمز الجديد للموظف (4 إلى 6 أرقام):');if(!p)return;const r=await tpS('merchant_staff_save_v2',{p_id:id,p_name:name,p_phone:null,p_pin:p.trim(),p_perms:perms,p_active:true});if(r&&r.ok)toast('تم تغيير الرمز');else if(r)toast('الرمز من 4 إلى 6 أرقام')};
+ const origMerchantView=merchantView;
+ merchantView=function(){const m=M(S.merchantId);
+-  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
++  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'||S.sub==='b3hours'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():S.sub==='b3hours'?mHoursV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
+   let h=origMerchantView();
+   if(secureShop()&&!S.sub&&(S.tab==='macc'||S.tab==='mhome')){const st=S.sess.staff,can=p=>!st||st.perms.indexOf(p)>=0;
+     const cards=(can('wallet')||can('payments')?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mPlanOpen()"><span style="font-size:24px">💳</span><div style="flex:1"><b>الاشتراك ورصيد القبول</b><div class="muted" style="font-size:13px">رصيد قبول النقاط، الاشتراكات والباقات، طلبات الدفع</div></div></button>`:'')
+-      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
++      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mHoursOpen()"><span style="font-size:24px">🕘</span><div style="flex:1"><b>الدوام والإغلاق</b><div class="muted" style="font-size:13px">أوقات العمل، إغلاق مؤقت أو نهائي</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
+       +(st?`<div class="ask">دخول موظف: <b>${E(st.name)}</b></div>`:'');
+     const i=h.indexOf('<div class="scr">')+'<div class="scr">'.length;
+     if(S.tab==='macc'||st)h=h.slice(0,i)+cards+h.slice(i)}
+@@ -6544,17 +6545,7 @@ merchantView=function(){const m=M(S.merchantId);
+ 
+ // ---------- 5. staff login (from the login screen) ----------
+ const origLoginView=loginView;
+-loginView=function(){return origLoginView().replace(/<\/div>\s*$/,`<button class="btn ghost" style="margin-top:14px" onclick="staffLoginOpen()">دخول موظف في محل</button></div>`)};
+-window.staffLoginOpen=function(){const md=document.createElement('div');md.className='modal';md.id='stModal';md.onclick=e=>{if(e.target===md)md.remove()};
+-  md.innerHTML=`<div class="sheet"><h3>دخول موظف</h3><div class="field"><input id="stp" dir="ltr" inputmode="numeric" placeholder="رقم الهاتف"></div><div class="field"><input id="stc" dir="ltr" type="password" inputmode="numeric" placeholder="رمز الدخول"></div><button class="btn blue" onclick="staffLogin()">دخول</button><button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+-  document.body.appendChild(md)};
+-window.staffLogin=async function(){const p=norm($('#stp').value),c=($('#stc').value||'').trim();if(!/^\d{8}$/.test(p)||!c)return toast('أدخل الرقم والرمز');
+-  const r=await call('staff_login',{p_phone:p,p_pin:c,p_device:navigator.userAgent.slice(0,100)});
+-  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول بعد 15 دقيقة':r&&r.reason==='frozen'?'هذا الحساب موقوف':'الرقم أو الرمز غير صحيح');
+-  const md=document.getElementById('stModal');if(md)md.remove();
+-  S.sess={role:'merchant',token:r.session,staff:r.staff};const m=hydrateMerchant(r.merchant);S.merchantId=m.id;S.phone=null;S.mode='merchant';S.tab='mhome';S.sub=null;S.screen='app';
+-  mfReset();render();syncMerchantData(m.id)};
+-
++loginView=function(){return origLoginView().replace(/<\/div>\s*$/,`<button class="btn ghost" style="margin-top:14px" onclick="staffLoginOpen('pin')">دخول موظف في محل</button></div>`)};
+ // ---------- 6. Admin: payments, catalogue, engine settings, ledgers, audit ----------
+ const admP=()=>S.adminInfo&&S.adminInfo.is_primary;
+ const atop=t=>`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">${t}</h3><div style="width:34px"></div></div>`;
+@@ -6594,7 +6585,7 @@ const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبو
+  ['daily_eligible_pts_small','سقف المشتريات المؤهلة يومياً (نقطة مرجعية): صغير'],['daily_eligible_pts_medium','… متوسط'],['daily_eligible_pts_large','… كبير'],
+  ['earn_pct_min','أدنى نسبة مكافأة (%)'],['earn_pct_max','أعلى نسبة مكافأة (%)'],
+  ['vip_max_small','عدد VIP الأقصى: صغير (تحدده الإدارة)'],['vip_max_medium','عدد VIP الأقصى: متوسط'],['vip_max_large','عدد VIP الأقصى: كبير'],
+- ['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
++ ['sub_grace_days','مهلة بعد انتهاء الاشتراك (أيام)'],['sub_enforce','تطبيق إخفاء المحل بعد المهلة (0/1) — مفتاح Staging'],['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
+ window.aEngOpen=async function(){S.sub='b3eng';render();S.b3a=S.b3a||{};S.b3a.cat=await tpS('admin_catalog_v2');render()};
+ function aEngV(){const c=(S.b3a||{}).cat;if(!c)return atop('إعدادات النقاط والحدود')+'<p class="muted">جارٍ التحميل…</p>';const s=c.settings||{};
+   return atop('إعدادات النقاط والحدود')+`<div class="card">${ENG.map(([k,l])=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:8px"><span style="flex:1;font-size:14px">${l}</span><div class="field" style="width:90px;margin:0"><input id="en-${k}" dir="ltr" inputmode="numeric" value="${E(s[k])}" ${admP()?'':'disabled'}></div>${admP()?`<button class="btn ghost sm" onclick="aEngSave('${k}')">حفظ</button>`:''}</div>`).join('')}</div>
+@@ -6607,6 +6598,7 @@ function aAuditV(){const l=(S.b3a||{}).audit;return atop('سجل التدقيق'
+ window.aCustPts=async function(p){S.sub='b3cpts';S.b3a=S.b3a||{};S.b3a.cp={phone:p};render();const r=await tpS('admin_customer_points_v2',{p_phone:p});S.b3a.cp=Object.assign({phone:p},r||{});render()};
+ function aCustPtsV(){const c=(S.b3a||{}).cp||{};return atop('نقاط الزبون')+`<p class="ltr" style="text-align:center">+961 ${E(c.phone)}</p>`+(c.ok?`<div class="card"><div class="row"><span>الرصيد الصالح</span><b>${fmt(c.spendable)}</b></div></div>
+   <div class="card">${c.batches.filter(b=>b.remaining>0).map(b=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${E(b.kind)} · ${fmt(b.remaining)}/${fmt(b.initial)}</span><span class="muted">${b.expires_at?dt(Date.parse(b.expires_at)):'بلا انتهاء'}</span></div>`).join('')||'<p class="muted">لا دفعات صالحة</p>'}</div>
++  ${admP()?`<button class="btn ghost sm" onclick="aReactivate('${E(c.phone)}')">إعادة تفعيل حساب معطّل</button>`:''}
+   ${admP()?`<h3>تعديل يدوي</h3><div class="card"><div class="field"><input id="cpd" dir="ltr" inputmode="numeric" placeholder="+500 أو -200"></div><div class="field"><input id="cpn" placeholder="السبب (إلزامي)"></div><button class="btn blue sm" onclick="aCustAdj()">تنفيذ</button></div>`:''}
+   <h3>الحركات</h3><div class="card">${c.movements.map(m=>`<div class="row" style="padding:4px 0"><span>${E(m.reason)}</span><b class="ltr">${m.delta>0?'+':''}${fmt(m.delta)}</b></div>`).join('')}</div>`:'<p class="muted">جارٍ التحميل…</p>')}
+ window.aCustAdj=async function(){const c=S.b3a.cp,d=parseInt($('#cpd').value),n=$('#cpn').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد الزبون بمقدار ${d} نقطة؟`))return;
+@@ -6615,11 +6607,12 @@ window.aAllowOpen=async function(mid){S.sub='b3mallow';S.b3a=S.b3a||{};S.b3a.ma=
+ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصيد قبول: '+E(m.name||''))+(a.ok?`<div class="card"><div class="row"><span>المتبقي</span><b>${fmt(a.remaining)}</b></div><div class="row"><span class="muted">الحد للعملية</span><b>${fmt(a.per_purchase_max)}</b></div><div class="row"><span class="muted">محجوز</span><b>${fmt(a.held)}</b></div></div>
+   <div class="card">${a.grants.map(g=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${g.source} ${E(g.plan||g.package||'')} · ${fmt(g.remaining)}/${fmt(g.initial)}</span><span class="muted">${dt(g.valid_from)} → ${dt(g.expires_at)}</span></div>`).join('')||'<p class="muted">لا رصيد</p>'}</div>
+   ${admP()?`<h3>تعديل يدوي</h3><div class="card"><div class="field"><input id="mad" dir="ltr" inputmode="numeric" placeholder="+1000 أو -200"></div><div class="field"><input id="mav" dir="ltr" inputmode="numeric" placeholder="الصلاحية بالأيام (للإضافة)" value="30"></div><div class="field"><input id="man" placeholder="السبب (إلزامي)"></div><button class="btn blue sm" onclick="aAllowAdj()">تنفيذ</button></div>`:''}
++  ${admP()?`<div class="card"><b>طلب إغلاق نهائي</b><div class="row" style="gap:6px;justify-content:flex-start;margin-top:6px"><button class="btn ghost sm" style="color:var(--bad)" onclick="aCloseShop('${a.mid}',true)">اعتماد الإغلاق</button><button class="btn ghost sm" onclick="aCloseShop('${a.mid}',false)">رفض</button></div></div>`:''}
+   ${a.staff&&a.staff.length?`<h3>موظفو الفرع</h3><div class="card">${a.staff.map(s=>`<div class="row"><span>${E(s.name)}</span><span class="muted">${s.status} · ${s.perms.join(', ')}</span></div>`).join('')}</div>`:''}`:'<p class="muted">جارٍ التحميل…</p>')}
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV,b3refund:aRefundV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -6627,7 +6620,7 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button><button class="btn ghost" onclick="aRefundOpen()">↩️ إرجاع عملية</button><button class="btn ghost" onclick="aRunJobs()">⏱ تشغيل المهام الدورية</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+@@ -6649,7 +6642,7 @@ const repLink=id=>`<button class="btn ghost sm" style="margin-top:6px;color:var(
+ const withReport=h=>(S.sess&&S.sess.role==='customer'&&typeof h==='string')?h.replace(/(onclick='decide\(("[0-9a-f-]{36}"),false\)'[^>]*>[^<]*<\/button>)/g,(x,a,id)=>a+repLink(id)):h;
+ const origPendingBanner=pendingBanner;pendingBanner=function(){return withReport(origPendingBanner.apply(this,arguments))};
+ const origPendOverlay=pendOverlay;pendOverlay=function(){return withReport(origPendOverlay.apply(this,arguments))};
+-const REV={reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
++const REV={alert_report_overdue:'بلاغ متأخر عن المهلة',alert_shop_info:'بلاغ عن موقع أو دوام محل',alert_closure_request:'طلب إغلاق نهائي',alert_repeat_value:'نفس القيمة يومين متتاليين',reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
+   scan_failed:'رموز غير صالحة',decide_hash_mismatch:'تفاصيل تغيّرت قبل التأكيد',qr_issue_limited:'طلب رموز كثيرة'};
+ window.aRepOpen=async function(){S.sub='b3rep';S.b3a=S.b3a||{};S.b3a.feed=null;render();const r=await tpS('admin_security_feed_v2',{p_limit:200});S.b3a.feed=r;render()};
+ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات والتنبيهات')+'<p class="muted">جارٍ التحميل…</p>';
+@@ -6657,7 +6650,8 @@ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات و
+   return atop('البلاغات والتنبيهات')+`<h3>البلاغات (${reps.filter(r=>r.status==='open').length} مفتوح)</h3>`
+   +(reps.length?reps.map(r=>`<div class="card"><div class="row"><b>${rr[r.reason]||E(r.reason)}</b><span class="pill">${RS[r.status]||E(r.status)}</span></div>
+      <div class="muted">${r.role==='customer'?'من زبون':'من محل'} · ${new Date(r.at).toLocaleString('ar-LB')}${r.note?' · '+E(r.note):''}</div>
+-     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
++     ${r.resolve_due_at?`<div class="small ${r.escalated?'':'muted'}" style="${r.escalated?'color:var(--bad);font-weight:700':''}">${r.escalated?'⚠️ متأخر · ':''}الرد قبل ${new Date(r.response_due_at).toLocaleString('ar-LB')}${r.first_response_at?' ✓':''} · الحل قبل ${new Date(r.resolve_due_at).toLocaleString('ar-LB')}</div>`:''}${r.answer?`<div class="muted small">رد الإدارة: ${E(r.answer)}</div>`:''}
++     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="aRepAnswer('${r.id}')">رد</button>${r.role==='customer'&&admP()?`<button class="btn ghost sm" onclick="aCompensate('${r.id}')">تعويض (7 أيام)</button>`:''}<button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
+   +`<h3>تنبيهات المراقبة</h3><div class="card">${ev.map(e=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${REV[e.event]}</b> <span class="muted">${e.mname?E(e.mname):''}</span><div class="muted small">${new Date(e.at).toLocaleString('ar-LB')}</div></div>`).join('')||'<p class="muted">لا تنبيهات</p>'}</div>`}
+ window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
+   const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
+@@ -6686,6 +6680,80 @@ function aBakV(){const b=(S.b3a||{}).bak;return atop('النسخ الاحتيا
+   <div class="card">${(b.copies||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b class="ltr">${E(x.stamp)}</b> <span class="muted">${E(x.by)}</span><div class="muted small">${new Date(x.at).toLocaleString('ar-LB')} · ${x.tables} جدول · ${fmt(x.rows||0)} صف${x.has_ledger?' · مع دفتر النقاط':' · قبل دفتر النقاط'}${x.restored_at?' · استُرجعت':''}</div></div>`).join('')||'<p class="muted">لا توجد نسخ</p>'}</div>`)}
+ window.aBakNow=async function(){const r=await tpS('admin_backup_now_v2');if(r&&r.ok){toast('تمت النسخة '+r.stamp);aBakOpen()}else if(r)toast(r.message||r.error)};
+ window.custVips=async function(){const r=await tpS('customer_vips_v2',{},true);return (r&&r.vips)||[]};
++// ---------- 6d. 3h–3j: refunds & compensation, hours & closures, privacy & deletion, staff devices, complaint deadlines ----------
++const devId=()=>{let d=null;try{d=localStorage.getItem('tp_staff_device')}catch(e){}
++  if(!d){d='dev-'+Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');try{localStorage.setItem('tp_staff_device',d)}catch(e){}}return d};
++window.tpDeviceId=devId;
++// staff: e-mail + password on a new device → owner approval → 6-digit PIN; daily: phone + PIN
++window.staffLoginOpen=function(step){const md=document.getElementById('stModal')||document.createElement('div');md.className='modal';md.id='stModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  const st=step||'pin',F=(id,ph,t,im)=>`<div class="field"><input id="${id}" dir="ltr" ${t?`type="${t}"`:''} ${im?`inputmode="${im}"`:''} placeholder="${ph}"></div>`;
++  md.innerHTML=`<div class="sheet"><h3>دخول موظف</h3>`+(st==='pin'?`<p class="muted">على جهاز معتمد: رقم الهاتف والرمز السري من 6 أرقام.</p>${F('stp','رقم الهاتف','','numeric')}${F('stc','الرمز (6 أرقام)','password','numeric')}<button class="btn blue" onclick="staffLogin()">دخول</button><button class="btn ghost" style="margin-top:8px" onclick="staffLoginOpen('first')">أول دخول من هذا الجهاز</button>`
++   :st==='first'?`<p class="muted">أول دخول من جهاز جديد: البريد وكلمة السر اللذان أعطاك إياهما صاحب المحل.</p>${F('ste','البريد الإلكتروني','email')}${F('stw','كلمة السر','password')}<button class="btn blue" onclick="staffFirst()">متابعة</button>`
++   :st==='wait'?`<p class="muted" id="stMsg">بانتظار موافقة صاحب المحل على هذا الجهاز.</p><button class="btn blue" onclick="staffFirst(true)">تحققت الموافقة؟ تابع</button>`
++   :`<p class="muted">اختر رمزاً سرياً من 6 أرقام لهذا الجهاز.</p>${F('st6','الرمز الجديد (6 أرقام)','password','numeric')}<button class="btn blue" onclick="staffSetPin()">حفظ</button>`)
++   +`<button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++  if(!md.parentNode)document.body.appendChild(md)};
++let stCred=null;
++window.staffFirst=async function(again){if(!again)stCred={e:($('#ste').value||'').trim(),w:$('#stw').value||''};if(!stCred||!stCred.e||!stCred.w)return toast('أدخل البريد وكلمة السر');
++  const r=await call('staff_first_login_v2',{p_email:stCred.e,p_password:stCred.w,p_device:devId(),p_label:navigator.userAgent.slice(0,60)});
++  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول لاحقاً':r&&r.reason==='frozen'?'هذا الحساب موقوف':'البريد أو كلمة السر غير صحيحة');
++  staffLoginOpen(r.step==='verify'?'wait':r.step==='set_pin'?'setpin':'pin');if(r.step==='verify'&&r.message){const m=document.getElementById('stMsg');if(m)m.textContent=r.message}};
++window.staffSetPin=async function(){const p=($('#st6').value||'').trim();const r=await call('staff_set_pin6_v2',{p_email:stCred.e,p_password:stCred.w,p_device:devId(),p_pin6:p});
++  if(r&&r.ok){toast('تم حفظ الرمز. ادخل برقمك والرمز');stCred=null;staffLoginOpen('pin')}else if(r)toast(r.message||'تعذّر الحفظ')};
++window.staffLogin=async function(){const p=norm($('#stp').value),c=($('#stc').value||'').trim();if(!/^\d{8}$/.test(p)||!/^\d{6}$/.test(c))return toast('أدخل الرقم والرمز من 6 أرقام');
++  const r=await call('staff_pin_login_v2',{p_phone:p,p_pin6:c,p_device:devId()});
++  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول بعد 15 دقيقة':r&&r.reason==='device_not_approved'?'هذا الجهاز غير معتمد: استخدم «أول دخول من هذا الجهاز»':r&&r.reason==='frozen'?'هذا الحساب موقوف':'الرقم أو الرمز غير صحيح');
++  const md=document.getElementById('stModal');if(md)md.remove();
++  S.sess={role:'merchant',token:r.session,staff:r.staff};const m=hydrateMerchant(r.merchant);S.merchantId=m.id;S.phone=null;S.mode='merchant';S.tab='mhome';S.sub=null;S.screen='app';
++  mfReset();render();syncMerchantData(m.id)};
++// owner: staff credentials + devices
++window.mStaffCred=async function(id){const e=prompt('بريد الموظف:');if(!e)return;const w=prompt('كلمة سر مؤقتة (8 أحرف على الأقل، أحرف وأرقام):');if(!w)return;
++  const r=await tpS('merchant_staff_credentials_v2',{p_staff_id:id,p_email:e.trim(),p_password:w});if(r&&r.ok){toast('تم. يدخل الموظف أول مرة بالبريد وكلمة السر');mStaffOpen()}else if(r)toast(r.message||({bad_email:'بريد غير صحيح',email_taken:'البريد مستعمل'}[r.error])||r.error)};
++window.mDevDecide=async function(id,ok){const r=await tpS('merchant_staff_device_decide_v2',{p_device_id:id,p_approve:ok});if(r&&r.ok){toast(ok?'تمت الموافقة على الجهاز':'أُلغي الجهاز');mStaffOpen()}};
++// owner: hours, temporary closure, permanent closure request
++const DOW=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],SST={open:'مفتوح',closed_hours:'مغلق (خارج الدوام)',closed_temp:'مغلق مؤقتاً',closed_final:'مغلق نهائياً',hidden:'مخفي (انتهت مهلة الاشتراك)'};
++window.mHoursOpen=async function(){S.sub='b3hours';S.b3=S.b3||{};S.b3.hrs=null;render();S.b3.hrs=await tpS('merchant_hours_v2');render()};
++function mHoursV(){const h=(S.b3||{}).hrs,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">الدوام والإغلاق</h3><div style="width:34px"></div></div>`;
++  if(!h||!h.ok)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';const by={};h.hours.forEach(x=>{by[x.dow]=x});
++  return top+`<div class="card"><div class="row"><span>الحالة الآن</span><b>${SST[h.state]||h.state}</b></div><p class="small muted" style="margin:6px 0 0">عمليات النقاط الجديدة تتوقف عندما يكون الفرع مغلقاً. إن لم تُدخل دواماً يُعتبر الفرع مفتوحاً.</p></div>
++  <h3>الدوام الأسبوعي</h3><div class="card">${DOW.map((d,i)=>`<div class="row" style="gap:6px;padding:4px 0"><label class="chk" style="flex:1"><input type="checkbox" class="hdon" data-d="${i}" ${by[i]?'checked':''}> ${d}</label><input class="hop" data-d="${i}" type="time" value="${by[i]?by[i].opens:'09:00'}"><input class="hcl" data-d="${i}" type="time" value="${by[i]?by[i].closes:'22:00'}"></div>`).join('')}<button class="btn blue sm" onclick="mHoursSave()">حفظ الدوام</button></div>
++  <h3>إغلاق مؤقت</h3>${h.closures.map(c=>`<div class="card row"><span>${dt(c.starts_at)} → ${c.ends_at?dt(c.ends_at):'حتى إشعار آخر'}${c.reason?' · '+E(c.reason):''}</span><button class="btn ghost sm" onclick="mClosureEnd(${c.id})">إعادة الفتح</button></div>`).join('')}
++  <div class="card"><div class="field"><input id="clr" placeholder="السبب (اختياري)" maxlength="200"></div><div class="field"><input id="clu" type="date"></div><button class="btn ghost sm" onclick="mClosureStart()">إغلاق مؤقت الآن</button><p class="small muted" style="margin:4px 0 0">تبقى صفحة المحل ودبوسه مع «مغلق مؤقتاً»، ولا تُمدَّد فترة الاشتراك.</p></div>
++  <h3>إغلاق نهائي</h3><div class="card"><p class="small muted" style="margin:0 0 6px">تراجع الإدارة الأرصدة والشكاوى والعمليات قبل الإغلاق. السجلات ونقاط الزبائن تبقى محفوظة.</p><button class="btn ghost sm" style="color:var(--bad)" onclick="mCloseShop()">طلب إغلاق نهائي</button></div>`}
++window.mHoursSave=async function(){const rows=[...document.querySelectorAll('.hdon:checked')].map(x=>{const d=+x.dataset.d;return{dow:d,opens:document.querySelector(`.hop[data-d="${d}"]`).value,closes:document.querySelector(`.hcl[data-d="${d}"]`).value}});
++  const r=await tpS('merchant_hours_set_v2',{p_hours:rows});if(r&&r.ok){toast('تم حفظ الدوام');mHoursOpen()}else if(r)toast(r.message||r.error)};
++window.mClosureStart=async function(){const u=$('#clu').value;const r=await tpS('merchant_closure_start_v2',{p_from:null,p_until:u?new Date(u+'T23:59:00').toISOString():null,p_reason:$('#clr').value||null});if(r&&r.ok){toast('الفرع مغلق مؤقتاً');mHoursOpen()}else if(r)toast(r.error)};
++window.mClosureEnd=async function(id){const r=await tpS('merchant_closure_end_v2',{p_id:id});if(r&&r.ok){toast('أُعيد فتح الفرع');mHoursOpen()}};
++window.mCloseShop=async function(){if(!confirm('طلب إغلاق الفرع نهائياً؟ تراجعه الإدارة قبل التنفيذ.'))return;const p=prompt('رمز الدخول للتأكيد:');if(!p)return;
++  const r=await tpS('merchant_close_shop_request_v2',{p_pin:p});if(r&&r.ok)toast(r.message);else if(r)toast(r.error==='wrong_pin'?'الرمز غير صحيح':r.error)};
++// customer: privacy, marketing consent, account deletion
++window.custPrivacyOpen=async function(){const r=await tpS('customer_privacy_v2');if(!r||!r.ok)return;const old=document.getElementById('ptsModal');if(old)old.remove();
++  const md=document.createElement('div');md.className='modal';md.id='prvModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  md.innerHTML=`<div class="sheet"><h3>الخصوصية والحساب</h3><div class="card"><label class="chk"><input type="checkbox" id="mkc" ${r.marketing_consent?'checked':''} onchange="custMarketing(this.checked)"> أوافق على تلقي عروض تسويقية (اختياري)</label><p class="small muted" style="margin:4px 0 0">منفصلة عن شروط الاستخدام، ويمكنك سحبها في أي وقت.</p></div>
++   <div class="card">${r.deletion_requested_at?`<b>طلبت حذف الحساب</b><p class="muted">يُعطَّل في ${dt(r.deletion_effective_at)}. تبقى نقاطك محفوظة 3 أشهر بعد التعطيل.</p><button class="btn ghost" onclick="custDelCancel()">التراجع عن الحذف</button>`
++     :`<b>حذف الحساب</b><p class="small muted">مهلة تراجع 7 أيام، ثم يُعطَّل الحساب. تبقى النقاط 3 أشهر، ويمكن إعادة التفعيل خلالها بالنقاط التي ما زالت صالحة.</p><button class="btn ghost" style="color:var(--bad)" onclick="custDelRequest()">طلب حذف الحساب</button>`}</div>
++   <button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;document.body.appendChild(md)};
++window.custMarketing=async function(v){const r=await tpS('customer_set_marketing_v2',{p_consent:!!v});if(r&&r.ok)toast(v?'تم تسجيل موافقتك':'تم سحب الموافقة')};
++window.custDelRequest=async function(){const p=prompt('أدخل رمزك السري للتأكيد:');if(!p)return;const r=await tpS('customer_delete_request_v2',{p_pin:p});
++  if(r&&r.ok){toast('سُجّل طلب الحذف. يمكنك التراجع خلال 7 أيام');custPrivacyOpen()}else if(r)toast(r.error==='wrong_pin'?'الرمز غير صحيح':r.error)};
++window.custDelCancel=async function(){const r=await tpS('customer_delete_cancel_v2');if(r&&r.ok){toast('أُلغي طلب الحذف');custPrivacyOpen()}};
++// Admin: refunds + compensation + answers + jobs + reactivation + closure review
++window.aRefundOpen=function(){S.sub='b3refund';S.b3a=S.b3a||{};S.b3a.rf=null;render()};
++function aRefundV(){const x=(S.b3a||{}).rf;return atop('إرجاع عملية')+`<div class="card"><div class="field"><input id="rfid" dir="ltr" placeholder="رقم العملية" value="${x&&x.tx?E(x.tx.id):''}"></div><button class="btn ghost sm" onclick="aRefundLookup()">بحث</button></div>`
++  +(x&&x.ok?`<div class="card"><div class="row"><span>الفاتورة</span><b>${usd(x.tx.invoice)}</b></div><div class="row"><span>نقاط مستخدمة / مكتسبة</span><b>${fmt(x.tx.redeemPts)} / ${fmt(x.tx.earn)}</b></div><div class="row"><span>أُرجع سابقاً</span><b>${Math.round(x.refunds.reduce((a,r)=>a+ +r.fraction,0)*100)}%</b></div></div>
++   ${admP()?`<div class="card"><label class="muted">نسبة الإرجاع (%)</label><div class="field"><input id="rfp" dir="ltr" inputmode="numeric" value="100"></div><div class="field"><input id="rfn" placeholder="السبب (إلزامي)"></div>
++   <label class="chk"><input type="checkbox" id="rfc"> وافق الزبون</label><label class="chk"><input type="checkbox" id="rfm"> وافق المحل</label><button class="btn blue sm" onclick="aRefundGo()">تنفيذ الإرجاع</button>
++   <p class="small muted" style="margin:4px 0 0">تُعاد النقاط المستخدمة إلى دفعاتها إن لم تنتهِ، وتُسحب المكتسبة من دفعتها، ويعود رصيد القبول للفرع. التقريب للأسفل (مؤقت).</p></div>`:''}`:x&&x.error?`<p class="muted">لا توجد عملية بهذا الرقم</p>`:'')}
++window.aRefundLookup=async function(){const id=($('#rfid').value||'').trim();if(!/^[0-9a-f-]{36}$/i.test(id))return toast('رقم عملية غير صحيح');S.b3a.rf=await tpS('admin_tx_lookup_v2',{p_tx_id:id});render()};
++window.aRefundGo=async function(){const x=S.b3a.rf,p=parseFloat($('#rfp').value)/100;if(!(p>0&&p<=1))return toast('نسبة بين 1 و100');
++  const r=await tpS('admin_tx_refund_v2',{p_tx_id:x.tx.id,p_fraction:p,p_note:$('#rfn').value,p_customer_agreed:$('#rfc').checked,p_merchant_agreed:$('#rfm').checked});
++  if(r&&r.ok){toast(`تم: أُعيدت ${fmt(r.redeem_back)} نقطة وسُحبت ${fmt(r.earn_back)}`+(r.earn_shortfall?` (تسوية ${fmt(r.earn_shortfall)})`:''));aRefundLookup()}else if(r)toast(r.message||({bad_request:'اكتب السبب'}[r.error])||r.error)};
++window.aCompensate=async function(rep){const p=prompt('نقاط التعويض (صالحة 7 أيام):');if(!p)return;const n=prompt('وصف الخطأ التقني المُتحقَّق منه:');if(!n)return;
++  const r=await tpS('admin_compensate_v2',{p_report_id:rep,p_points:parseInt(p,10),p_note:n});if(r&&r.ok){toast('تم التعويض');aRepOpen()}else if(r)toast(r.message||r.error)};
++window.aRepAnswer=async function(rep){const m=prompt('رد الإدارة (يصل للمُبلِّغ):');if(!m)return;const r=await tpS('admin_report_respond_v2',{p_report_id:rep,p_message:m});if(r&&r.ok){toast('أُرسل الرد');aRepOpen()}};
++window.aRunJobs=async function(){const r=await tpS('admin_run_jobs_v2');if(r&&r.ok)toast(`انتهت ${fmt(r.expiry.points_expired||0)} نقطة · حسابات معطلة ${r.accounts.disabled} · مغلقة ${r.accounts.closed} · بلاغات متأخرة ${r.accounts.reports_escalated}`)};
++window.aReactivate=async function(p){const n=prompt('سبب إعادة التفعيل (بعد التحقق من الهوية):');if(!n)return;const r=await tpS('admin_customer_reactivate_v2',{p_phone:p,p_note:n});if(r&&r.ok){toast('أُعيد التفعيل');aCustPts(p)}else if(r)toast(r.message||r.error)};
++window.aCloseShop=async function(mid,ok){const n=prompt(ok?'ملاحظة الإغلاق النهائي:':'سبب الرفض:');if(!n)return;const r=await tpS('admin_close_shop_v2',{p_merchant_id:mid,p_approve:ok,p_note:n});if(r&&r.ok){toast(ok?'أُغلق الفرع نهائياً':'رُفض الطلب');aAllowOpen(mid)}else if(r)toast(r.message||r.error)};
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+diff --git a/staging/b3-client.js b/staging/b3-client.js
+index bd61411..8fb8ba7 100644
+--- a/staging/b3-client.js
++++ b/staging/b3-client.js
+@@ -138,7 +138,7 @@ window.custPointsOpen=async function(){const r=await tpS('customer_points_v2');i
+   const K={welcome:'هدية الترحيب',earn:'مشتريات',legacy:'رصيد سابق',adjust:'تعديل من الإدارة',mirror:'رصيد',refund:'استرجاع'};
+   md.innerHTML=`<div class="sheet"><h3>نقاطي: ${fmt(r.points)}</h3>${r.next_expiry&&r.next_expiry.at?`<div class="ask">تنتهي ${fmt(r.next_expiry.points)} نقطة في ${dt(r.next_expiry.at)}</div>`:''}
+    <div class="card">${r.batches.length?r.batches.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><b>${fmt(b.remaining)}</b> <span class="muted">${K[b.kind]||''}${b.shop?' · '+E(b.shop):''}</span></div><span class="muted">${b.expires_at?'حتى '+dt(b.expires_at):'بلا انتهاء'}</span></div>`).join(''):'<p class="muted">لا نقاط صالحة حالياً</p>'}</div>
+-   <div id="ptsVip"></div><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++   <div id="ptsVip"></div><button class="btn ghost sm" style="margin:6px 0" onclick="custPrivacyOpen()">الخصوصية وحذف الحساب</button><p class="small muted">النقاط المكتسبة صالحة 3 أشهر. عند الاستخدام تُصرف النقاط الأقرب انتهاءً أولاً.</p><button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+   document.body.appendChild(md);custVips().then(v=>{const el=document.getElementById('ptsVip');if(el&&v.length)el.innerHTML='<h3>👑 VIP</h3><div class="card">'+v.map(x=>`<div class="row" style="padding:4px 0"><span>${E(x.shop)}</span><span>حتى ${fmt(x.cap)} يومياً${x.next_cap?` · من ${E(x.next_from)}: ${fmt(x.next_cap)}`:''}</span></div>`).join('')+'</div>'})};
+ 
+ // ---------- 3. shop: sell by scanning the customer's code ----------
+@@ -229,12 +229,13 @@ window.mPayReq=async function(){const b=S.b3,sel=b.sel;const ref=(document.getEl
+   if(!r)return render();if(!r.ok){render();return toast(r.message||r.error)}b.sel=null;b.idem=null;toast('تم إرسال الطلب، بانتظار مراجعة الإدارة');mPlanOpen()};
+ window.mPayCancel=async function(id){if(!confirm('إلغاء هذا الطلب؟'))return;const r=await tpS('merchant_payment_cancel_v2',{p_id:id});if(r&&r.ok)mPlanOpen()};
+ const PERMS=[['sell','البيع'],['cancel','إلغاء عملية'],['history','سجل العمليات'],['wallet','رصيد القبول'],['payments','الدفع والاشتراك']];
+-window.mStaffOpen=async function(){S.sub='b3staff';render();const r=await tpS('merchant_staff_list_v2');S.b3=S.b3||{};S.b3.staff=r&&r.staff;render()};
++window.mStaffOpen=async function(){S.sub='b3staff';render();const[r,d]=await Promise.all([tpS('merchant_staff_list_v2'),tpS('merchant_staff_devices_v2',{},true)]);S.b3=S.b3||{};S.b3.staff=r&&r.staff;S.b3.devs=(d&&d.devices)||[];render()};
+ function mStaffV(){const st=(S.b3||{}).staff,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">الموظفون</h3><div style="width:34px"></div></div>`;
+   if(!st)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';
+-  return top+`<p class="muted">كل موظف يدخل برقمه ورمزه الخاص، ويعمل في هذا الفرع فقط وبحسب الصلاحيات.</p>`+st.map(s=>`<div class="card"><div class="row"><div><b>${E(s.name)}</b><div class="muted ltr">${E(s.phone)}</div></div><span class="pill ${s.status==='active'?'active':'frozen'}">${s.status==='active'?'فعّال':'موقوف'}</span></div>
++  const dv=(S.b3||{}).devs||[];
++  return top+(dv.filter(d=>d.status==='pending').length?`<h3>أجهزة بانتظار موافقتك</h3>`+dv.filter(d=>d.status==='pending').map(d=>`<div class="card row"><div><b>${E(d.staff)}</b><div class="muted small">${E(d.label||'جهاز')} · ${dt(d.created_at)}</div></div><div><button class="btn ok sm" onclick="mDevDecide('${d.id}',true)">موافقة</button><button class="btn ghost sm" onclick="mDevDecide('${d.id}',false)">رفض</button></div></div>`).join(''):'')+`<p class="muted">كل موظف يدخل برقمه ورمزه الخاص، ويعمل في هذا الفرع فقط وبحسب الصلاحيات.</p>`+st.map(s=>`<div class="card"><div class="row"><div><b>${E(s.name)}</b><div class="muted ltr">${E(s.phone)}</div></div><span class="pill ${s.status==='active'?'active':'frozen'}">${s.status==='active'?'فعّال':'موقوف'}</span></div>
+    <div class="muted" style="margin-top:4px">${s.perms.map(p=>(PERMS.find(x=>x[0]===p)||[,p])[1]).join('، ')}</div>
+-   <div class="row" style="justify-content:flex-start;gap:6px;margin-top:8px"><button class="btn ghost sm" onclick='mStaffSave(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)},${s.status!=='active'})'>${s.status==='active'?'إيقاف':'تفعيل'}</button><button class="btn ghost sm" onclick='mStaffPin(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)})'>رمز جديد</button></div></div>`).join('')
++   <div class="row" style="justify-content:flex-start;gap:6px;margin-top:8px"><button class="btn ghost sm" onclick='mStaffSave(${JSON.stringify(s.id)},${JSON.stringify(s.name)},${JSON.stringify(s.perms)},${s.status!=='active'})'>${s.status==='active'?'إيقاف':'تفعيل'}</button><button class="btn ghost sm" onclick='mStaffCred(${JSON.stringify(s.id)})'>البريد وكلمة السر</button></div></div>`).join('')
+   +`<h3>إضافة موظف</h3><div class="card"><div class="field"><input id="sfn" placeholder="الاسم"></div><div class="field"><input id="sfp" dir="ltr" inputmode="numeric" placeholder="رقم الهاتف (8 أرقام)"></div><div class="field"><input id="sfc" dir="ltr" type="password" inputmode="numeric" placeholder="رمز الدخول (4 إلى 6 أرقام)"></div>
+    ${PERMS.map(([k,l])=>`<label class="chk"><input type="checkbox" class="sfperm" value="${k}" ${k==='sell'?'checked':''}> ${l}</label>`).join('')}<button class="btn blue" onclick="mStaffAdd()">إضافة</button></div>`}
+ window.mStaffAdd=async function(){const perms=[...document.querySelectorAll('.sfperm:checked')].map(x=>x.value);
+@@ -244,11 +245,11 @@ window.mStaffSave=async function(id,name,perms,active){const r=await tpS('mercha
+ window.mStaffPin=async function(id,name,perms){const p=prompt('الرمز الجديد للموظف (4 إلى 6 أرقام):');if(!p)return;const r=await tpS('merchant_staff_save_v2',{p_id:id,p_name:name,p_phone:null,p_pin:p.trim(),p_perms:perms,p_active:true});if(r&&r.ok)toast('تم تغيير الرمز');else if(r)toast('الرمز من 4 إلى 6 أرقام')};
+ const origMerchantView=merchantView;
+ merchantView=function(){const m=M(S.merchantId);
+-  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
++  if(S.sub==='b3plan'||S.sub==='b3staff'||S.sub==='b3vip'||S.sub==='b3hours'){const body=S.sub==='b3plan'?mPlanV():S.sub==='b3vip'?mVipV():S.sub==='b3hours'?mHoursV():mStaffV();return `<div class="scr">${body}</div>${nav([['mhome','الرئيسية','home'],['mops','العمليات','list'],['moff','العروض','gift'],['macc','حسابي','user']])}`}
+   let h=origMerchantView();
+   if(secureShop()&&!S.sub&&(S.tab==='macc'||S.tab==='mhome')){const st=S.sess.staff,can=p=>!st||st.perms.indexOf(p)>=0;
+     const cards=(can('wallet')||can('payments')?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mPlanOpen()"><span style="font-size:24px">💳</span><div style="flex:1"><b>الاشتراك ورصيد القبول</b><div class="muted" style="font-size:13px">رصيد قبول النقاط، الاشتراكات والباقات، طلبات الدفع</div></div></button>`:'')
+-      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
++      +(!st&&S.tab==='macc'?`<button class="card row" style="width:100%;text-align:right;border:0" onclick="mStaffOpen()"><span style="font-size:24px">👥</span><div style="flex:1"><b>الموظفون</b><div class="muted" style="font-size:13px">حسابات دخول للموظفين بصلاحيات محددة</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mHoursOpen()"><span style="font-size:24px">🕘</span><div style="flex:1"><b>الدوام والإغلاق</b><div class="muted" style="font-size:13px">أوقات العمل، إغلاق مؤقت أو نهائي</div></div></button><button class="card row" style="width:100%;text-align:right;border:0" onclick="mVipOpen()"><span style="font-size:24px">👑</span><div style="flex:1"><b>زبائن VIP</b><div class="muted" style="font-size:13px">حد استبدال يومي خاص لزبائن فرعك</div></div></button>`:'')
+       +(st?`<div class="ask">دخول موظف: <b>${E(st.name)}</b></div>`:'');
+     const i=h.indexOf('<div class="scr">')+'<div class="scr">'.length;
+     if(S.tab==='macc'||st)h=h.slice(0,i)+cards+h.slice(i)}
+@@ -256,17 +257,7 @@ merchantView=function(){const m=M(S.merchantId);
+ 
+ // ---------- 5. staff login (from the login screen) ----------
+ const origLoginView=loginView;
+-loginView=function(){return origLoginView().replace(/<\/div>\s*$/,`<button class="btn ghost" style="margin-top:14px" onclick="staffLoginOpen()">دخول موظف في محل</button></div>`)};
+-window.staffLoginOpen=function(){const md=document.createElement('div');md.className='modal';md.id='stModal';md.onclick=e=>{if(e.target===md)md.remove()};
+-  md.innerHTML=`<div class="sheet"><h3>دخول موظف</h3><div class="field"><input id="stp" dir="ltr" inputmode="numeric" placeholder="رقم الهاتف"></div><div class="field"><input id="stc" dir="ltr" type="password" inputmode="numeric" placeholder="رمز الدخول"></div><button class="btn blue" onclick="staffLogin()">دخول</button><button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
+-  document.body.appendChild(md)};
+-window.staffLogin=async function(){const p=norm($('#stp').value),c=($('#stc').value||'').trim();if(!/^\d{8}$/.test(p)||!c)return toast('أدخل الرقم والرمز');
+-  const r=await call('staff_login',{p_phone:p,p_pin:c,p_device:navigator.userAgent.slice(0,100)});
+-  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول بعد 15 دقيقة':r&&r.reason==='frozen'?'هذا الحساب موقوف':'الرقم أو الرمز غير صحيح');
+-  const md=document.getElementById('stModal');if(md)md.remove();
+-  S.sess={role:'merchant',token:r.session,staff:r.staff};const m=hydrateMerchant(r.merchant);S.merchantId=m.id;S.phone=null;S.mode='merchant';S.tab='mhome';S.sub=null;S.screen='app';
+-  mfReset();render();syncMerchantData(m.id)};
+-
++loginView=function(){return origLoginView().replace(/<\/div>\s*$/,`<button class="btn ghost" style="margin-top:14px" onclick="staffLoginOpen('pin')">دخول موظف في محل</button></div>`)};
+ // ---------- 6. Admin: payments, catalogue, engine settings, ledgers, audit ----------
+ const admP=()=>S.adminInfo&&S.adminInfo.is_primary;
+ const atop=t=>`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">${t}</h3><div style="width:34px"></div></div>`;
+@@ -306,7 +297,7 @@ const ENG=[['tx_per_customer_branch_day','عدد العمليات لكل زبو
+  ['daily_eligible_pts_small','سقف المشتريات المؤهلة يومياً (نقطة مرجعية): صغير'],['daily_eligible_pts_medium','… متوسط'],['daily_eligible_pts_large','… كبير'],
+  ['earn_pct_min','أدنى نسبة مكافأة (%)'],['earn_pct_max','أعلى نسبة مكافأة (%)'],
+  ['vip_max_small','عدد VIP الأقصى: صغير (تحدده الإدارة)'],['vip_max_medium','عدد VIP الأقصى: متوسط'],['vip_max_large','عدد VIP الأقصى: كبير'],
+- ['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
++ ['sub_grace_days','مهلة بعد انتهاء الاشتراك (أيام)'],['sub_enforce','تطبيق إخفاء المحل بعد المهلة (0/1) — مفتاح Staging'],['legacy_points_valid_months','صلاحية الرصيد القديم (أشهر) — مؤقت'],['pay_pending_max','طلبات الدفع المفتوحة لكل فرع']];
+ window.aEngOpen=async function(){S.sub='b3eng';render();S.b3a=S.b3a||{};S.b3a.cat=await tpS('admin_catalog_v2');render()};
+ function aEngV(){const c=(S.b3a||{}).cat;if(!c)return atop('إعدادات النقاط والحدود')+'<p class="muted">جارٍ التحميل…</p>';const s=c.settings||{};
+   return atop('إعدادات النقاط والحدود')+`<div class="card">${ENG.map(([k,l])=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:8px"><span style="flex:1;font-size:14px">${l}</span><div class="field" style="width:90px;margin:0"><input id="en-${k}" dir="ltr" inputmode="numeric" value="${E(s[k])}" ${admP()?'':'disabled'}></div>${admP()?`<button class="btn ghost sm" onclick="aEngSave('${k}')">حفظ</button>`:''}</div>`).join('')}</div>
+@@ -319,6 +310,7 @@ function aAuditV(){const l=(S.b3a||{}).audit;return atop('سجل التدقيق'
+ window.aCustPts=async function(p){S.sub='b3cpts';S.b3a=S.b3a||{};S.b3a.cp={phone:p};render();const r=await tpS('admin_customer_points_v2',{p_phone:p});S.b3a.cp=Object.assign({phone:p},r||{});render()};
+ function aCustPtsV(){const c=(S.b3a||{}).cp||{};return atop('نقاط الزبون')+`<p class="ltr" style="text-align:center">+961 ${E(c.phone)}</p>`+(c.ok?`<div class="card"><div class="row"><span>الرصيد الصالح</span><b>${fmt(c.spendable)}</b></div></div>
+   <div class="card">${c.batches.filter(b=>b.remaining>0).map(b=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${E(b.kind)} · ${fmt(b.remaining)}/${fmt(b.initial)}</span><span class="muted">${b.expires_at?dt(Date.parse(b.expires_at)):'بلا انتهاء'}</span></div>`).join('')||'<p class="muted">لا دفعات صالحة</p>'}</div>
++  ${admP()?`<button class="btn ghost sm" onclick="aReactivate('${E(c.phone)}')">إعادة تفعيل حساب معطّل</button>`:''}
+   ${admP()?`<h3>تعديل يدوي</h3><div class="card"><div class="field"><input id="cpd" dir="ltr" inputmode="numeric" placeholder="+500 أو -200"></div><div class="field"><input id="cpn" placeholder="السبب (إلزامي)"></div><button class="btn blue sm" onclick="aCustAdj()">تنفيذ</button></div>`:''}
+   <h3>الحركات</h3><div class="card">${c.movements.map(m=>`<div class="row" style="padding:4px 0"><span>${E(m.reason)}</span><b class="ltr">${m.delta>0?'+':''}${fmt(m.delta)}</b></div>`).join('')}</div>`:'<p class="muted">جارٍ التحميل…</p>')}
+ window.aCustAdj=async function(){const c=S.b3a.cp,d=parseInt($('#cpd').value),n=$('#cpn').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد الزبون بمقدار ${d} نقطة؟`))return;
+@@ -327,11 +319,12 @@ window.aAllowOpen=async function(mid){S.sub='b3mallow';S.b3a=S.b3a||{};S.b3a.ma=
+ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصيد قبول: '+E(m.name||''))+(a.ok?`<div class="card"><div class="row"><span>المتبقي</span><b>${fmt(a.remaining)}</b></div><div class="row"><span class="muted">الحد للعملية</span><b>${fmt(a.per_purchase_max)}</b></div><div class="row"><span class="muted">محجوز</span><b>${fmt(a.held)}</b></div></div>
+   <div class="card">${a.grants.map(g=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${g.source} ${E(g.plan||g.package||'')} · ${fmt(g.remaining)}/${fmt(g.initial)}</span><span class="muted">${dt(g.valid_from)} → ${dt(g.expires_at)}</span></div>`).join('')||'<p class="muted">لا رصيد</p>'}</div>
+   ${admP()?`<h3>تعديل يدوي</h3><div class="card"><div class="field"><input id="mad" dir="ltr" inputmode="numeric" placeholder="+1000 أو -200"></div><div class="field"><input id="mav" dir="ltr" inputmode="numeric" placeholder="الصلاحية بالأيام (للإضافة)" value="30"></div><div class="field"><input id="man" placeholder="السبب (إلزامي)"></div><button class="btn blue sm" onclick="aAllowAdj()">تنفيذ</button></div>`:''}
++  ${admP()?`<div class="card"><b>طلب إغلاق نهائي</b><div class="row" style="gap:6px;justify-content:flex-start;margin-top:6px"><button class="btn ghost sm" style="color:var(--bad)" onclick="aCloseShop('${a.mid}',true)">اعتماد الإغلاق</button><button class="btn ghost sm" onclick="aCloseShop('${a.mid}',false)">رفض</button></div></div>`:''}
+   ${a.staff&&a.staff.length?`<h3>موظفو الفرع</h3><div class="card">${a.staff.map(s=>`<div class="row"><span>${E(s.name)}</span><span class="muted">${s.status} · ${s.perms.join(', ')}</span></div>`).join('')}</div>`:''}`:'<p class="muted">جارٍ التحميل…</p>')}
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV,b3pct:aPctV,b3bak:aBakV,b3refund:aRefundV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -339,7 +332,7 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button><button class="btn ghost" onclick="aPctOpen()">٪ طلبات نسبة الاستبدال</button><button class="btn ghost" onclick="aBakOpen()">💾 النسخ الاحتياطية</button><button class="btn ghost" onclick="aRefundOpen()">↩️ إرجاع عملية</button><button class="btn ghost" onclick="aRunJobs()">⏱ تشغيل المهام الدورية</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+@@ -361,7 +354,7 @@ const repLink=id=>`<button class="btn ghost sm" style="margin-top:6px;color:var(
+ const withReport=h=>(S.sess&&S.sess.role==='customer'&&typeof h==='string')?h.replace(/(onclick='decide\(("[0-9a-f-]{36}"),false\)'[^>]*>[^<]*<\/button>)/g,(x,a,id)=>a+repLink(id)):h;
+ const origPendingBanner=pendingBanner;pendingBanner=function(){return withReport(origPendingBanner.apply(this,arguments))};
+ const origPendOverlay=pendOverlay;pendOverlay=function(){return withReport(origPendOverlay.apply(this,arguments))};
+-const REV={reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
++const REV={alert_report_overdue:'بلاغ متأخر عن المهلة',alert_shop_info:'بلاغ عن موقع أو دوام محل',alert_closure_request:'طلب إغلاق نهائي',alert_repeat_value:'نفس القيمة يومين متتاليين',reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
+   scan_failed:'رموز غير صالحة',decide_hash_mismatch:'تفاصيل تغيّرت قبل التأكيد',qr_issue_limited:'طلب رموز كثيرة'};
+ window.aRepOpen=async function(){S.sub='b3rep';S.b3a=S.b3a||{};S.b3a.feed=null;render();const r=await tpS('admin_security_feed_v2',{p_limit:200});S.b3a.feed=r;render()};
+ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات والتنبيهات')+'<p class="muted">جارٍ التحميل…</p>';
+@@ -369,7 +362,8 @@ function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات و
+   return atop('البلاغات والتنبيهات')+`<h3>البلاغات (${reps.filter(r=>r.status==='open').length} مفتوح)</h3>`
+   +(reps.length?reps.map(r=>`<div class="card"><div class="row"><b>${rr[r.reason]||E(r.reason)}</b><span class="pill">${RS[r.status]||E(r.status)}</span></div>
+      <div class="muted">${r.role==='customer'?'من زبون':'من محل'} · ${new Date(r.at).toLocaleString('ar-LB')}${r.note?' · '+E(r.note):''}</div>
+-     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
++     ${r.resolve_due_at?`<div class="small ${r.escalated?'':'muted'}" style="${r.escalated?'color:var(--bad);font-weight:700':''}">${r.escalated?'⚠️ متأخر · ':''}الرد قبل ${new Date(r.response_due_at).toLocaleString('ar-LB')}${r.first_response_at?' ✓':''} · الحل قبل ${new Date(r.resolve_due_at).toLocaleString('ar-LB')}</div>`:''}${r.answer?`<div class="muted small">رد الإدارة: ${E(r.answer)}</div>`:''}
++     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="aRepAnswer('${r.id}')">رد</button>${r.role==='customer'&&admP()?`<button class="btn ghost sm" onclick="aCompensate('${r.id}')">تعويض (7 أيام)</button>`:''}<button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
+   +`<h3>تنبيهات المراقبة</h3><div class="card">${ev.map(e=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${REV[e.event]}</b> <span class="muted">${e.mname?E(e.mname):''}</span><div class="muted small">${new Date(e.at).toLocaleString('ar-LB')}</div></div>`).join('')||'<p class="muted">لا تنبيهات</p>'}</div>`}
+ window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
+   const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
+@@ -398,6 +392,80 @@ function aBakV(){const b=(S.b3a||{}).bak;return atop('النسخ الاحتيا
+   <div class="card">${(b.copies||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b class="ltr">${E(x.stamp)}</b> <span class="muted">${E(x.by)}</span><div class="muted small">${new Date(x.at).toLocaleString('ar-LB')} · ${x.tables} جدول · ${fmt(x.rows||0)} صف${x.has_ledger?' · مع دفتر النقاط':' · قبل دفتر النقاط'}${x.restored_at?' · استُرجعت':''}</div></div>`).join('')||'<p class="muted">لا توجد نسخ</p>'}</div>`)}
+ window.aBakNow=async function(){const r=await tpS('admin_backup_now_v2');if(r&&r.ok){toast('تمت النسخة '+r.stamp);aBakOpen()}else if(r)toast(r.message||r.error)};
+ window.custVips=async function(){const r=await tpS('customer_vips_v2',{},true);return (r&&r.vips)||[]};
++// ---------- 6d. 3h–3j: refunds & compensation, hours & closures, privacy & deletion, staff devices, complaint deadlines ----------
++const devId=()=>{let d=null;try{d=localStorage.getItem('tp_staff_device')}catch(e){}
++  if(!d){d='dev-'+Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');try{localStorage.setItem('tp_staff_device',d)}catch(e){}}return d};
++window.tpDeviceId=devId;
++// staff: e-mail + password on a new device → owner approval → 6-digit PIN; daily: phone + PIN
++window.staffLoginOpen=function(step){const md=document.getElementById('stModal')||document.createElement('div');md.className='modal';md.id='stModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  const st=step||'pin',F=(id,ph,t,im)=>`<div class="field"><input id="${id}" dir="ltr" ${t?`type="${t}"`:''} ${im?`inputmode="${im}"`:''} placeholder="${ph}"></div>`;
++  md.innerHTML=`<div class="sheet"><h3>دخول موظف</h3>`+(st==='pin'?`<p class="muted">على جهاز معتمد: رقم الهاتف والرمز السري من 6 أرقام.</p>${F('stp','رقم الهاتف','','numeric')}${F('stc','الرمز (6 أرقام)','password','numeric')}<button class="btn blue" onclick="staffLogin()">دخول</button><button class="btn ghost" style="margin-top:8px" onclick="staffLoginOpen('first')">أول دخول من هذا الجهاز</button>`
++   :st==='first'?`<p class="muted">أول دخول من جهاز جديد: البريد وكلمة السر اللذان أعطاك إياهما صاحب المحل.</p>${F('ste','البريد الإلكتروني','email')}${F('stw','كلمة السر','password')}<button class="btn blue" onclick="staffFirst()">متابعة</button>`
++   :st==='wait'?`<p class="muted" id="stMsg">بانتظار موافقة صاحب المحل على هذا الجهاز.</p><button class="btn blue" onclick="staffFirst(true)">تحققت الموافقة؟ تابع</button>`
++   :`<p class="muted">اختر رمزاً سرياً من 6 أرقام لهذا الجهاز.</p>${F('st6','الرمز الجديد (6 أرقام)','password','numeric')}<button class="btn blue" onclick="staffSetPin()">حفظ</button>`)
++   +`<button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;
++  if(!md.parentNode)document.body.appendChild(md)};
++let stCred=null;
++window.staffFirst=async function(again){if(!again)stCred={e:($('#ste').value||'').trim(),w:$('#stw').value||''};if(!stCred||!stCred.e||!stCred.w)return toast('أدخل البريد وكلمة السر');
++  const r=await call('staff_first_login_v2',{p_email:stCred.e,p_password:stCred.w,p_device:devId(),p_label:navigator.userAgent.slice(0,60)});
++  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول لاحقاً':r&&r.reason==='frozen'?'هذا الحساب موقوف':'البريد أو كلمة السر غير صحيحة');
++  staffLoginOpen(r.step==='verify'?'wait':r.step==='set_pin'?'setpin':'pin');if(r.step==='verify'&&r.message){const m=document.getElementById('stMsg');if(m)m.textContent=r.message}};
++window.staffSetPin=async function(){const p=($('#st6').value||'').trim();const r=await call('staff_set_pin6_v2',{p_email:stCred.e,p_password:stCred.w,p_device:devId(),p_pin6:p});
++  if(r&&r.ok){toast('تم حفظ الرمز. ادخل برقمك والرمز');stCred=null;staffLoginOpen('pin')}else if(r)toast(r.message||'تعذّر الحفظ')};
++window.staffLogin=async function(){const p=norm($('#stp').value),c=($('#stc').value||'').trim();if(!/^\d{8}$/.test(p)||!/^\d{6}$/.test(c))return toast('أدخل الرقم والرمز من 6 أرقام');
++  const r=await call('staff_pin_login_v2',{p_phone:p,p_pin6:c,p_device:devId()});
++  if(!r||!r.ok)return toast(r&&r.reason==='locked'?'محاولات كثيرة، حاول بعد 15 دقيقة':r&&r.reason==='device_not_approved'?'هذا الجهاز غير معتمد: استخدم «أول دخول من هذا الجهاز»':r&&r.reason==='frozen'?'هذا الحساب موقوف':'الرقم أو الرمز غير صحيح');
++  const md=document.getElementById('stModal');if(md)md.remove();
++  S.sess={role:'merchant',token:r.session,staff:r.staff};const m=hydrateMerchant(r.merchant);S.merchantId=m.id;S.phone=null;S.mode='merchant';S.tab='mhome';S.sub=null;S.screen='app';
++  mfReset();render();syncMerchantData(m.id)};
++// owner: staff credentials + devices
++window.mStaffCred=async function(id){const e=prompt('بريد الموظف:');if(!e)return;const w=prompt('كلمة سر مؤقتة (8 أحرف على الأقل، أحرف وأرقام):');if(!w)return;
++  const r=await tpS('merchant_staff_credentials_v2',{p_staff_id:id,p_email:e.trim(),p_password:w});if(r&&r.ok){toast('تم. يدخل الموظف أول مرة بالبريد وكلمة السر');mStaffOpen()}else if(r)toast(r.message||({bad_email:'بريد غير صحيح',email_taken:'البريد مستعمل'}[r.error])||r.error)};
++window.mDevDecide=async function(id,ok){const r=await tpS('merchant_staff_device_decide_v2',{p_device_id:id,p_approve:ok});if(r&&r.ok){toast(ok?'تمت الموافقة على الجهاز':'أُلغي الجهاز');mStaffOpen()}};
++// owner: hours, temporary closure, permanent closure request
++const DOW=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],SST={open:'مفتوح',closed_hours:'مغلق (خارج الدوام)',closed_temp:'مغلق مؤقتاً',closed_final:'مغلق نهائياً',hidden:'مخفي (انتهت مهلة الاشتراك)'};
++window.mHoursOpen=async function(){S.sub='b3hours';S.b3=S.b3||{};S.b3.hrs=null;render();S.b3.hrs=await tpS('merchant_hours_v2');render()};
++function mHoursV(){const h=(S.b3||{}).hrs,top=`<div class="top"><button class="back" style="margin:0" onclick="S.sub=null;render()">${ic('back',26)}</button><h3 style="margin:0">الدوام والإغلاق</h3><div style="width:34px"></div></div>`;
++  if(!h||!h.ok)return top+'<p class="muted" style="text-align:center">جارٍ التحميل…</p>';const by={};h.hours.forEach(x=>{by[x.dow]=x});
++  return top+`<div class="card"><div class="row"><span>الحالة الآن</span><b>${SST[h.state]||h.state}</b></div><p class="small muted" style="margin:6px 0 0">عمليات النقاط الجديدة تتوقف عندما يكون الفرع مغلقاً. إن لم تُدخل دواماً يُعتبر الفرع مفتوحاً.</p></div>
++  <h3>الدوام الأسبوعي</h3><div class="card">${DOW.map((d,i)=>`<div class="row" style="gap:6px;padding:4px 0"><label class="chk" style="flex:1"><input type="checkbox" class="hdon" data-d="${i}" ${by[i]?'checked':''}> ${d}</label><input class="hop" data-d="${i}" type="time" value="${by[i]?by[i].opens:'09:00'}"><input class="hcl" data-d="${i}" type="time" value="${by[i]?by[i].closes:'22:00'}"></div>`).join('')}<button class="btn blue sm" onclick="mHoursSave()">حفظ الدوام</button></div>
++  <h3>إغلاق مؤقت</h3>${h.closures.map(c=>`<div class="card row"><span>${dt(c.starts_at)} → ${c.ends_at?dt(c.ends_at):'حتى إشعار آخر'}${c.reason?' · '+E(c.reason):''}</span><button class="btn ghost sm" onclick="mClosureEnd(${c.id})">إعادة الفتح</button></div>`).join('')}
++  <div class="card"><div class="field"><input id="clr" placeholder="السبب (اختياري)" maxlength="200"></div><div class="field"><input id="clu" type="date"></div><button class="btn ghost sm" onclick="mClosureStart()">إغلاق مؤقت الآن</button><p class="small muted" style="margin:4px 0 0">تبقى صفحة المحل ودبوسه مع «مغلق مؤقتاً»، ولا تُمدَّد فترة الاشتراك.</p></div>
++  <h3>إغلاق نهائي</h3><div class="card"><p class="small muted" style="margin:0 0 6px">تراجع الإدارة الأرصدة والشكاوى والعمليات قبل الإغلاق. السجلات ونقاط الزبائن تبقى محفوظة.</p><button class="btn ghost sm" style="color:var(--bad)" onclick="mCloseShop()">طلب إغلاق نهائي</button></div>`}
++window.mHoursSave=async function(){const rows=[...document.querySelectorAll('.hdon:checked')].map(x=>{const d=+x.dataset.d;return{dow:d,opens:document.querySelector(`.hop[data-d="${d}"]`).value,closes:document.querySelector(`.hcl[data-d="${d}"]`).value}});
++  const r=await tpS('merchant_hours_set_v2',{p_hours:rows});if(r&&r.ok){toast('تم حفظ الدوام');mHoursOpen()}else if(r)toast(r.message||r.error)};
++window.mClosureStart=async function(){const u=$('#clu').value;const r=await tpS('merchant_closure_start_v2',{p_from:null,p_until:u?new Date(u+'T23:59:00').toISOString():null,p_reason:$('#clr').value||null});if(r&&r.ok){toast('الفرع مغلق مؤقتاً');mHoursOpen()}else if(r)toast(r.error)};
++window.mClosureEnd=async function(id){const r=await tpS('merchant_closure_end_v2',{p_id:id});if(r&&r.ok){toast('أُعيد فتح الفرع');mHoursOpen()}};
++window.mCloseShop=async function(){if(!confirm('طلب إغلاق الفرع نهائياً؟ تراجعه الإدارة قبل التنفيذ.'))return;const p=prompt('رمز الدخول للتأكيد:');if(!p)return;
++  const r=await tpS('merchant_close_shop_request_v2',{p_pin:p});if(r&&r.ok)toast(r.message);else if(r)toast(r.error==='wrong_pin'?'الرمز غير صحيح':r.error)};
++// customer: privacy, marketing consent, account deletion
++window.custPrivacyOpen=async function(){const r=await tpS('customer_privacy_v2');if(!r||!r.ok)return;const old=document.getElementById('ptsModal');if(old)old.remove();
++  const md=document.createElement('div');md.className='modal';md.id='prvModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  md.innerHTML=`<div class="sheet"><h3>الخصوصية والحساب</h3><div class="card"><label class="chk"><input type="checkbox" id="mkc" ${r.marketing_consent?'checked':''} onchange="custMarketing(this.checked)"> أوافق على تلقي عروض تسويقية (اختياري)</label><p class="small muted" style="margin:4px 0 0">منفصلة عن شروط الاستخدام، ويمكنك سحبها في أي وقت.</p></div>
++   <div class="card">${r.deletion_requested_at?`<b>طلبت حذف الحساب</b><p class="muted">يُعطَّل في ${dt(r.deletion_effective_at)}. تبقى نقاطك محفوظة 3 أشهر بعد التعطيل.</p><button class="btn ghost" onclick="custDelCancel()">التراجع عن الحذف</button>`
++     :`<b>حذف الحساب</b><p class="small muted">مهلة تراجع 7 أيام، ثم يُعطَّل الحساب. تبقى النقاط 3 أشهر، ويمكن إعادة التفعيل خلالها بالنقاط التي ما زالت صالحة.</p><button class="btn ghost" style="color:var(--bad)" onclick="custDelRequest()">طلب حذف الحساب</button>`}</div>
++   <button class="btn ghost" onclick="this.closest('.modal').remove()">إغلاق</button></div>`;document.body.appendChild(md)};
++window.custMarketing=async function(v){const r=await tpS('customer_set_marketing_v2',{p_consent:!!v});if(r&&r.ok)toast(v?'تم تسجيل موافقتك':'تم سحب الموافقة')};
++window.custDelRequest=async function(){const p=prompt('أدخل رمزك السري للتأكيد:');if(!p)return;const r=await tpS('customer_delete_request_v2',{p_pin:p});
++  if(r&&r.ok){toast('سُجّل طلب الحذف. يمكنك التراجع خلال 7 أيام');custPrivacyOpen()}else if(r)toast(r.error==='wrong_pin'?'الرمز غير صحيح':r.error)};
++window.custDelCancel=async function(){const r=await tpS('customer_delete_cancel_v2');if(r&&r.ok){toast('أُلغي طلب الحذف');custPrivacyOpen()}};
++// Admin: refunds + compensation + answers + jobs + reactivation + closure review
++window.aRefundOpen=function(){S.sub='b3refund';S.b3a=S.b3a||{};S.b3a.rf=null;render()};
++function aRefundV(){const x=(S.b3a||{}).rf;return atop('إرجاع عملية')+`<div class="card"><div class="field"><input id="rfid" dir="ltr" placeholder="رقم العملية" value="${x&&x.tx?E(x.tx.id):''}"></div><button class="btn ghost sm" onclick="aRefundLookup()">بحث</button></div>`
++  +(x&&x.ok?`<div class="card"><div class="row"><span>الفاتورة</span><b>${usd(x.tx.invoice)}</b></div><div class="row"><span>نقاط مستخدمة / مكتسبة</span><b>${fmt(x.tx.redeemPts)} / ${fmt(x.tx.earn)}</b></div><div class="row"><span>أُرجع سابقاً</span><b>${Math.round(x.refunds.reduce((a,r)=>a+ +r.fraction,0)*100)}%</b></div></div>
++   ${admP()?`<div class="card"><label class="muted">نسبة الإرجاع (%)</label><div class="field"><input id="rfp" dir="ltr" inputmode="numeric" value="100"></div><div class="field"><input id="rfn" placeholder="السبب (إلزامي)"></div>
++   <label class="chk"><input type="checkbox" id="rfc"> وافق الزبون</label><label class="chk"><input type="checkbox" id="rfm"> وافق المحل</label><button class="btn blue sm" onclick="aRefundGo()">تنفيذ الإرجاع</button>
++   <p class="small muted" style="margin:4px 0 0">تُعاد النقاط المستخدمة إلى دفعاتها إن لم تنتهِ، وتُسحب المكتسبة من دفعتها، ويعود رصيد القبول للفرع. التقريب للأسفل (مؤقت).</p></div>`:''}`:x&&x.error?`<p class="muted">لا توجد عملية بهذا الرقم</p>`:'')}
++window.aRefundLookup=async function(){const id=($('#rfid').value||'').trim();if(!/^[0-9a-f-]{36}$/i.test(id))return toast('رقم عملية غير صحيح');S.b3a.rf=await tpS('admin_tx_lookup_v2',{p_tx_id:id});render()};
++window.aRefundGo=async function(){const x=S.b3a.rf,p=parseFloat($('#rfp').value)/100;if(!(p>0&&p<=1))return toast('نسبة بين 1 و100');
++  const r=await tpS('admin_tx_refund_v2',{p_tx_id:x.tx.id,p_fraction:p,p_note:$('#rfn').value,p_customer_agreed:$('#rfc').checked,p_merchant_agreed:$('#rfm').checked});
++  if(r&&r.ok){toast(`تم: أُعيدت ${fmt(r.redeem_back)} نقطة وسُحبت ${fmt(r.earn_back)}`+(r.earn_shortfall?` (تسوية ${fmt(r.earn_shortfall)})`:''));aRefundLookup()}else if(r)toast(r.message||({bad_request:'اكتب السبب'}[r.error])||r.error)};
++window.aCompensate=async function(rep){const p=prompt('نقاط التعويض (صالحة 7 أيام):');if(!p)return;const n=prompt('وصف الخطأ التقني المُتحقَّق منه:');if(!n)return;
++  const r=await tpS('admin_compensate_v2',{p_report_id:rep,p_points:parseInt(p,10),p_note:n});if(r&&r.ok){toast('تم التعويض');aRepOpen()}else if(r)toast(r.message||r.error)};
++window.aRepAnswer=async function(rep){const m=prompt('رد الإدارة (يصل للمُبلِّغ):');if(!m)return;const r=await tpS('admin_report_respond_v2',{p_report_id:rep,p_message:m});if(r&&r.ok){toast('أُرسل الرد');aRepOpen()}};
++window.aRunJobs=async function(){const r=await tpS('admin_run_jobs_v2');if(r&&r.ok)toast(`انتهت ${fmt(r.expiry.points_expired||0)} نقطة · حسابات معطلة ${r.accounts.disabled} · مغلقة ${r.accounts.closed} · بلاغات متأخرة ${r.accounts.reports_escalated}`)};
++window.aReactivate=async function(p){const n=prompt('سبب إعادة التفعيل (بعد التحقق من الهوية):');if(!n)return;const r=await tpS('admin_customer_reactivate_v2',{p_phone:p,p_note:n});if(r&&r.ok){toast('أُعيد التفعيل');aCustPts(p)}else if(r)toast(r.message||r.error)};
++window.aCloseShop=async function(mid,ok){const n=prompt(ok?'ملاحظة الإغلاق النهائي:':'سبب الرفض:');if(!n)return;const r=await tpS('admin_close_shop_v2',{p_merchant_id:mid,p_approve:ok,p_note:n});if(r&&r.ok){toast(ok?'أُغلق الفرع نهائياً':'رُفض الطلب');aAllowOpen(mid)}else if(r)toast(r.message||r.error)};
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+-- 
+2.43.0
+

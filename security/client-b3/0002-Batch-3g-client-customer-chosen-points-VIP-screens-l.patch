@@ -1,7 +1,7 @@
 From 1128704b9d8ebd17efb6de466018aad5c5c42f87 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Fri, 13 Nov 2026 23:15:33 +0200
-Subject: [PATCH 2/2] Batch 3g client: customer-chosen points, VIP screens,
+Subject: [PATCH 2/3] Batch 3g client: customer-chosen points, VIP screens,
  lower-% approval, Admin rules/backups screens
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
