@@ -218,8 +218,23 @@ function serve(root, port) {
   for (const [k, v] of Object.entries(A)) check('blocked: ' + k, v.startsWith('refused') || /"ok": ?false/.test(v) || /not_found/.test(v), v);
   check('balances unchanged by the attacks', sql1(`select points from public.customers where phone='${C1}'`) === '145' && sql1(`select sum(remaining) from public.allowance_grants where merchant_id='${MID}'`) === '1840',
     sql1(`select points from public.customers where phone='${C1}'`) + ' / ' + sql1(`select sum(remaining) from public.allowance_grants where merchant_id='${MID}'`));
-  const legacy = await atk(pc, 'admin_list_customers', {});
-  results.push({ name: 'KNOWN (until close-old): legacy admin_list_customers still reachable with the public key', ok: true, detail: legacy.slice(0, 40) });
+  const legacy = await atk(pc, 'admin_list_customers', {}), legacy2 = await atk(pc, 'create_transaction', { p_merchant_id: MID, p_customer_phone: C1, p_invoice: 5, p_redeem: true, p_offer_id: null, p_items: [] });
+  check('old functions closed: admin_list_customers and create_transaction refused to the public key', legacy.startsWith('refused') && legacy2.startsWith('refused'), legacy + ' | ' + legacy2);
+
+  // ---- 8b. every existing screen still loads with sessions (no failed server call, no script error) ----
+  const c0 = calls.length;
+  for (const t of ['ao', 'am', 'ac', 'ap', 'aa', 'at']) { await pa.evaluate(x => { S.sub = null; S.tab = x; render() }, t); await W(500) }
+  for (const sub of ['approvals', 'qrqueue', 'orders', 'settings', 'settingsWelcome', 'settingsSpending', 'settingsCats', 'settingsOffers']) { await pa.evaluate(x => { S.sub = x; render() }, sub); await W(400) }
+  await pa.evaluate(() => { S.sub = null; S.tab = 'ao'; render(); return Promise.all([syncAdminMerchants(), syncAdminOrders(), syncAdminCustomers()]) }); await W(800);
+  for (const t of ['mhome', 'mops', 'moff', 'macc']) { await pm.evaluate(x => { S.sub = null; S.tab = x; render() }, t); await W(500) }
+  for (const sub of ['wallet', 'buy', 'notes', 'gallery', 'mypageEdit', 'qr', 'info']) { await pm.evaluate(x => { S.sub = x; render() }, sub); await W(500) }
+  await pm.evaluate(() => { S.sub = null; return syncMerchantData(S.merchantId) }); await W(800);
+  for (const t of ['home', 'shop', 'offers', 'collect', 'pts', 'me']) { await pc.evaluate(x => { S.sub = null; S.tab = x; render() }, t); await W(500) }
+  await pc.evaluate(() => syncCustomerData(S.phone)); await W(800);
+  const failed = calls.slice(c0).filter(c => c.status !== 200);
+  check('screen sweep (admin 6 tabs + 8 pages, shop 4 tabs + 7 pages, customer tabs): every server call succeeds', failed.length === 0, failed.map(c => c.who + ':' + c.fn + ' ' + (c.err || '').slice(0, 40)).join(' | '));
+  check('screen sweep: the calls went to session functions (no old account function used)', !calls.slice(c0).some(c => /^(admin_(?!.*_v2$)|merchant_(wallet|offers|transactions|notes_list|topup_orders|requests)$|customer_(profile|transactions|notes_list)$)/.test(c.fn)),
+    [...new Set(calls.slice(c0).map(c => c.fn))].join(' '));
 
   // ---- 9. consistency + no script errors ----
   check('ledger = cached points for every customer', sql1(`select count(*) from public.customers where coalesce(points,0) <> public._pts_spendable(phone)`) === '0');
