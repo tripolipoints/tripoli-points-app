@@ -42,6 +42,11 @@ insert into public.admin_users(id, username, pin_hash, is_primary) values
   ('00000000-0000-4000-8000-0000000000a1', 'tp_test_admin1', extensions.crypt('9999', extensions.gen_salt('bf', 4)), true),
   ('00000000-0000-4000-8000-0000000000a2', 'tp_test_admin2', extensions.crypt('9999', extensions.gen_salt('bf', 4)), false);
 
+-- batch 3b adds the approved limit of 2 purchases per customer per branch per day (tested in
+-- batch3b-engine/tp-engine-v1-tests.sql). These phase-1 checks make more purchases in one shop, so the limit is
+-- raised for this rolled-back run only. No effect before batch 3b (the key does not exist then).
+update public.app_settings set value = 20 where key = 'tx_per_customer_branch_day';
+
 -- ---------------------------------------------------------------- 1. sessions
 do $$
 declare r jsonb; tok text; i int;
