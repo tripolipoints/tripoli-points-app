@@ -82,10 +82,12 @@ begin
      'return stamp;',
      'insert into public.audit_log(actor_role, actor_id, action, target_type, target_id, detail) values (''admin'', coalesce(p_admin::text, p_by), ''wipe_snapshot'', ''backup'', stamp, jsonb_build_object(''tables'', jsonb_array_length(info), ''by'', p_by)); /* B3F */ return stamp;')
   ) v(sig, want, old, new) loop
-    cur := (select md5(prosrc) from pg_proc where oid = to_regprocedure('public.' || r.sig));
+    -- Staging's phase-0 text was saved from the SQL editor with Windows line ends: compare without them
+    cur := (select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = to_regprocedure('public.' || r.sig));
     if cur is distinct from r.want then raise exception '% differs (md5 %), stop', r.sig, cur; end if;
     d := pg_get_functiondef(to_regprocedure('public.' || r.sig));
-    insert into tp_backup.func_snapshots(batch, sig, def, src_md5) values ('b3f_backup', r.sig, d, cur);
+    insert into tp_backup.func_snapshots(batch, sig, def, src_md5)
+    values ('b3f_backup', r.sig, d, (select md5(prosrc) from pg_proc where oid = to_regprocedure('public.' || r.sig)));
     n := (length(d) - length(replace(d, r.old, ''))) / length(r.old);
     if n <> 1 then raise exception 'patch target found % times in %', n, r.sig; end if;
     execute replace(d, r.old, r.new);
