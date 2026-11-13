@@ -4,6 +4,7 @@
 // v3: the QR pill now sits below the banner in index.html (this branch only), so the banner QR safeguard is removed.
 //
 // Builds dist-staging/ from this branch's index.html (= GitHub main) for the STAGING Supabase project only.
+// v4 (13 Nov 2026, main V3.7.4): map images always from the local assets/map files (step 2b); Production Storage is never read.
 // No dependencies (Node 18+). It never edits index.html in place; main and the live site are untouched.
 //
 // Required Netlify environment variables (STAGING site only):
@@ -66,6 +67,17 @@ const prodKey = [...html.matchAll(keyRe)][0][1];
 html = html.replace(urlRe, `const SB_URL='${STAGING_URL}';`)
            .replace(keyRe, `const SB_KEY='${key}';`)
            .replace(pre, `<link rel="preconnect" href="${STAGING_URL}" crossorigin>`);
+
+// ---------- 2b. map images: local files only (main V3.6.1+) ----------
+// main reads map pins / category images from the Production Storage bucket map-assets when its manifest exists,
+// and falls back to the local assets/map files when it does not. Staging has no buckets and must never contact
+// Production, so the remote folder is pointed at a path that does not exist on the Staging site: the manifest
+// request gets a 404 and every image is served from assets/map (same files as main). Must occur at most once.
+const mapRe = /const TP_MAP_REMOTE='https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/map-assets\/[^']*'/g;
+const mapCount = count(mapRe);
+if (mapCount > 1) fail(`expected at most one TP_MAP_REMOTE definition in index.html, found ${mapCount}. index.html changed: update this script.`);
+const MAP_LOCAL_ONLY = 'staging-no-remote-map/';
+if (mapCount === 1) html = html.replace(mapRe, `const TP_MAP_REMOTE='${MAP_LOCAL_ONLY}'`);
 
 // ---------- 3. network guard + STAGING badge (first script in <head>) ----------
 const commit = env('COMMIT_REF').slice(0, 7) || 'local';

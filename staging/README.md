@@ -9,6 +9,7 @@ is not edited: the build writes a separate copy to `dist-staging/` that talks on
 | Layer | What it does |
 | --- | --- |
 | Build checks | Stops unless `TP_STAGING_SITE=yes`, the URL is exactly `https://axzlshimvtskkxknlwoz.supabase.co` and the key is a public key of that project. Production URL or key, a `service_role` JWT or an `sb_secret_` key stop the build. |
+| Map images (main V3.6.1+) | `TP_MAP_REMOTE` in `index.html` points at the Production Storage bucket `map-assets`. The build points it at a path that does not exist on the Staging site, so the manifest request gets a 404 and every pin and category image is served from the local `assets/map` files (the same files as `main`). Staging has no buckets. |
 | Output scan | Stops if any published file contains the Production reference (except where it is named to be blocked) or the Production key, or if a `.sql` file would be published. |
 | Browser rule (CSP) | `connect-src` allows only Staging Supabase and the routing and image tools the app needs: the browser refuses any request to Production. |
 | In-page guard + badge | Blocks requests to any other Supabase project, counts requests to Staging, and shows `STAGING · DB n` (purple). Red with `BLOCKED n` means stop testing. Tap it for details. |
@@ -46,7 +47,11 @@ is not edited: the build writes a separate copy to `dist-staging/` that talks on
 ## Keeping Staging up to date
 
 Merge `main` into `staging-netlify`. Only the Staging site rebuilds. If `index.html` ever stops defining
-`SB_URL` / `SB_KEY` exactly once, the build stops and says so: update `staging/build-staging.mjs`.
+`SB_URL` / `SB_KEY` exactly once, or defines `TP_MAP_REMOTE` more than once, the build stops and says so:
+update `staging/build-staging.mjs`.
+
+Merge through a pull request from a separate branch, never a force push. Before merging, tag the current
+`staging-netlify` commit (`backup-staging-netlify-<commit>`) and note the current Netlify deploy, so either can be restored.
 
 ## Known, intended limits on Staging
 
