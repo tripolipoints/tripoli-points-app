@@ -1,0 +1,13 @@
+# files of 6104115 vs 48ecdaa (staging-only files must be identical)
+SAME netlify.toml
+SAME .gitignore
+SAME staging/README.md
+SAME staging/build-staging.mjs
+SAME staging/map-integration/README.md
+SAME staging/map-integration/art_geo_v10.json
+SAME staging/map-integration/integrate.py
+SAME staging/map-integration/names.json
+SAME staging/map-integration/staging-map-diagnostics.js
+SAME staging/map-integration/tp10_overview.css
+SAME staging/map-integration/tp11_overview.js
+SAME staging/staging-check.html

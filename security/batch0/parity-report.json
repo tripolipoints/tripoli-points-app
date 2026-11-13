@@ -1,0 +1,105 @@
+{
+ "main": {
+  "prodRequests": [
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/storage/v1/object/public/map-assets/v3.6.1/manifest.json",
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/rest/v1/rpc/get_app_text_settings",
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/rest/v1/rpc/get_categories",
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/rest/v1/rpc/list_merchants",
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/rest/v1/rpc/active_offers",
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/rest/v1/rpc/store_gallery"
+  ],
+  "supabaseHosts": {
+   "lqbhfkowqaqlgcrdybvv": 6
+  },
+  "manifest": [
+   "https://lqbhfkowqaqlgcrdybvv.supabase.co/storage/v1/object/public/map-assets/v3.6.1/manifest.json"
+  ],
+  "img404": [],
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "cspViolations": 0,
+  "manifestStatus": 404,
+  "stagingGuard": null,
+  "title": "Tripoli Points",
+  "mapRemote": "https://lqbhfkowqaqlgcrdybvv.supabase.co/storage/v1/object/public/map-assets/v3.6.1/",
+  "mapOn": null,
+  "merchantsLoaded": 8,
+  "mapImgs": {
+   "assets/map/art.webp": 1,
+   "assets/map/tiles": 9,
+   "assets/map/pins": 6
+  },
+  "mapImgsBroken": [],
+  "bgTiles": 0,
+  "pinEls": {
+   "catImgs": 0,
+   "imgsInMap": 6,
+   "mapSrcs": [
+    "assets/map/pins/r0.d9116dfc17.webp",
+    "assets/map/pins/r2.93c754ce03.webp",
+    "assets/map/pins/r1.01483b69cd.webp",
+    "assets/map/pins/r3.fe8ac6af61.webp",
+    "assets/map/pins/r4.33f29f8bdb.webp",
+    "assets/map/pins/r5.21a67152b2.webp"
+   ]
+  },
+  "zoomed": {
+   "catImgs": 0,
+   "catSrcs": [],
+   "broken": 0
+  },
+  "finalImg404": 0,
+  "requestCount": 62
+ },
+ "staging": {
+  "prodRequests": [],
+  "supabaseHosts": {
+   "axzlshimvtskkxknlwoz": 5
+  },
+  "manifest": [
+   "http://127.0.0.1:8102/staging-no-remote-map/manifest.json"
+  ],
+  "img404": [],
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "cspViolations": 0,
+  "manifestStatus": 404,
+  "stagingGuard": {
+   "db": 3,
+   "blocked": 0,
+   "log": []
+  },
+  "title": "[STAGING] Tripoli Points",
+  "mapRemote": "staging-no-remote-map/",
+  "mapOn": null,
+  "merchantsLoaded": 8,
+  "mapImgs": {
+   "assets/map/art.webp": 1,
+   "assets/map/tiles": 9,
+   "assets/map/pins": 6
+  },
+  "mapImgsBroken": [],
+  "bgTiles": 0,
+  "pinEls": {
+   "catImgs": 0,
+   "imgsInMap": 6,
+   "mapSrcs": [
+    "assets/map/pins/r0.d9116dfc17.webp",
+    "assets/map/pins/r2.93c754ce03.webp",
+    "assets/map/pins/r1.01483b69cd.webp",
+    "assets/map/pins/r3.fe8ac6af61.webp",
+    "assets/map/pins/r4.33f29f8bdb.webp",
+    "assets/map/pins/r5.21a67152b2.webp"
+   ]
+  },
+  "zoomed": {
+   "catImgs": 0,
+   "catSrcs": [],
+   "broken": 0
+  },
+  "finalImg404": 0,
+  "requestCount": 58
+ }
+}
