@@ -1,0 +1,9 @@
+# STAGING branch only (staging-netlify). Not on main; the live site is not built from this branch.
+# The build stops unless the Netlify site sets TP_STAGING_SITE=yes, so a branch deploy of the live site fails
+# instead of publishing. See staging/README.md.
+[build]
+  command = "node staging/build-staging.mjs"
+  publish = "dist-staging"
+
+[build.environment]
+  NODE_VERSION = "20"

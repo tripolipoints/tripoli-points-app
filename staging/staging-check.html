@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Staging check</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1b1f; --mut:#5c5c66; --ok:#1b7f3b; --bad:#c62828; --line:#e3e3e8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141418; --fg:#ececf1; --mut:#a3a3ad; --ok:#58c47c; --bad:#ff6b6b; --line:#2c2c34; } }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, system-ui, sans-serif; }
+  h1 { font-size:20px; margin:0 0 4px; } p { color:var(--mut); margin:0 0 16px; }
+  table { width:100%; border-collapse:collapse; } td { padding:10px 6px; border-top:1px solid var(--line); vertical-align:top; }
+  td:first-child { width:46%; } .ok { color:var(--ok); font-weight:600; } .bad { color:var(--bad); font-weight:600; }
+  button { font:inherit; padding:10px 16px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--fg); }
+</style>
+</head>
+<body>
+<h1>Tripoli Points: Staging check</h1>
+<p>Run before any QR or transaction test. Every row must be green.</p>
+<table id="t"></table>
+<p style="margin-top:16px"><button onclick="run()">Run again</button> <a href="./">Open the Staging app</a></p>
+<script>
+const STAGING = 'https://axzlshimvtskkxknlwoz.supabase.co', PROD = 'https://lqbhfkowqaqlgcrdybvv.supabase.co';
+const row = (k, ok, v) => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${k}</td><td class="${ok ? 'ok' : 'bad'}">${ok ? 'PASS' : 'FAIL'} · ${v}</td>`; document.getElementById('t').appendChild(tr); };
+async function run() {
+  document.getElementById('t').innerHTML = '';
+  let info = null;
+  try { info = await (await fetch('staging-build.json', { cache: 'no-store' })).json(); } catch (e) {}
+  row('Build is a Staging build', !!info && info.environment === 'staging', info ? `commit ${String(info.commit).slice(0,7)}, ${info.built}` : 'staging-build.json missing');
+  row('Build targets Staging Supabase', !!info && info.supabase === STAGING, info ? info.supabase : '-');
+  // the app page itself must name only Staging
+  let html = '';
+  try { html = await (await fetch('./', { cache: 'no-store' })).text(); } catch (e) {}
+  const m = html.match(/const SB_URL='([^']+)'/);
+  row('App page connects to', !!m && m[1] === STAGING, m ? m[1] : 'not found');
+  // the browser must refuse any Production database request (Content-Security-Policy)
+  let blocked = false;
+  try { await fetch(PROD + '/rest/v1/', { method: 'HEAD', mode: 'no-cors', cache: 'no-store' }); } catch (e) { blocked = true; }
+  row('Production database is unreachable from this site', blocked, blocked ? 'request refused by the browser' : 'REQUEST WAS ALLOWED: stop testing');
+  // Staging must answer (any HTTP answer proves the host is reachable; no key or data is used)
+  let reach = false;
+  try { await fetch(STAGING + '/auth/v1/health', { mode: 'no-cors', cache: 'no-store' }); reach = true; } catch (e) {}
+  row('Staging Supabase is reachable', reach, reach ? STAGING.replace('https://', '') : 'no answer');
+}
+run();
+</script>
+</body>
+</html>
