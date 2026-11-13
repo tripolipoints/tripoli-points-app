@@ -49,7 +49,7 @@
 | `main` | `a54a85c` | V3.7.4 (لم يُلمس) |
 | `staging-netlify` | `4ff9ace` (دُفع قبل قيد Netlify: `6051518` و`ecea639` و`4ff9ace`) | V3.7.4 مع ملفات بناء Staging، و`staging/STAGING-LOG.md` محدّث حتى 3-ب |
 | `staging/b3-client` | `4ff9ace` | التطبيق مع الجلسات (`staging/b3-client.js` مدمج قبل `</body>`) |
-| `feature/secure-purchase-sql` | (انظر آخر commit) | كل ملفات SQL والاختبارات (`security/`) |
+| `feature/secure-purchase-sql` | `2dc6b1e` (+ هذا التحديث) | كل ملفات SQL والاختبارات (`security/`) |
 
 ## 3. ما نُفّذ فعلياً على Staging (كله عبر MCP، مسجّل في `tp_backup.migration_log`)
 
