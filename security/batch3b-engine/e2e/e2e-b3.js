@@ -204,6 +204,26 @@ function serve(root, port) {
   check('employee cannot open owner functions (staff list)', staffBlocked);
   await shot(ps, '9-staff');
 
+  // ---- 7b. complaints: the customer reports a purchase he did not make; the admin reviews it ----
+  await pc2.evaluate(() => payClose()); await pc2.evaluate(() => payOpen()); await W(1200);
+  const s3 = await pc2.evaluate(() => { const el = [...document.querySelectorAll('#paySheet .ltr')].find(e => /^\d{4}-\d{4}$/.test(e.textContent.trim())); return el ? el.textContent.trim() : null });
+  await pm.evaluate(() => { S.sub = 'new'; mfReset(); render() }); await W(300);
+  await pm.fill('#mfcode', s3); await pm.click('button:has-text("تحقق")'); await W(1000);
+  await pm.evaluate(() => { S.mf.items = [{ n: 'صنف', p: '30', q: 1 }]; S.mf.redeem = true; return mfNext() }); await W(1200);
+  await pm.evaluate(() => mfSend()); await W(3500);
+  const tx4 = sql1(`select id from public.pos_transactions where customer_phone='${C2}' and status='PENDING'`);
+  const held4 = sql1(`select coalesce(sum(pts),0) from public.allowance_holds where tx_id='${tx4}' and status='held'`);
+  await pc2.click('#paySheet button:has-text("أبلغ")'); await W(400); await pc2.click('#rrGo'); await W(1500);
+  check('customer reports a pending purchase: it is cancelled and the branch reservation returned',
+    !!tx4 && held4 !== '0' && sql1(`select status from public.pos_transactions where id='${tx4}'`) === 'CANCELLED' && sql1(`select status from public.allowance_holds where tx_id='${tx4}' limit 1`) === 'released',
+    `held ${held4}`);
+  pa.once('dialog', d => d.accept('تمت مراجعة العملية مع المحل'));
+  await pa.evaluate(() => aRepOpen()); await W(1200);
+  check('admin sees the open report', await pa.evaluate(() => S.b3a.feed && S.b3a.feed.reports.some(r => r.status === 'open')));
+  await shot(pa, '10-admin-reports');
+  await pa.click('button:has-text("تمت المراجعة")'); await W(1500);
+  check('admin resolves it; the customer receives a notification', sql1(`select count(*) from public.customer_notes where customer_phone='${C2}' and title like 'راجعت الإدارة بلاغك%'`) === '1');
+
   // ---- 8. attacks with the public key from a browser console ----
   const atk = async (page, fn, args) => page.evaluate(([f, a]) => sb.rpc(f, a).then(r => r.error ? 'refused: ' + (r.error.message || '').slice(0, 60) : 'EXECUTED ' + JSON.stringify(r.data).slice(0, 80)), [fn, args]);
   const cTok = await pc.evaluate(() => S.sess.token), mTok = await pm.evaluate(() => S.sess.token);

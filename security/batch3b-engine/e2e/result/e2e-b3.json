@@ -1,7 +1,7 @@
 {
- "db": "e2e_b3",
- "pass": 45,
- "total": 45,
+ "db": "e2e_b3e",
+ "pass": 50,
+ "total": 50,
  "results": [
   {
    "name": "register: customer created and in the app with a server session",
@@ -91,7 +91,7 @@
   {
    "name": "customer: pay code shown (QR + 8-digit fallback, 5 minutes)",
    "ok": true,
-   "detail": "3564-9612"
+   "detail": "3557-3804"
   },
   {
    "name": "shop: purchase form asks for the customer code (no phone field)",
@@ -174,6 +174,21 @@
    "detail": ""
   },
   {
+   "name": "customer reports a pending purchase: it is cancelled and the branch reservation returned",
+   "ok": true,
+   "detail": "held 97"
+  },
+  {
+   "name": "admin sees the open report",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "admin resolves it; the customer receives a notification",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "blocked: v2 admin call without a session",
    "ok": true,
    "detail": "refused: TP_SESSION_EXPIRED"
@@ -201,7 +216,7 @@
   {
    "name": "blocked: confirm someone else's purchase with another customer session",
    "ok": true,
-   "detail": "EXECUTED {\"ok\":false,\"error\":\"not_found\",\"message\":\"العملية غير موجودة\"}"
+   "detail": "refused: invalid input syntax for type uuid: \"fee37ff1-90c8-4ed8-a20b"
   },
   {
    "name": "balances unchanged by the attacks",
@@ -209,9 +224,19 @@
    "detail": "145 / 1840"
   },
   {
-   "name": "KNOWN (until close-old): legacy admin_list_customers still reachable with the public key",
+   "name": "old functions closed: admin_list_customers and create_transaction refused to the public key",
    "ok": true,
-   "detail": "EXECUTED [{\"at\":1794601017220,\"src\":null"
+   "detail": "refused: permission denied for function admin_list_customers | refused: permission denied for function create_transaction"
+  },
+  {
+   "name": "screen sweep (admin 6 tabs + 8 pages, shop 4 tabs + 7 pages, customer tabs): every server call succeeds",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "screen sweep: the calls went to session functions (no old account function used)",
+   "ok": true,
+   "detail": "customer_transactions_v2 customer_notes_list_v2 admin_list_merchants_v2 admin_topup_orders_v2 admin_list_customers_v2 merchant_transactions_v2 merchant_notes_list_v2 merchant_wallet_v2 merchant_offers_v2 merchant_gallery_list list_active_offers_all customer_profile_v2"
   },
   {
    "name": "ledger = cached points for every customer",
@@ -496,12 +521,6 @@
   },
   {
    "who": "merchant",
-   "fn": "merchant_requests",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "merchant",
    "fn": "merchant_gallery_list",
    "status": 200,
    "err": null
@@ -658,12 +677,6 @@
   },
   {
    "who": "merchant",
-   "fn": "merchant_requests",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "merchant",
    "fn": "merchant_gallery_list",
    "status": 200,
    "err": null
@@ -695,12 +708,6 @@
   {
    "who": "merchant",
    "fn": "merchant_offers_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "merchant",
-   "fn": "merchant_requests",
    "status": 200,
    "err": null
   },
@@ -747,12 +754,6 @@
    "err": null
   },
   {
-   "who": "merchant",
-   "fn": "merchant_scan_code",
-   "status": 200,
-   "err": null
-  },
-  {
    "who": "customer",
    "fn": "customer_transactions_v2",
    "status": 200,
@@ -761,6 +762,12 @@
   {
    "who": "customer",
    "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
    "status": 200,
    "err": null
   },
@@ -803,12 +810,6 @@
   {
    "who": "merchant",
    "fn": "merchant_offers_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "merchant",
-   "fn": "merchant_requests",
    "status": 200,
    "err": null
   },
@@ -951,6 +952,18 @@
    "err": null
   },
   {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "staff",
    "fn": "get_app_text_settings",
    "status": 200,
@@ -965,18 +978,6 @@
   {
    "who": "staff",
    "fn": "list_merchants",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_transactions_v2",
-   "status": 200,
-   "err": null
-  },
-  {
-   "who": "customer",
-   "fn": "customer_notes_list_v2",
    "status": 200,
    "err": null
   },
@@ -1131,6 +1132,132 @@
    "err": "TP_FORBIDDEN"
   },
   {
+   "who": "customer2",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "report_tx",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_security_feed_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_resolve_report_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_security_feed_v2",
+   "status": 200,
+   "err": null
+  },
+  {
    "who": "customer",
    "fn": "admin_list_customers_v2",
    "status": 400,
@@ -1163,12 +1290,114 @@
   {
    "who": "customer",
    "fn": "customer_decide_tx_v2",
+   "status": 400,
+   "err": "invalid input syntax for type uuid: \"fee37ff1-90c8-4ed8-a20b-cd5fb2448db2"
+  },
+  {
+   "who": "customer",
+   "fn": "admin_list_customers",
+   "status": 401,
+   "err": "permission denied for function admin_list_customers"
+  },
+  {
+   "who": "customer",
+   "fn": "create_transaction",
+   "status": 401,
+   "err": "permission denied for function create_transaction"
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
    "status": 200,
    "err": null
   },
   {
    "who": "customer",
-   "fn": "admin_list_customers",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_list_merchants_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_topup_orders_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_list_customers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
    "status": 200,
    "err": null
   }

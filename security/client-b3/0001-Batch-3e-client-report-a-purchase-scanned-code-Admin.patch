@@ -1,0 +1,169 @@
+From 9c33c5d45cc9701abb018605ecce07e81f1ba6ed Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 13 Nov 2026 22:38:44 +0200
+Subject: [PATCH] =?UTF-8?q?Batch=203e=20client:=20report=20a=20purchase=20?=
+ =?UTF-8?q?/=20scanned=20code;=20Admin=20=C2=AB=D8=A7=D9=84=D8=A8=D9=84?=
+ =?UTF-8?q?=D8=A7=D8=BA=D8=A7=D8=AA=20=D9=88=D8=A7=D9=84=D8=AA=D9=86=D8=A8?=
+ =?UTF-8?q?=D9=8A=D9=87=D8=A7=D8=AA=C2=BB?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MQiHtCqTFkPf6M8uyKCabu
+---
+ index.html           | 37 +++++++++++++++++++++++++++++++++----
+ staging/b3-client.js | 37 +++++++++++++++++++++++++++++++++----
+ 2 files changed, 66 insertions(+), 8 deletions(-)
+
+diff --git a/index.html b/index.html
+index ddb0649..c310d93 100644
+--- a/index.html
++++ b/index.html
+@@ -6400,7 +6400,7 @@ function payDraw(state,st){const box=document.getElementById('paySheet');if(!box
+    const rows=[['الفاتورة',usd(t.invoice)],...(t.disc?[['خصم العرض','-'+usd(t.disc)]]:[]),['النقاط المستخدمة',fmt(t.redeemPts)+' نقطة'],['المطلوب دفعه',usd(t.net)],['النقاط الجديدة',fmt(t.earn)+' نقطة']];
+    box.innerHTML=`<h3>${E(t.mname||st.shop||'')}</h3><p class="muted">راجع التفاصيل ثم وافق. لا يتغيّر شيء قبل موافقتك.</p>
+     <div class="card" style="text-align:right">${rows.map(([a,b])=>`<div class="row" style="padding:6px 0"><span class="muted">${a}</span><b>${b}</b></div>`).join('')}</div>
+-    <button class="btn ok" ${payBusy?'disabled':''} onclick="payDecide(true)">نعم، أؤكد</button><button class="btn bad" style="margin-top:8px" ${payBusy?'disabled':''} onclick="payDecide(false)">لا، ألغِ العملية</button>`}
++    <button class="btn ok" ${payBusy?'disabled':''} onclick="payDecide(true)">نعم، أؤكد</button><button class="btn bad" style="margin-top:8px" ${payBusy?'disabled':''} onclick="payDecide(false)">لا، ألغِ العملية</button>${repLink(JSON.stringify(t.id))}`}
+   else if(state==='done')box.innerHTML=`<div class="chkc" style="background:${st.ok?'var(--ok)':'var(--bad)'};margin:6px auto">${st.ok?'✓':'✕'}</div><h3>${E(st.msg)}</h3><button class="btn blue" onclick="payClose()">تم</button>`}
+ window.payIssueAgain=()=>payIssue();
+ async function payStatus(){if(!payCode||payCode.state==='tx'||payCode.state==='done')return;const r=await tpS('customer_qr_status',{p_code_id:payCode.id},true);if(!r||!r.ok||!payCode)return;
+@@ -6450,7 +6450,7 @@ window.scanOpen=async function(){scanClose();const md=document.createElement('di
+       const r=window.jsQR(ctx.getImageData(0,0,w,hh).data,w,hh,{inversionAttempts:'attemptBoth'});if(r&&r.data){if(/^TPPAY1\./.test(r.data)){clearInterval(scT);await mfClaim(r.data)}else msg('هذا ليس رمز شراء من تطبيق الزبون')}}catch(e){}finally{busy=false}},300)}
+   catch(e){msg(e&&e.name==='NotAllowedError'?'لم يُسمح باستخدام الكاميرا. أدخل الرقم يدوياً.':'تعذّر فتح الكاميرا. أدخل الرقم يدوياً.')}};
+ function claimCard(){const f=S.mf,c=f.claim;
+-  if(c)return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${c.photo?`<img src="${E(c.photo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`:'<span class="avatar">👤</span>'}<div><b>${E(c.name||'زبون')}</b><div class="muted">تم التحقق من رمز الزبون</div></div></div><button class="btn ghost sm" onclick="S.mf.claim=null;S.mf.quote=null;render()">تغيير</button></div></div>`;
++  if(c)return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${c.photo?`<img src="${E(c.photo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`:'<span class="avatar">👤</span>'}<div><b>${E(c.name||'زبون')}</b><div class="muted">تم التحقق من رمز الزبون</div></div></div><button class="btn ghost sm" onclick="S.mf.claim=null;S.mf.quote=null;render()">تغيير</button></div><button class="btn ghost sm" style="color:var(--bad);margin-top:6px" onclick='reportTx(null,${JSON.stringify(c.id)})'>الشخص ليس صاحب الحساب؟ أبلغ</button></div>`;
+   return `<div class="card"><label class="muted">رمز الزبون</label><button class="btn blue" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 10px" onclick="scanOpen()">${QRS_IC} امسح رمز الزبون</button>
+    <div class="qrsRow"><input id="mfcode" inputmode="numeric" dir="ltr" placeholder="1234-5678" value="${E(f.codeIn)}" oninput="S.mf.codeIn=this.value"><button class="btn ghost" onclick="mfClaim(document.getElementById('mfcode').value)">تحقق</button></div>
+    <p class="small muted" style="margin:0">يطلب الزبون «رمز الشراء» من تطبيقه. الرمز يصلح 5 دقائق ولمرة واحدة.</p></div>`}
+@@ -6609,7 +6609,7 @@ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصي
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -6617,12 +6617,41 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+   return h};
+ 
++// ---------- 6b. complaints: report a purchase or a scanned code; Admin reviews reports and monitoring alerts ----------
++const RREASON=[['not_my_purchase','ليست عمليتي'],['wrong_amount','المبلغ غير صحيح'],['not_account_owner','الشخص ليس صاحب الحساب'],['other','سبب آخر']];
++window.reportTx=function(txId,codeId){const md=document.createElement('div');md.className='modal';md.id='repModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  md.innerHTML=`<div class="sheet"><h3>الإبلاغ عن مشكلة</h3><p class="muted">إذا كانت العملية بانتظار التأكيد تُلغى فوراً، وتراجع الإدارة البلاغ.</p>
++   ${RREASON.map(([k,l],i)=>`<label class="chk"><input type="radio" name="rr" value="${k}" ${(codeId?k==='not_account_owner':i===0)?'checked':''}> ${l}</label>`).join('')}
++   <div class="field"><input id="rrn" maxlength="300" placeholder="تفاصيل (اختياري)"></div>
++   <button class="btn bad" id="rrGo">إرسال البلاغ</button><button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إلغاء</button></div>`;
++  document.body.appendChild(md);
++  document.getElementById('rrGo').onclick=async()=>{const reason=(document.querySelector('input[name=rr]:checked')||{}).value||'other';
++    const r=await tpS('report_tx',{p_reason:reason,p_tx_id:txId||null,p_code_id:codeId||null,p_note:(document.getElementById('rrn').value||'').trim()||null});
++    if(!r)return;md.remove();if(!r.ok)return toast(r.message||'تعذّر إرسال البلاغ');toast('تم إرسال البلاغ إلى الإدارة');payClose();
++    if(S.mode==='customer')syncCustomerData(S.phone);else if(S.mode==='merchant'){mfReset();render();syncMerchantData(S.merchantId)}}};
++const repLink=id=>`<button class="btn ghost sm" style="margin-top:6px;color:var(--bad)" onclick='reportTx(${id},null)'>ليست عمليتي؟ أبلغ</button>`;
++const withReport=h=>(S.sess&&S.sess.role==='customer'&&typeof h==='string')?h.replace(/(onclick='decide\(("[0-9a-f-]{36}"),false\)'[^>]*>[^<]*<\/button>)/g,(x,a,id)=>a+repLink(id)):h;
++const origPendingBanner=pendingBanner;pendingBanner=function(){return withReport(origPendingBanner.apply(this,arguments))};
++const origPendOverlay=pendOverlay;pendOverlay=function(){return withReport(origPendOverlay.apply(this,arguments))};
++const REV={reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
++  scan_failed:'رموز غير صالحة',decide_hash_mismatch:'تفاصيل تغيّرت قبل التأكيد',qr_issue_limited:'طلب رموز كثيرة'};
++window.aRepOpen=async function(){S.sub='b3rep';S.b3a=S.b3a||{};S.b3a.feed=null;render();const r=await tpS('admin_security_feed_v2',{p_limit:200});S.b3a.feed=r;render()};
++function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات والتنبيهات')+'<p class="muted">جارٍ التحميل…</p>';
++  const rr=Object.fromEntries(RREASON),RS={open:'مفتوح',reviewed:'تمت المراجعة',dismissed:'مغلق'},reps=f.reports||[],ev=(f.events||[]).filter(e=>REV[e.event]).slice(0,60);
++  return atop('البلاغات والتنبيهات')+`<h3>البلاغات (${reps.filter(r=>r.status==='open').length} مفتوح)</h3>`
++  +(reps.length?reps.map(r=>`<div class="card"><div class="row"><b>${rr[r.reason]||E(r.reason)}</b><span class="pill">${RS[r.status]||E(r.status)}</span></div>
++     <div class="muted">${r.role==='customer'?'من زبون':'من محل'} · ${new Date(r.at).toLocaleString('ar-LB')}${r.note?' · '+E(r.note):''}</div>
++     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
++  +`<h3>تنبيهات المراقبة</h3><div class="card">${ev.map(e=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${REV[e.event]}</b> <span class="muted">${e.mname?E(e.mname):''}</span><div class="muted small">${new Date(e.at).toLocaleString('ar-LB')}</div></div>`).join('')||'<p class="muted">لا تنبيهات</p>'}</div>`}
++window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
++  const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
++
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+diff --git a/staging/b3-client.js b/staging/b3-client.js
+index 84c15c8..adbf8b9 100644
+--- a/staging/b3-client.js
++++ b/staging/b3-client.js
+@@ -112,7 +112,7 @@ function payDraw(state,st){const box=document.getElementById('paySheet');if(!box
+    const rows=[['الفاتورة',usd(t.invoice)],...(t.disc?[['خصم العرض','-'+usd(t.disc)]]:[]),['النقاط المستخدمة',fmt(t.redeemPts)+' نقطة'],['المطلوب دفعه',usd(t.net)],['النقاط الجديدة',fmt(t.earn)+' نقطة']];
+    box.innerHTML=`<h3>${E(t.mname||st.shop||'')}</h3><p class="muted">راجع التفاصيل ثم وافق. لا يتغيّر شيء قبل موافقتك.</p>
+     <div class="card" style="text-align:right">${rows.map(([a,b])=>`<div class="row" style="padding:6px 0"><span class="muted">${a}</span><b>${b}</b></div>`).join('')}</div>
+-    <button class="btn ok" ${payBusy?'disabled':''} onclick="payDecide(true)">نعم، أؤكد</button><button class="btn bad" style="margin-top:8px" ${payBusy?'disabled':''} onclick="payDecide(false)">لا، ألغِ العملية</button>`}
++    <button class="btn ok" ${payBusy?'disabled':''} onclick="payDecide(true)">نعم، أؤكد</button><button class="btn bad" style="margin-top:8px" ${payBusy?'disabled':''} onclick="payDecide(false)">لا، ألغِ العملية</button>${repLink(JSON.stringify(t.id))}`}
+   else if(state==='done')box.innerHTML=`<div class="chkc" style="background:${st.ok?'var(--ok)':'var(--bad)'};margin:6px auto">${st.ok?'✓':'✕'}</div><h3>${E(st.msg)}</h3><button class="btn blue" onclick="payClose()">تم</button>`}
+ window.payIssueAgain=()=>payIssue();
+ async function payStatus(){if(!payCode||payCode.state==='tx'||payCode.state==='done')return;const r=await tpS('customer_qr_status',{p_code_id:payCode.id},true);if(!r||!r.ok||!payCode)return;
+@@ -162,7 +162,7 @@ window.scanOpen=async function(){scanClose();const md=document.createElement('di
+       const r=window.jsQR(ctx.getImageData(0,0,w,hh).data,w,hh,{inversionAttempts:'attemptBoth'});if(r&&r.data){if(/^TPPAY1\./.test(r.data)){clearInterval(scT);await mfClaim(r.data)}else msg('هذا ليس رمز شراء من تطبيق الزبون')}}catch(e){}finally{busy=false}},300)}
+   catch(e){msg(e&&e.name==='NotAllowedError'?'لم يُسمح باستخدام الكاميرا. أدخل الرقم يدوياً.':'تعذّر فتح الكاميرا. أدخل الرقم يدوياً.')}};
+ function claimCard(){const f=S.mf,c=f.claim;
+-  if(c)return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${c.photo?`<img src="${E(c.photo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`:'<span class="avatar">👤</span>'}<div><b>${E(c.name||'زبون')}</b><div class="muted">تم التحقق من رمز الزبون</div></div></div><button class="btn ghost sm" onclick="S.mf.claim=null;S.mf.quote=null;render()">تغيير</button></div></div>`;
++  if(c)return `<div class="card"><div class="row"><div style="display:flex;gap:10px;align-items:center">${c.photo?`<img src="${E(c.photo)}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">`:'<span class="avatar">👤</span>'}<div><b>${E(c.name||'زبون')}</b><div class="muted">تم التحقق من رمز الزبون</div></div></div><button class="btn ghost sm" onclick="S.mf.claim=null;S.mf.quote=null;render()">تغيير</button></div><button class="btn ghost sm" style="color:var(--bad);margin-top:6px" onclick='reportTx(null,${JSON.stringify(c.id)})'>الشخص ليس صاحب الحساب؟ أبلغ</button></div>`;
+   return `<div class="card"><label class="muted">رمز الزبون</label><button class="btn blue" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 10px" onclick="scanOpen()">${QRS_IC} امسح رمز الزبون</button>
+    <div class="qrsRow"><input id="mfcode" inputmode="numeric" dir="ltr" placeholder="1234-5678" value="${E(f.codeIn)}" oninput="S.mf.codeIn=this.value"><button class="btn ghost" onclick="mfClaim(document.getElementById('mfcode').value)">تحقق</button></div>
+    <p class="small muted" style="margin:0">يطلب الزبون «رمز الشراء» من تطبيقه. الرمز يصلح 5 دقائق ولمرة واحدة.</p></div>`}
+@@ -321,7 +321,7 @@ function aAllowV(){const a=(S.b3a||{}).ma||{},m=M(a.mid)||{};return atop('رصي
+ window.aAllowAdj=async function(){const a=S.b3a.ma,d=parseInt($('#mad').value),v=parseInt($('#mav').value),n=$('#man').value;if(!d||!n||n.trim().length<3)return toast('أدخل العدد والسبب');if(!confirm(`تعديل رصيد قبول الفرع بمقدار ${d} نقطة؟`))return;
+   const r=await tpS('admin_allowance_adjust_v2',{p_merchant_id:a.mid,p_points:d,p_valid_days:d>0?v:null,p_note:n});if(r&&r.ok){toast('تم');aAllowOpen(a.mid)}else if(r)toast(r.error==='insufficient'?'الرصيد غير كافٍ':r.error)};
+ const origAdminView=adminView;
+-adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV}[S.sub];
++adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAuditV,b3cpts:aCustPtsV,b3mallow:aAllowV,b3rep:aRepV}[S.sub];
+   if(V&&S.sess&&S.sess.role==='admin'){const sub=S.sub;S.sub=null;const h=origAdminView.apply(this,arguments);S.sub=sub;const k=h.indexOf('<div class="nav');
+     const head=`<div class="top">${logo()}<button class="btn ghost sm" onclick="logout()">خروج</button></div>`;
+     return `<div class="scr">${head}${V()}</div>`+(k>0?h.slice(k):'')}
+@@ -329,12 +329,41 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
+   if(S.sess&&S.sess.role==='admin'){
+     if(!S.sub&&(S.tab==='ao'||!S.tab)){const g=`<h3>النقاط والاشتراكات</h3><div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <button class="btn ghost" onclick="aPayOpen('pending')">💳 طلبات الدفع</button><button class="btn ghost" onclick="aCatOpen()">📦 الاشتراكات والباقات</button>
+-      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button></div>`;
++      <button class="btn ghost" onclick="aEngOpen()">⚙️ إعدادات النقاط والحدود</button><button class="btn ghost" onclick="aAuditOpen()">🧾 سجل التدقيق</button><button class="btn ghost" style="grid-column:1/-1" onclick="aRepOpen()">🚩 البلاغات والتنبيهات</button></div>`;
+       const k=h.indexOf('<div class="nav');h=k>0?h.slice(0,h.lastIndexOf('</div>',k))+g+h.slice(h.lastIndexOf('</div>',k)):h}
+     if(!S.sub&&S.tab==='am')h=h.replace(/onclick="openMerchantMap\('([0-9a-f-]{36})'\)">الخريطة<\/button>/g,(x,id)=>x+`<button class="btn ghost sm" style="padding:2px 8px" onclick="aAllowOpen('${id}')">رصيد القبول</button>`);
+     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
+   return h};
+ 
++// ---------- 6b. complaints: report a purchase or a scanned code; Admin reviews reports and monitoring alerts ----------
++const RREASON=[['not_my_purchase','ليست عمليتي'],['wrong_amount','المبلغ غير صحيح'],['not_account_owner','الشخص ليس صاحب الحساب'],['other','سبب آخر']];
++window.reportTx=function(txId,codeId){const md=document.createElement('div');md.className='modal';md.id='repModal';md.onclick=e=>{if(e.target===md)md.remove()};
++  md.innerHTML=`<div class="sheet"><h3>الإبلاغ عن مشكلة</h3><p class="muted">إذا كانت العملية بانتظار التأكيد تُلغى فوراً، وتراجع الإدارة البلاغ.</p>
++   ${RREASON.map(([k,l],i)=>`<label class="chk"><input type="radio" name="rr" value="${k}" ${(codeId?k==='not_account_owner':i===0)?'checked':''}> ${l}</label>`).join('')}
++   <div class="field"><input id="rrn" maxlength="300" placeholder="تفاصيل (اختياري)"></div>
++   <button class="btn bad" id="rrGo">إرسال البلاغ</button><button class="btn ghost" style="margin-top:8px" onclick="this.closest('.modal').remove()">إلغاء</button></div>`;
++  document.body.appendChild(md);
++  document.getElementById('rrGo').onclick=async()=>{const reason=(document.querySelector('input[name=rr]:checked')||{}).value||'other';
++    const r=await tpS('report_tx',{p_reason:reason,p_tx_id:txId||null,p_code_id:codeId||null,p_note:(document.getElementById('rrn').value||'').trim()||null});
++    if(!r)return;md.remove();if(!r.ok)return toast(r.message||'تعذّر إرسال البلاغ');toast('تم إرسال البلاغ إلى الإدارة');payClose();
++    if(S.mode==='customer')syncCustomerData(S.phone);else if(S.mode==='merchant'){mfReset();render();syncMerchantData(S.merchantId)}}};
++const repLink=id=>`<button class="btn ghost sm" style="margin-top:6px;color:var(--bad)" onclick='reportTx(${id},null)'>ليست عمليتي؟ أبلغ</button>`;
++const withReport=h=>(S.sess&&S.sess.role==='customer'&&typeof h==='string')?h.replace(/(onclick='decide\(("[0-9a-f-]{36}"),false\)'[^>]*>[^<]*<\/button>)/g,(x,a,id)=>a+repLink(id)):h;
++const origPendingBanner=pendingBanner;pendingBanner=function(){return withReport(origPendingBanner.apply(this,arguments))};
++const origPendOverlay=pendOverlay;pendOverlay=function(){return withReport(origPendOverlay.apply(this,arguments))};
++const REV={reported:'بلاغ',alert_same_shop:'مشتريات متكررة في محل واحد',alert_merchant_rate:'عمليات كثيرة لمحل خلال ساعة',alert_customer_shops:'زبون في محلات كثيرة خلال ساعة',
++  scan_failed:'رموز غير صالحة',decide_hash_mismatch:'تفاصيل تغيّرت قبل التأكيد',qr_issue_limited:'طلب رموز كثيرة'};
++window.aRepOpen=async function(){S.sub='b3rep';S.b3a=S.b3a||{};S.b3a.feed=null;render();const r=await tpS('admin_security_feed_v2',{p_limit:200});S.b3a.feed=r;render()};
++function aRepV(){const f=(S.b3a||{}).feed;if(!f)return atop('البلاغات والتنبيهات')+'<p class="muted">جارٍ التحميل…</p>';
++  const rr=Object.fromEntries(RREASON),RS={open:'مفتوح',reviewed:'تمت المراجعة',dismissed:'مغلق'},reps=f.reports||[],ev=(f.events||[]).filter(e=>REV[e.event]).slice(0,60);
++  return atop('البلاغات والتنبيهات')+`<h3>البلاغات (${reps.filter(r=>r.status==='open').length} مفتوح)</h3>`
++  +(reps.length?reps.map(r=>`<div class="card"><div class="row"><b>${rr[r.reason]||E(r.reason)}</b><span class="pill">${RS[r.status]||E(r.status)}</span></div>
++     <div class="muted">${r.role==='customer'?'من زبون':'من محل'} · ${new Date(r.at).toLocaleString('ar-LB')}${r.note?' · '+E(r.note):''}</div>
++     ${r.status==='open'?`<div class="row" style="gap:6px;justify-content:flex-start;margin-top:8px"><button class="btn ok sm" onclick="aRepResolve('${r.id}','reviewed')">تمت المراجعة</button><button class="btn ghost sm" onclick="aRepResolve('${r.id}','dismissed')">إغلاق</button></div>`:''}</div>`).join(''):'<p class="muted">لا توجد بلاغات</p>')
++  +`<h3>تنبيهات المراقبة</h3><div class="card">${ev.map(e=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${REV[e.event]}</b> <span class="muted">${e.mname?E(e.mname):''}</span><div class="muted small">${new Date(e.at).toLocaleString('ar-LB')}</div></div>`).join('')||'<p class="muted">لا تنبيهات</p>'}</div>`}
++window.aRepResolve=async function(id,st){const n=prompt(st==='reviewed'?'ملاحظة للمُبلِّغ (اختياري):':'سبب الإغلاق (اختياري):');if(n===null)return;
++  const r=await tpS('admin_resolve_report_v2',{p_report_id:id,p_status:st,p_note:n.trim()||null});if(r&&r.ok){toast('تم، وأُرسل إشعار للمُبلِّغ');aRepOpen()}};
++
+ // ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+ const origSendToMerchant=sendToMerchant;
+ sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
+-- 
+2.43.0
+
