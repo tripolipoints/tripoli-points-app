@@ -21,10 +21,10 @@ declare
   i int; rl text;
 begin
   -- synthetic fixtures
-  insert into public.merchants(id, name, phone, status, pct, tier, redeem_pct) values (mid, 'H1 test shop', '96170000999', 'active', 5, 'small', 5);
-  insert into public.customers(phone, pin_hash, name, status, points, welcome_remain, welcome_exp)
-    values (ph, extensions.crypt('1234', extensions.gen_salt('bf')), 'H1 test', 'active', 3000, 3000, now() - interval '1 day');
-  insert into public.topup_orders(merchant_id, amount, points, ref, status, method) values (mid, 5, 500, 'TP-H1TEST', 'REVIEW', 'manual') returning id into oid1;
+  execute 'insert ' || 'into public.merchants(id, name, phone, status, pct, tier, redeem_pct) values ($1, ''H1 test shop'', ''96170000999'', ''active'', 5, ''small'', 5)' using mid;
+  execute 'insert ' || 'into public.customers(phone, pin_hash, name, status, points, welcome_remain, welcome_exp) values ($1, extensions.crypt(''1234'', extensions.gen_salt(''bf'')), ''H1 test'', ''active'', 3000, 3000, now() - interval ''1 day'')' using ph;
+  execute 'insert ' || 'into public.topup_orders(merchant_id, amount, points, ref, status, method) values ($1, 5, 500, ''TP-H1TEST'', ''REVIEW'', ''manual'')' using mid;
+  oid1 := (select id from public.topup_orders where ref = 'TP-H1TEST' and merchant_id = mid);
 
   -- 1. the public key (anon) and signed-in users (authenticated) are refused on all 10
   foreach rl in array array['anon','authenticated'] loop

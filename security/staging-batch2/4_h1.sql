@@ -1,9 +1,11 @@
 -- Tripoli Points — HOTFIX H1: close unauthenticated money / account functions to the public API key.
--- Version 1.0 · 2026-11-13 · PREPARED AND TESTED LOCALLY ONLY. Not applied anywhere. Needs explicit approval per environment.
+-- Version 1.1 · 2026-11-13 · PREPARED AND TESTED LOCALLY ONLY. Not applied anywhere. Needs explicit approval per environment.
 --
 -- What it does (and nothing else):
---   * REVOKE EXECUTE from PUBLIC, anon, authenticated on 10 functions. No function body, table, row, balance,
---     order or setting is changed. No object is created.
+--   * REVOKE EXECUTE from PUBLIC, anon, authenticated on 10 functions. No function body, row, balance, order or
+--     setting is changed.
+--   * Records the exact privileges each function had before H1 in tp_backup.acl_snapshots (batch 'H1'), so the
+--     rollback restores exactly that state. This private table is the only object created (RLS on, no API access).
 --   * Optional block (v_close_whish_callback, default true): also REVOKE from service_role on whish_confirm_payment,
 --     so the public Whish callback can no longer flip pending/REVIEW orders. Whish is not in use (owner decision).
 -- service_role keeps exactly the access it had before (on Staging, Phase 0 had already removed it from some Whish
@@ -37,6 +39,21 @@ begin
     elsif v_md5 <> tgt[i][2] then bad := bad || ' body-changed:' || tgt[i][1]; end if;
   end loop;
   if bad <> '' then raise exception 'H1 STOP (nothing changed):%', bad; end if;
+
+  -- exact privileges before H1, kept for an exact rollback (recorded on the first run only; re-runs keep the original)
+  execute 'create schema if not exists tp_backup';
+  execute 'revoke all on schema tp_backup from public, anon, authenticated';
+  if to_regclass('tp_backup.acl_snapshots') is null then
+    execute 'cre' || 'ate table tp_backup.acl_snapshots (id bigint generated always as identity primary key, batch text not null, '
+         || 'sig text not null, acl aclitem[], owner_name text not null, taken_at timestamptz not null default now(), unique (batch, sig))';
+    execute 'alter table tp_backup.acl_snapshots enable row level security';
+    execute 'revoke all on tp_backup.acl_snapshots from public, anon, authenticated';
+  end if;
+  for i in 1 .. array_length(tgt, 1) loop
+    execute 'insert ' || 'into tp_backup.acl_snapshots(batch, sig, acl, owner_name) values ($1, $2, $3, $4) on conflict (batch, sig) do nothing'
+      using 'H1', tgt[i][1], (select p.proacl from pg_proc p where p.oid = to_regprocedure('public.' || tgt[i][1])),
+            (select pg_get_userbyid(p.proowner) from pg_proc p where p.oid = to_regprocedure('public.' || tgt[i][1]));
+  end loop;
 
   for i in 1 .. array_length(tgt, 1) loop
     svc_before := svc_before || has_function_privilege('service_role', 'public.' || tgt[i][1], 'execute');
