@@ -46,6 +46,7 @@ const MAP={
 const STAFF_OK={merchant_transactions_v2:'history',merchant_scan_code:'sell',merchant_quote_v2:'sell',merchant_create_tx_v2:'sell',
   merchant_cancel_tx:'cancel',merchant_allowance_v2:'wallet',merchant_catalog_v2:'payments',merchant_payment_request_v2:'payments',
   merchant_payment_requests_v2:'payments',merchant_payment_cancel_v2:'payments',merchant_me_v2:'sell',session_logout:'sell'};
+const CLOSED={merchant_requests:()=>[],merchant_close_request:()=>({ok:true}),create_transaction:()=>({ok:false,error:'امسح رمز الزبون من تطبيقه'})};
 const LOGIN={customer_verify_pin:['customer_login','customer'],merchant_verify_pin:['merchant_login','merchant'],admin_verify_pin:['admin_login','admin']};
 const ERRS={TP_FORBIDDEN:'هذه العملية غير مسموحة لهذا الحساب',TP_LEDGER_ONLY:'لا يمكن تعديل الرصيد بهذه الطريقة'};
 const rawRpc=sbRpc;
@@ -80,6 +81,7 @@ sbRpc=async function(fn,args){args=args||{};
     if(m[0]==='merchant_transactions_v2'&&Array.isArray(r))r.forEach(t=>{t.phone=t.cref||'••'});
     return r}
   if(S.sess&&S.sess.staff&&/^merchant_/.test(fn))return null;            // staff: no owner-only legacy calls
+  if(S.sess&&CLOSED[fn])return CLOSED[fn]();                              // replaced by the purchase code: closed on the server
   return rawRpc(fn,args)};
 
 const origLogout=logout;
@@ -333,7 +335,9 @@ adminView=function(){const V={b3pay:aPayV,b3cat:aCatV,b3eng:aEngV,b3audit:aAudit
     if(!S.sub&&S.tab==='ac')h=h.replace(/<span class="ltr" style="font-weight:700">\+961 (\d{7,8})<\/span>/g,(x,p)=>x+` <button class="btn ghost sm" style="padding:1px 6px" onclick="aCustPts('${p}')">النقاط</button>`)}
   return h};
 
-// ---------- 7. the old purchase-by-phone path is not offered with a session ----------
+// ---------- 7. the old purchase-by-phone / request paths are not offered with a session ----------
+const origSendToMerchant=sendToMerchant;
+sendToMerchant=function(id){if(S.sess&&S.sess.role==='customer'){toast('اعرض «رمز الشراء» على المحل ليمسحه ويحضّر العملية');return payOpen()}return origSendToMerchant.apply(this,arguments)};
 const origCreateTx=createTx;
 createTx=function(){if(secureShop())return Promise.resolve('امسح رمز الزبون من تطبيقه');return origCreateTx.apply(this,arguments)};
 })();
