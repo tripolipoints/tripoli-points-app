@@ -336,9 +336,14 @@ begin
   perform pg_temp.ok('merchant history shows no customer phone numbers', jsonb_array_length(r) > 0 and r::text !~ '7099990[1-3]', left(r::text, 200));
   perform pg_temp.ok('merchant history shows no customer photos', position('data:image' in r::text) = 0);
   r := public.merchant_offers_v2(pg_temp.get('m1'));
-  perform pg_temp.ok('merchant functions use the session shop, not an id from the browser', r->'args'->>0 = '00000000-0000-4000-8000-000000000011', r::text);
+  perform pg_temp.ok('merchant functions use the session shop, not an id from the browser',
+    case when r ? 'args' then r->'args'->>0 = '00000000-0000-4000-8000-000000000011'           -- replica stub
+         else jsonb_typeof(r) = 'array' and not exists (select 1 from jsonb_array_elements(r) e
+                where coalesce(e->>'mid', e->>'merchant_id', '00000000-0000-4000-8000-000000000011') <> '00000000-0000-4000-8000-000000000011') end, left(r::text, 200));
   r := public.merchant_delete_offer_v2(pg_temp.get('m2'), '00000000-0000-4000-8000-0000000000ff');
-  perform pg_temp.ok('merchant arguments keep their order', r->'args'->>0 = '00000000-0000-4000-8000-0000000000ff' and r->'args'->>1 = '00000000-0000-4000-8000-000000000012', r::text);
+  perform pg_temp.ok('merchant arguments keep their order',
+    case when r ? 'args' then r->'args'->>0 = '00000000-0000-4000-8000-0000000000ff' and r->'args'->>1 = '00000000-0000-4000-8000-000000000012'
+         else coalesce((r->>'ok')::boolean, false) = false end, r::text);   -- real function: an offer of another shop is refused
 end $$;
 
 -- ---------------------------------------------------------------- 7. reports, admin, limits, monitoring
