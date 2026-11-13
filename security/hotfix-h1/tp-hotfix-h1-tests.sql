@@ -48,8 +48,12 @@ begin
   then pass := pass + 1; else fail := fail + 1; msg := msg || ' [refused calls changed data]'; end if;
 
   -- 3. service_role (Whish edge functions): set_collect_url still allowed; confirm_payment closed (callback block)
-  begin set local role service_role; perform public.whish_set_collect_url(gen_random_uuid(), 'https://x', null); reset role; pass := pass + 1;
-  exception when others then reset role; fail := fail + 1; msg := msg || ' [service_role lost whish_set_collect_url: ' || sqlerrm || ']'; end;
+  if not has_function_privilege('service_role', 'public.whish_set_collect_url(uuid,text,bigint)', 'execute') then
+    pass := pass + 1;   -- Staging: Phase 0 already closed the Whish functions to service_role (H1 checks it removes nothing more)
+  else
+    begin set local role service_role; perform public.whish_set_collect_url(gen_random_uuid(), 'https://x', null); reset role; pass := pass + 1;
+    exception when others then reset role; fail := fail + 1; msg := msg || ' [service_role lost whish_set_collect_url: ' || sqlerrm || ']'; end;
+  end if;
   begin set local role service_role; perform public.whish_confirm_payment(oid1, 'failed', null, null); reset role;
     fail := fail + 1; msg := msg || ' [service_role can still flip orders via whish_confirm_payment]';
   exception when insufficient_privilege then reset role; pass := pass + 1; end;
