@@ -1,0 +1,460 @@
+{
+ "label": "with-H1",
+ "db": "e2e_h1",
+ "pass": 30,
+ "total": 30,
+ "results": [
+  {
+   "name": "register: new number reaches «create PIN»",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register: PIN confirmed, welcome screen",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register: customer account created, in app",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register: PIN stored hashed and correct in DB",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register: welcome gift recorded",
+   "ok": true,
+   "detail": "3000/3000"
+  },
+  {
+   "name": "register: server calls",
+   "ok": true,
+   "detail": "merchant_check_phone customer_check_phone customer_register customer_transactions customer_notes_list list_active_offers_all customer_profile"
+  },
+  {
+   "name": "login: existing customer asked for PIN",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "login: wrong PIN refused",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "forgot PIN: support screen shown",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "forgot PIN: no server call (no self-reset by phone)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "login: correct PIN opens the app",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "merchant: PIN login",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "merchant: create purchase for the customer",
+   "ok": true,
+   "detail": "null"
+  },
+  {
+   "name": "merchant: manual transfer request submitted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer: confirms the purchase",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer: points credited once (3000 gift + 100 earned)",
+   "ok": true,
+   "detail": "3100 pts"
+  },
+  {
+   "name": "admin: PIN login",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "admin: top-up order list loads",
+   "ok": true,
+   "detail": "2 orders"
+  },
+  {
+   "name": "admin app: «approve» button on a REVIEW order",
+   "ok": true,
+   "detail": "order status now REVIEW; calls: admin_resolve_topup_order!401; toast: خطأ: permission denied for function admin_resolve_topup_order | تعذّر العملية"
+  },
+  {
+   "name": "admin app: direct «top up» button",
+   "ok": true,
+   "detail": "top-ups 50 -> 50; calls: admin_topup_merchant!401"
+  },
+  {
+   "name": "public key: approve someone's top-up order",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: credit a wallet",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: reset another customer's PIN",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: set another customer's PIN",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: grant gift points",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: mark an order paid (Whish confirm)",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: mark an order collected",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "public key: delete an order record",
+   "ok": true,
+   "detail": "refused: 42501 permission denied"
+  },
+  {
+   "name": "PIN still the customer's own after attacks",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "owner (SQL editor): approve verified order",
+   "ok": true,
+   "detail": "{\"ok\": true, \"mid\": \"11111111-1111-4111-8111-111111111111\", \"method\": \"manual\"}"
+  }
+ ],
+ "calls": [
+  {
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_register",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_profile",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_verify_pin",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_verify_pin",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_profile",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_verify_pin",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_wallet",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_offers",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "create_transaction",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_wallet",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_offers",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_request_manual_topup",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_verify_pin",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_profile",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "decide_transaction",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_transactions",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_notes_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "customer_profile",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "admin_verify_pin",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "admin_list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "admin_topup_orders",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "admin_list_customers",
+   "status": 200,
+   "err": null
+  },
+  {
+   "fn": "admin_resolve_topup_order",
+   "status": 401,
+   "err": "permission denied for function admin_resolve_topup_order"
+  },
+  {
+   "fn": "admin_topup_merchant",
+   "status": 401,
+   "err": "permission denied for function admin_topup_merchant"
+  },
+  {
+   "fn": "admin_resolve_topup_order",
+   "status": 401,
+   "err": "permission denied for function admin_resolve_topup_order"
+  },
+  {
+   "fn": "admin_topup_merchant",
+   "status": 401,
+   "err": "permission denied for function admin_topup_merchant"
+  },
+  {
+   "fn": "customer_reset_pin",
+   "status": 401,
+   "err": "permission denied for function customer_reset_pin"
+  },
+  {
+   "fn": "customer_set_pin",
+   "status": 401,
+   "err": "permission denied for function customer_set_pin"
+  },
+  {
+   "fn": "admin_grant_customer_gift",
+   "status": 401,
+   "err": "permission denied for function admin_grant_customer_gift"
+  },
+  {
+   "fn": "whish_confirm_payment",
+   "status": 401,
+   "err": "permission denied for function whish_confirm_payment"
+  },
+  {
+   "fn": "admin_mark_order_collected",
+   "status": 401,
+   "err": "permission denied for function admin_mark_order_collected"
+  },
+  {
+   "fn": "admin_delete_topup_order_only",
+   "status": 401,
+   "err": "permission denied for function admin_delete_topup_order_only"
+  }
+ ]
+}
