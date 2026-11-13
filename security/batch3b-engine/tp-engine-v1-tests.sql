@@ -94,7 +94,10 @@ do $$ declare r jsonb; got numeric; e text; begin
   perform public._pts_expire('79998004');
   perform pg_temp.ok('expiry: expired points removed, cached total synced, note', (select points from public.customers where phone = '79998004') = 300
     and exists (select 1 from public.customer_notes where customer_phone = '79998004' and title = 'انتهت صلاحية 800 نقطة'));
-  -- legacy function path (non-strict): a direct change is mirrored into the ledger
+  -- legacy function path (non-strict): a direct change is mirrored into the ledger. After the close-old step Staging runs
+  -- with engine_strict = 1; the transition mode is switched on for this rolled-back run only, and restored below.
+  perform pg_temp.set('strict0', (select value::text from public.app_settings where key = 'engine_strict'));
+  update public.app_settings set value = 0 where key = 'engine_strict';
   update public.customers set points = points + 200 where phone = '79998004';
   perform pg_temp.ok('guard (transition): a legacy +200 becomes a mirror batch valid 3 months',
     exists (select 1 from public.point_batches where customer_phone = '79998004' and kind = 'mirror' and initial = 200
@@ -104,7 +107,7 @@ do $$ declare r jsonb; got numeric; e text; begin
   update public.app_settings set value = 1 where key = 'engine_strict';
   e := pg_temp.err($q$update public.customers set points = points + 1000000 where phone = '79998004'$q$);
   perform pg_temp.ok('guard (strict): a direct balance change is refused', e like 'TP_LEDGER_ONLY%', e);
-  update public.app_settings set value = 0 where key = 'engine_strict';
+  update public.app_settings set value = pg_temp.get('strict0')::numeric where key = 'engine_strict';
 end $$;
 
 -- ---------------------------------------------------------------- 3. allowance rule
