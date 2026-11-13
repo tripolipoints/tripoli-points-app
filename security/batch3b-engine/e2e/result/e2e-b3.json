@@ -1,0 +1,1176 @@
+{
+ "db": "e2e_b3",
+ "pass": 45,
+ "total": 45,
+ "results": [
+  {
+   "name": "register: customer created and in the app with a server session",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "register: welcome gift = Admin setting, as its own ledger batch (7 days)",
+   "ok": true,
+   "detail": "welcome:3000"
+  },
+  {
+   "name": "session token is not stored in the browser",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "login: wrong PIN refused",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "login: correct PIN → app + session",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer home keeps Scan / Tripoli row and adds «رمز الشراء»",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "admin: login with server session",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "admin gift screen saves through the session (values unchanged: 3000 / 7)",
+   "ok": true,
+   "detail": "تم حفظ الإعدادات"
+  },
+  {
+   "name": "admin: transfer number and a (provisional) plan saved",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: login with server session",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: sees transfer number and the plan for its tier",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: transfer request pending",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: the same transfer reference cannot be sent twice",
+   "ok": true,
+   "detail": "رقم المرجع هذا مستعمل في طلب آخر"
+  },
+  {
+   "name": "admin: wrong amount → refused, nothing granted",
+   "ok": true,
+   "detail": "المبلغ المُتحقَّق منه لا يطابق الطلب"
+  },
+  {
+   "name": "admin: approval → branch allowance 2000 (subscription + 1 month carry-over)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "admin: the approved request leaves the pending list; approving again is refused",
+   "ok": true,
+   "detail": "{\"ok\":false,\"error\":\"already_decided\",\"status\":\"approved\"}"
+  },
+  {
+   "name": "admin: a second approval grants nothing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer: pay code shown (QR + 8-digit fallback, 5 minutes)",
+   "ok": true,
+   "detail": "3564-9612"
+  },
+  {
+   "name": "shop: purchase form asks for the customer code (no phone field)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: code verified",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: server quote — redeem = min(customer 3000, 5% of invoice = 100, tier 2500, branch 70% of 2000 = 1400) = 100; earn 95",
+   "ok": true,
+   "detail": "{\"ok\":true,\"net\":19,\"disc\":0,\"earn\":95,\"bonus\":0,\"invoice\":20,\"eligible\":19,\"offer_id\":null,\"redeem_max\":100,\"redeem_pts\":100,\"redeem_val\":1,\"today_count\":0,\"allowance_cap\":1400,\"customer_points\":3000}"
+  },
+  {
+   "name": "shop: purchase created (pending), 100 reserved on the branch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "shop: pressing send again does not create a second purchase",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer: the exact details appear for approval",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "customer: approval → CONFIRMED, points 3000 − 100 + 95 = 2995 (gift spent first, it expires first)",
+   "ok": true,
+   "detail": "2995"
+  },
+  {
+   "name": "branch allowance: 1900 left, reservation consumed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "second purchase of the day confirmed",
+   "ok": true,
+   "detail": "{\"ok\":true,\"net\":10,\"disc\":0,\"earn\":50,\"bonus\":0,\"invoice\":10,\"eligible\":10,\"offer_id\":null,\"redeem_max\":50,\"redeem_pts\":0,\"redeem_val\":0,\"today_count\":1,\"allowance_cap\":1330,\"customer_points\":2995}"
+  },
+  {
+   "name": "third purchase in the same branch the same day → refused by the server",
+   "ok": true,
+   "detail": "{\"ok\":false,\"error\":\"daily_limit\",\"message\":\"وصل الزبون إلى الحد اليومي للعمليات في هذا الفرع\"}"
+  },
+  {
+   "name": "customer «نقاطي»: batches with expiry dates",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "expired gift: removed at login, only earned points remain (95 + 50)",
+   "ok": true,
+   "detail": "145"
+  },
+  {
+   "name": "owner adds an employee (sell only)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "employee logs in to his branch",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "employee sale confirmed by the customer and recorded with the employee",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "employee cannot open owner functions (staff list)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "blocked: v2 admin call without a session",
+   "ok": true,
+   "detail": "refused: TP_SESSION_EXPIRED"
+  },
+  {
+   "name": "blocked: customer session approving a payment",
+   "ok": true,
+   "detail": "refused: TP_SESSION_EXPIRED"
+  },
+  {
+   "name": "blocked: shop session adding points to a customer",
+   "ok": true,
+   "detail": "refused: TP_SESSION_EXPIRED"
+  },
+  {
+   "name": "blocked: internal ledger helper",
+   "ok": true,
+   "detail": "refused: permission denied for function _pts_add"
+  },
+  {
+   "name": "blocked: internal allowance helper",
+   "ok": true,
+   "detail": "refused: permission denied for function _allow_add"
+  },
+  {
+   "name": "blocked: confirm someone else's purchase with another customer session",
+   "ok": true,
+   "detail": "EXECUTED {\"ok\":false,\"error\":\"not_found\",\"message\":\"العملية غير موجودة\"}"
+  },
+  {
+   "name": "balances unchanged by the attacks",
+   "ok": true,
+   "detail": "145 / 1840"
+  },
+  {
+   "name": "KNOWN (until close-old): legacy admin_list_customers still reachable with the public key",
+   "ok": true,
+   "detail": "EXECUTED [{\"at\":1794601017220,\"src\":null"
+  },
+  {
+   "name": "ledger = cached points for every customer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "audit log has the payment, plan and staff actions",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no JavaScript errors in any page",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "calls": [
+  {
+   "who": "customer",
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_register",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "session_logout",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_list_merchants_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_topup_orders_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_list_customers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_update_text_settings_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_pay_settings_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_plan_save_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_allowance_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_payment_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_payment_request_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_allowance_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_catalog_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_payment_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_payment_request_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_payment_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_payment_decide_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_payment_decide_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_payment_requests_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "admin",
+   "fn": "admin_payment_decide_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_decide_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_wallet_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_offers_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_requests",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_gallery_list",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_decide_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_points_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "session_logout",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_save_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "merchant",
+   "fn": "merchant_staff_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "staff_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "get_app_text_settings",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "get_categories",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "list_merchants",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "merchant_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_check_phone",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_login",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_issue",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "merchant_scan_code",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "merchant_quote_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "merchant_create_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_qr_status",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_decide_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "list_active_offers_all",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer2",
+   "fn": "customer_profile_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_transactions_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "customer_notes_list_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "staff",
+   "fn": "merchant_staff_list_v2",
+   "status": 400,
+   "err": "TP_FORBIDDEN"
+  },
+  {
+   "who": "customer",
+   "fn": "admin_list_customers_v2",
+   "status": 400,
+   "err": "TP_SESSION_EXPIRED"
+  },
+  {
+   "who": "customer",
+   "fn": "admin_payment_decide_v2",
+   "status": 400,
+   "err": "TP_SESSION_EXPIRED"
+  },
+  {
+   "who": "merchant",
+   "fn": "admin_points_adjust_v2",
+   "status": 400,
+   "err": "TP_SESSION_EXPIRED"
+  },
+  {
+   "who": "customer",
+   "fn": "_pts_add",
+   "status": 401,
+   "err": "permission denied for function _pts_add"
+  },
+  {
+   "who": "merchant",
+   "fn": "_allow_add",
+   "status": 401,
+   "err": "permission denied for function _allow_add"
+  },
+  {
+   "who": "customer",
+   "fn": "customer_decide_tx_v2",
+   "status": 200,
+   "err": null
+  },
+  {
+   "who": "customer",
+   "fn": "admin_list_customers",
+   "status": 200,
+   "err": null
+  }
+ ]
+}
