@@ -19,3 +19,7 @@ Added in 3h–3j (local branch commit `7fa4524`): Admin «إرجاع عملية�
 المهام الدورية», customer reactivation, permanent-closure decision; owner «الدوام والإغلاق», staff e-mail/password and device
 approvals; staff login = e-mail + password on a new device → owner approval → 6-digit PIN (device id kept in this browser's
 localStorage); customer «الخصوصية وحذف الحساب». E2E (real app, local copy with all migrations through 3j + e-mail prep): 70/70.
+
+Added 14/11 (security): `0004-Security-stored-XSS-fix-for-shop-logo-rendering.patch` — `tpSafeImgSrc()` (https or base64
+raster data:image only) + `esc()` in `tpStoreLogoHtml()`. Verified: patches 0001–0004 apply on `4ff9ace`; regression
+test `security/xss-logo/logo-xss-test.js` 10/10 on the patched app. Server side: `security/xss-logo/tp-logo-validate-v1.sql`.

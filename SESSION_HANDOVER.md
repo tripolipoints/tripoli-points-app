@@ -30,9 +30,9 @@
 - Production: نُفّذ التنظيف وأُنشئ 25 متجراً تجريبياً. التفاصيل في Notion.
 - إصلاح ثغرة الشعار في الواجهة على هذا الفرع: `tpSafeImgSrc` يقبل https أو `data:image` فقط، مع `esc()` في `tpStoreLogoHtml`.
   - اختبار الانحدار: `node security/xss-logo/logo-xss-test.js` → 10/10.
-  - **المتبقي:**
-    - تطبيقه على واجهة b3 (`security/client-b3`) وعلى main/Production بموافقة منفصلة.
-    - التحقق من جهة الخادم في `merchant_set_logo` (Staging ثم Production).
+  - **واجهة b3: تم.** `security/client-b3/0004-…patch`. الرقع 0001–0004 تُطبَّق على `4ff9ace`، والاختبار 10/10.
+  - **الخادم على Staging: تم.** `merchant_set_logo` يتحقق من الرابط (`security/xss-logo/tp-logo-validate-v1.sql`)، والاختبار بدور anon 11/11 مع إلغاء كامل. Staging لا يحوي أي شعارات.
+  - **المتبقي:** hotfix لـ main/Production (الواجهة + الخادم) بموافقة منفصلة. على Production شعار واحد مخزّن، من نوع `data:image/jpeg`، والتحقق الجديد يقبله.
 
 **ملاحظات منخفضة:**
 - `admin_reset_merchant_pin` يقبل PIN ضعيفاً (1111).
