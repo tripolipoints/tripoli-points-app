@@ -1,0 +1,19 @@
+diff --git a/index.html b/index.html
+index 3f2dfaf..936a470 100644
+--- a/index.html
++++ b/index.html
+@@ -2478,8 +2478,12 @@ const CATHD_IMG='assets/img/cat-header.b13351908d.jpg';
+ const CATFOOT_IMG='assets/img/cat-footer.a00792e9d4.jpg';
+ const logo=(d)=>`<div class="logo ${d?'dark':''}"><img class="lg-img" src="${PIN_T}" width="100" height="103" alt=""><div class="wm">Tripoli<i>Points</i></div></div>`;
+ // شعار المحل: إن لم يرفع التاجر شعاراً خاصاً به، نعرض شعار Tripoli Points بدلاً منه (بدل عدم عرض أي شيء كما كان سابقاً)
+-const tpStoreLogoSrc=m=>(m&&typeof m.logo==='string'&&m.logo.trim()?m.logo.trim():PIN_T);
+-const tpStoreLogoHtml=(m,cls='tp21-store-logo')=>`<img class="${cls}" src="${tpStoreLogoSrc(m)}" onerror="this.onerror=null;this.src=PIN_T" alt="شعار ${esc(m.name||'Tripoli Points')}">`;
++// Security (stored XSS fix): only https URLs or base64 raster data images are accepted as logos; anything else → default pin.
++const tpSafeImgSrc=u=>{if(typeof u!=='string')return'';u=u.trim();if(/["'<>`\s\\]/.test(u))return'';
++  if(/^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(u))return u;
++  try{const x=new URL(u);return x.protocol==='https:'?x.href:''}catch(e){return''}};
++const tpStoreLogoSrc=m=>(m&&tpSafeImgSrc(m.logo))||PIN_T;
++const tpStoreLogoHtml=(m,cls='tp21-store-logo')=>`<img class="${esc(cls)}" src="${esc(tpStoreLogoSrc(m))}"onerror="this.onerror=null;this.src=PIN_T" alt="شعار ${esc(m.name||'Tripoli Points')}">`;
+ const backBtn=to=>`<button class="back" onclick="go('${to}')">${ic('back',26)}</button>`;
+ const dt=ts=>{const d=new Date(ts);return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`};
+ const dtt=ts=>new Date(ts).toLocaleString('ar-EG-u-nu-latn',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});

@@ -32,7 +32,12 @@
   - اختبار الانحدار: `node security/xss-logo/logo-xss-test.js` → 10/10.
   - **واجهة b3: تم.** `security/client-b3/0004-…patch`. الرقع 0001–0004 تُطبَّق على `4ff9ace`، والاختبار 10/10.
   - **الخادم على Staging: تم.** `merchant_set_logo` يتحقق من الرابط (`security/xss-logo/tp-logo-validate-v1.sql`)، والاختبار بدور anon 11/11 مع إلغاء كامل. Staging لا يحوي أي شعارات.
-  - **المتبقي:** hotfix لـ main/Production (الواجهة + الخادم) بموافقة منفصلة. على Production شعار واحد مخزّن، من نوع `data:image/jpeg`، والتحقق الجديد يقبله.
+  - **Production (14/11 15:30): طُبّق إصلاح الخادم.** `merchant_set_logo` على `lqbhfkowqaqlgcrdybvv`.
+    - الاختبار بدور anon مع إلغاء كامل: 11/11.
+    - الصلاحيات كما هي، والبيانات سليمة: 28 تاجراً، زبون واحد، 3 أدمن، شعار واحد، 110 ملفات خريطة.
+    - الرجوع: `security/xss-logo/R_tp-logo-validate-v1-rollback-PRODUCTION.sql`.
+  - **واجهة Production: جاهزة وغير منشورة.** `security/xss-logo/main-index-hotfix.patch`، تُطبَّق على main @ `a54a85c` والاختبار 10/10. النشر يحتاج موافقة على main/Netlify. **الثغرة لا تُعتبر مغلقة قبل نشر الواجهة والتحقق منها.**
+  - (سابقاً) **المتبقي:** hotfix لـ main/Production (الواجهة + الخادم) بموافقة منفصلة. على Production شعار واحد مخزّن، من نوع `data:image/jpeg`، والتحقق الجديد يقبله.
 
 **ملاحظات منخفضة:**
 - `admin_reset_merchant_pin` يقبل PIN ضعيفاً (1111).
