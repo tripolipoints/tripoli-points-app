@@ -26,6 +26,14 @@
   - الخادم: قبول روابط https من تخزين المشروع فقط.
 - لا يُعتبر محلولاً بحذف الشعارات.
 
+**تحديث 14/11 مساءً:**
+- Production: نُفّذ التنظيف وأُنشئ 25 متجراً تجريبياً. التفاصيل في Notion.
+- إصلاح ثغرة الشعار في الواجهة على هذا الفرع: `tpSafeImgSrc` يقبل https أو `data:image` فقط، مع `esc()` في `tpStoreLogoHtml`.
+  - اختبار الانحدار: `node security/xss-logo/logo-xss-test.js` → 10/10.
+  - **المتبقي:**
+    - تطبيقه على واجهة b3 (`security/client-b3`) وعلى main/Production بموافقة منفصلة.
+    - التحقق من جهة الخادم في `merchant_set_logo` (Staging ثم Production).
+
 **ملاحظات منخفضة:**
 - `admin_reset_merchant_pin` يقبل PIN ضعيفاً (1111).
 - قفل PIN الأدمن موزّع على عدّادين: الدخول، والإعادة/المسح.
